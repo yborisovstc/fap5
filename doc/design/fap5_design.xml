@@ -1,0 +1,371 @@
+<?xml version="1.0" ?>
+
+<!DOCTYPE article SYSTEM "/usr/share/sgml/docbook/dtd/xml/4.5/docbookx.dtd">
+
+
+<article status="draft" class="specification"> <title>Discrete Events System framework (multiagents based) ver. 5. Design.</title>
+
+    <articleinfo>
+	<author><personname><firstname>Yuri</firstname><surname>Borisov</surname></personname>
+	    <email>yuri.borisov.v@gmail.com</email></author> 
+
+	<releaseinfo>Ver.0.01 at 21-Feb-2025</releaseinfo>
+
+	<abstract>
+	    <simpara>This document collects software desing for Discrete Events System (DES) framework ver 5.</simpara>
+	</abstract>
+
+	<revhistory>
+	    <revision> <revnumber>0.01</revnumber> <date>05-Mar-2020</date> <authorinitials>Yuri Borisov</authorinitials>
+		<revremark>Initial version</revremark> </revision>
+	</revhistory>
+
+    </articleinfo>
+
+    <bibliolist>
+	<title>References</title>
+
+	<biblioentry id="ref_incr_mut"> <abbrev>INCR_MUT</abbrev>
+	    <productname><ulink url="../../../fap-doc/doc_incr_syst_creation/index.html "/></productname>
+	    <title>Y.Borisov. Using incremental mutation process for systems modeling</title> </biblioentry>
+
+	<biblioentry id="ref_rfc_3986"> <abbrev>RFC_3986_URI</abbrev>
+	    <productname><ulink url="httpss://www.ietf.org/rfc/rfc3986.txt"/></productname>
+	    <title>RFC 3986: Uniform Resource Identifier (URI): Generic Syntax</title> </biblioentry>
+
+	<biblioentry id="ref_ss_cof"> <abbrev>SS_COF</abbrev>
+	    <productname>Local copy <ulink url="files://home/yborisov/Documents/Compilators/Konstruirovanie_Kompilyatorov.pdf"/></productname>
+	    <title>Sergey Swerdlov. Creating of compilators.</title> </biblioentry>
+    </bibliolist>
+
+    <glossary> <title>Glossary</title> 
+	<glossentry id="gls_adp"><glossterm>ADP</glossterm> <acronym>ADP</acronym>
+	    <glossdef> <para>
+		Agents DES adaPtorThe agent dedicated to adapt target agent interfaces to DES. Ref
+		    <ulink url="../../../grayb/doc/design/index.html#ds_dmm_adp"/> </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_asr"><glossterm>ASR</glossterm> <acronym>ASR</acronym>
+	    <glossdef> <para>
+		DES. Activation on system reconfiguration. The feature where DES is activated on the structure
+			reconfiguration. Ref
+		    <xref linkend="ds_asr"/> </para></glossdef>
+	</glossentry>
+
+
+	<glossentry id="gls_ascl"><glossterm>ASCL</glossterm>
+	    <glossdef> <para>
+		Agents specific chromo languge. The approach that allows specific mutations and even chromo syntax for some agents. Ref
+		    <xref linkend="ds_ascl"/> for details.</para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_cac"><glossterm>CAC</glossterm> <acronym>CP</acronym>
+	    <glossdef> <para>
+		Change As Chromo but not mutation.  Approach of representing model agents change. Ref
+		    <xref linkend="ds_adcm"/> for details.  Ref
+		    <xref linkend="gls_cam"/> for alternative approach. </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_cam"><glossterm>CAM</glossterm> <acronym>CP</acronym>
+	    <glossdef> <para>
+		Change As Mutation but not chromo. Approach of representing model agents change. Ref
+		    <xref linkend="ds_adcm"/> for details.  Ref
+		    <xref linkend="gls_cac"/> for alternative approach. </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_cp"><glossterm>CP</glossterm> <acronym>CP</acronym>
+	    <glossdef> <para>Connection Point. Element that is used as endpoint of connections between systems. </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_chromo2"><glossterm>CHROMO2</glossterm> <acronym>CP</acronym>
+	    <glossdef> <para>
+		Enhanced version of chromo language. Uses specific syntac instead of xml-based in the initial version. Ref
+		    <ulink url="../../../grayb/doc/design/index.html#ds_chr2"/> for details. </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_daa"><glossterm>DAA</glossterm> <acronym>DAA</acronym>
+	    <glossdef> <para>
+		Distributed Agents Approach.  Approach of multi-agent system that assumes that the modes is distributed among several environments that 
+			can be running on undependent executable enviromnents. Ref
+		    <xref linkend="ds_daa"/> </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_dce"><glossterm>DCE</glossterm> <acronym>DCE</acronym>
+	    <glossdef> <para>
+			Dedicated Content Element of native hier.  Approach of content support based on dedicated elements of native hier. Ref
+		    <xref linkend="ds_dce"/> for desing details </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_dcs"><glossterm>DCS</glossterm> <acronym>DCS</acronym>
+	    <glossdef> <para>
+			DES Control of System, the mechanism of managing some subsystem by DES. 
+		    <xref linkend="ds_dcs"/> for desing details </para></glossdef>
+	</glossentry>
+
+
+	<glossentry id="gls_ssp"><glossterm>SSP</glossterm>
+	    <glossdef><para>
+		DES Service Point. Mechanism the system provides to the "client" to update clents state depending on system context.
+		    <xref linkend="ds_ssp"/> for desing details </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_deds"><glossterm>DEDS</glossterm> <acronym>DEDS</acronym>
+	    <glossdef> <para>
+		Discrete Event Dynamic System,  a discrete-state, event-driven system of which the state evolution depends entirely
+		on the occurrence of asynchronous discrete events over time. Although similar to continuous-variable dynamic systems (CVDS),
+		DEDS consists solely of discrete state spaces and event-driven state transition mechanisms.  Ref
+		    <ulink url="https://en.wikipedia.org/wiki/Discrete_event_dynamic_system"/></para>
+		<glossseealso otherterm="gls_des"/> </glossdef>
+	</glossentry>
+
+	<glossentry id="gls_des"><glossterm>DES</glossterm> <acronym>DES</acronym>
+	    <glossdef> <para>
+		Discrete-Event Simulation - model of the operation of a system as a discrete sequence of events in time.
+		Each event occurs at a particular instant in time and marks a change of state in the system. Ref
+		    <ulink url="https://en.wikipedia.org/wiki/Discrete-event_simulation"/></para> <glossseealso otherterm="gls_deds"/>
+		<para>Also this abbreviation is designates Discrete Event System, the implementation of discrete-event simulation.</para>
+	    </glossdef>
+	</glossentry>
+
+	<glossentry id="gls_desas"><glossterm>DESAS</glossterm> <acronym>DESAS</acronym>
+	    <glossdef> <para>
+		Discrete Event System Active Subsystem, the part of discrete-event system that is implemented as
+			autonomous sub-system. Ref <xref linkend="ds_desas"/></para> for design.</glossdef>
+	    </glossentry>
+
+	    <glossentry id="gls_dhc"><glossterm>DHC</glossterm> <acronym>DHC</acronym>
+	    <glossdef> <para>Direct Hierarchical Chromosome</para> <para>
+		Approach of multi-agent system definition that describes the model's structure directly. 
+		Ref <xref linkend="ds_smc"/> for discussion regarding chromo desing approaches.
+		    Ref <xref linkend="gls_osm"/> for anoter design approach.</para></glossdef> </glossentry>
+
+	<glossentry id="gls_dmc"><glossterm>DMC</glossterm> <acronym>DHC</acronym>
+	    <glossdef> <para>Dependent Mutations Chromosome</para> <para>
+		Chromo definition approach when the mutation can have other mutaions (of node type) as the operands.
+		This approach helps defining the model with anonymous nodes that is especially effective for <xref linkend="gls_des"/> models.
+		    Ref <ulink url="../../../grayb/doc/design/index.html#gls_dmc"/> for original glossary. </para></glossdef> </glossentry>
+
+	<glossentry id="gls_ddmc"><glossterm>DDMC</glossterm> <acronym>DHC</acronym>
+	    <glossdef> <para>
+		Direct Dependent Mutations Chromosome structure.
+		Chromo structure that directly aligned to
+		    <xref linkend="gls_dmc"/>.
+			This approach allows to have single unified chromo representation.  Ref
+		    <ulink url="ds_cli_ddmc"/> for details.  </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_ccn"><glossterm>CCN</glossterm> <acronym>CCN</acronym>
+	    <glossdef> <para>
+		Compact (and customized) Chromo Notation, approach that focus on having compact notation of model chromo.
+		This allows effectivelly creating the model via 'manually' creating chromo of it. Another solution
+		is Native Chromo Notation, ref
+		    <xref linkend="gls_ncn"/>. </para></glossdef> </glossentry>
+
+	<glossentry id="gls_clm"><glossterm>CLM</glossterm> <acronym>CLM</acronym>
+	    <glossdef> <para>Command Line Monitor application <ulink url="../../../grayb/doc/design/index.html#gls_clm"/> for original glossary </para></glossdef> </glossentry>
+
+	<glossentry id="gls_cmt"><glossterm>CMT</glossterm> <acronym>CMT</acronym>
+	    <glossdef> <para>Combined Mutation Target.  The approach of specifying target in mutation spec when mutation target and change targets are
+		spedified separately. With this approach the target specified with two mutation attribute, ref also <xref linkend="gls_umt"/> for
+		    alternative approach.</para></glossdef> </glossentry>
+
+	<glossentry id="gls_cpa"><glossterm>CPA</glossterm> <acronym>CPA</acronym>
+	    <glossdef> <para>Connecting Proxy Agent.
+		The approach of agents design where dedicated embedded agents play the role of 
+		connection points of agent, i.e. doing all connecting relative work instead of agent.
+		In contrast of <xref linkend="gls_pia"/> connecting proxy agent provides interface
+		    resolution mechanism for the client, so the mechanism is distributed between multiple
+		    connecting agents in the model.  </para></glossdef> </glossentry>
+
+	<glossentry id="gls_dmm"><glossterm>DMM</glossterm> <acronym>DMM</acronym>
+	    <glossdef> <para>
+		DES Managing of Model.  The approach of using DES to manage the generic multi-agent model.
+		With this approach it is not needed to have some external native model managing entity, this managing entity
+		is implemented as managing DES model, ref also
+		    <xref linkend="ds_dmm"/> for details.</para></glossdef> </glossentry>
+
+	<glossentry id="gls_dri"><glossterm>DRI</glossterm> <acronym>DRI</acronym>
+	    <glossdef> <para>Direct Resolution of Interfaces</para> <para>
+		Design approach of resolving interfaces by agents. With that approach agent gets the iface provided by connpoint. 
+		This approach is the alternative of
+		    <xref linkend="gls_irm"/>.  Ref
+		    <xref linkend="ds_dri"/> for details. </para></glossdef> </glossentry>
+
+
+	<glossentry id="gls_eosm"><glossterm>EOSM</glossterm> <acronym>OSM</acronym>
+	    <glossdef> <para>
+		Extended Original Sequence of Mutations chromo language approach- 
+		The approach of models creation where the same mutation order is
+		used for model creation as on construction phase. This approach extends
+		    <xref linkend="gls_osm"/> in that, enables segments in mutation output chromo. Initial
+		    <xref linkend="gls_osm"/> solution just transormed hierarchical input chromo to flat structre (without segments) </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_fap2"><glossterm>FAP2</glossterm> <acronym>FAP2</acronym>
+	    <glossdef> <para>
+		Discrete Events System (DES) framework ver. 2 aka "grayb". Ref
+		    <ulink url="../../../grayb/doc/design/index.html"/> </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_irm"><glossterm>IRM</glossterm>
+	    <glossdef> <para>
+		Interface resolution mechanism. Ref for initial design
+		    <ulink url="../../../grayb/doc/design/index.html#ds_ifcache"/>
+			Alternative design approach is
+		    <xref linkend="gls_dri"/>
+	</para></glossdef> </glossentry>
+
+	<glossentry id="gls_irmc"><glossterm>IRMC</glossterm>
+	    <glossdef> <para>
+		Interface resolution mechanism with caching result. This solution reduces access to resolved ifaces, to increase
+		the model performance.  Ref
+		    <xref linkend="ds_irm_cr"/> for details.  </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_lsc"><glossterm>LSC</glossterm>
+	    <glossdef> <para>
+		Layered System Control. Controlling of DES specific approach where controlling part is isolated from controlled in separate "layer".
+		Ref
+		    <xref linkend="ds_dcs_sl"/> for details.  </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_mso"><glossterm>MSO</glossterm> <acronym>MSO</acronym>
+	    <glossdef> <para>
+			Managed Subsystem Owned, approach of <xref linkend="gls_lsc"/>
+			    where Owned subsystem is owned by managing subsystem. Ref
+		    <xref linkend="ds_dcs_sl_hil_s1"/>.
+	</para></glossdef> </glossentry>
+
+	<glossentry id="gls_ncn"><glossterm>NCN</glossterm> <acronym>NCN</acronym>
+	    <glossdef> <para>
+		Native Chromo Notation, approach that focus on very simple chromo notation, like
+		assembler. It is 'universal', less readable and more suitable for creating model with IDE. Another solution
+		is Compact Chromo Notation, ref
+		    <xref linkend="gls_ccn"/>.
+	</para></glossdef> </glossentry>
+
+	<glossentry id="gls_osm"><glossterm>OSM</glossterm> <acronym>OSM</acronym>
+	    <glossdef> <para>
+		Original Sequence of Mutations - 
+		The approach of models creation where the same mutation order is
+		used for model creation as on construction phase, ref
+		    <ulink url="../../../grayb/doc/design/index.html#ds_mut_osm"/>. Ref
+		    <xref linkend="gls_dhc"/> for another approach.  Ref also
+		    <xref linkend="gls_eosm"/> for extended solutions.
+	</para></glossdef> </glossentry>
+
+	<glossentry id="gls_odb"><glossterm>ODB</glossterm> <acronym>ODB</acronym>
+	    <glossdef> <para>
+		An object database or object-oriented database is a database management system in which information is represented
+		in the form of objects as used in object-oriented programming.
+		    <ulink url="https://en.wikipedia.org/wiki/Object_database"/> and
+		    <ulink url="https://www.service-architecture.com/articles/object-oriented-databases/"/>.
+	</para></glossdef> </glossentry>
+
+
+	<glossentry id="gls_orm"><glossterm>ORM</glossterm> <acronym>ORM</acronym>
+	    <glossdef> <para>
+		Object–relational mapping (ORM, O/RM, and O/R mapping tool) in computer science is a programming technique
+		for converting data between a relational database and the heap of an object-oriented programming language.
+		This creates, in effect, a virtual object database that can be used from within the programming language.
+		    <ulink url="https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping"/> and
+		    <ulink url="https://www.service-architecture.com/articles/object-oriented-databases/object-relational-mapping.html"/>.
+	</para></glossdef> </glossentry>
+
+	<glossentry id="gls_mae"><glossterm>MAE</glossterm>
+	    <glossdef> <para>
+		Using monodilic agent instead of embedded.  Optimization approach, where monolitic native agents instead of constructed agents.
+		    <xref linkend="ds_mae"/> </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_pia"><glossterm>PIA</glossterm> <acronym>PIA</acronym>
+	    <glossdef> <para>
+		Properties Instead of embedded auxiliary Agents
+		The approach of agents design where properties are using instead of auxiliary agents
+		in order to minimize the agents number, ref
+		    <xref linkend="ds_pia"/>. Ref <xref linkend="gls_cpa"/> for another connecting solution. </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_csl"><glossterm>CSL</glossterm> <acronym>CSL</acronym>
+	    <glossdef> <para>
+		Connecting Same Layer vertices -
+		Model creation policy of binding vertexes. According to this policy the only same layer
+		vertexes can be connected. The owner of the layer is respondible to verify the policy.
+		    <xref linkend="ds_conn_cwdl"/>.  </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_scc"><glossterm>SCC</glossterm> <acronym>SCC</acronym>
+	    <glossdef> <para>
+		State with Combined Chains. DES state design where data and observing chains are same.
+		    <xref linkend="ds_mae_scc"/>. Ref <xref linkend="gls_ssc"/> for another design solution.  </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_sdc"><glossterm>SDC</glossterm> <acronym>SDC</acronym>
+	    <glossdef> <para>
+		System DES controller. The mechanism of system structure update controlled by DES where the controlling DES "accesses"
+		to managed system structure via a number of specialized systems performing certain mutation. 
+		     Ref <xref linkend="gls_adp"/> for another design solution.</para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_sdo"><glossterm>SDO</glossterm> <acronym>SDO</acronym>
+	    <glossdef> <para>
+		System DES observer. The mechanism of system structure observing compatible with DES.
+		     Ref <xref linkend="ds_dcs_sdo"/> for details.</para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_slc"><glossterm>SLC</glossterm> <acronym>SCC</acronym>
+	    <glossdef> <para>
+		Sockets Loopback Connections. Socket design approach when loopback connections are supported
+		    <xref linkend="ds_ifcache_slc"/>. </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_ssc"><glossterm>SSC</glossterm> <acronym>SSC</acronym>
+	    <glossdef> <para>
+		State with Separate Chains. DES state design where data and observing chains are separated.
+		    <xref linkend="ds_mae_scc"/>. Ref <xref linkend="gls_scc"/> for another design solution.  </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_uac"><glossterm>UAC</glossterm> <acronym>UAC</acronym>
+	    <glossdef> <para>
+		Units for Auxiliary Components
+		The approach of agents design where "passive" units are used instead of agnents as
+		auxiliary components, ref
+		    <xref linkend="ds_uac"/>. Ref <xref linkend="gls_cpa"/>, <xref linkend="gls_pia"/> for other connecting solutions. </para></glossdef>
+	</glossentry>
+
+	<glossentry id="gls_umt"><glossterm>UMT</glossterm> <acronym>UMT</acronym>
+	    <glossdef> <para>
+		Unified Mutation Target.  The approach of specifying target in mutation spec.
+			With this approach the target specified with just one mutation attribute, ref
+		    <xref linkend="ds_umt"/>.  Ref <xref linkend="gls_cmt"/> for alternative approach.</para></glossdef>
+	</glossentry>
+    </glossary>
+
+    <sect1 id="ds_itr"><title>Intro</title>
+	<sect2 id="ds_itr_sp"><title>The scope of the project</title>
+	    <simpara>
+		This project is focusing on re-desing of DES framework fap3, ref
+		<ulink url="../../../fap3/doc/design/index.html"/> to improve the performance rate.
+	    </simpara>
+	    <simpara>
+		The main idea of how to achieve this is to get rid of <xref linkend="gls_irm"/>. IRM itself being very
+		    powerful design approach causes performance degradation in case of system massive re-configuration. Ref
+		<ulink url="../../../fap3/doc/design/index.html#ds_dri"/> for initial discussion.
+	    </simpara>
+	    <itemizedlist>
+		<listitem>
+			Avoid using <xref linkend="gls_irm"/>
+		</listitem>
+		<listitem>
+		    Apply local iface resolution basing on numeric type Id instead of string type Id.
+		</listitem>
+	    </itemizedlist>
+	</sect2>
+	<sect2 id="ds_itr_dp"><title>Dependent projects</title>
+	    <sect3 id="ds_itr_dp_fap3"><title>Predesessor, DES framework fap3, ref <ulink url="../../../fap3/doc/design/index.html"/></title>
+	    </sect3>
+	</sect2>
+    </sect1>
+
+</article>
+
