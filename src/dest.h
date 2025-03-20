@@ -11,7 +11,7 @@
 
 /** @brief Transition function base 
  * */ 
-class TrBase: public CpStateOutp, public MDVarGet, protected MDesInpObserver
+class TrBase: public CpStateOutp, public MDVarGet, public MDesInpObserver
 {
     public:
 	static const char* Type() { return "TrBase";}
@@ -37,6 +37,11 @@ class TrBase: public CpStateOutp, public MDVarGet, protected MDesInpObserver
 	 * */
 	template <class T> inline const T* GetInpData(CpStateInp* aInp, const T* aData);
 	virtual const DtBase* doVDtGet(const string& aType) { return nullptr;}
+	virtual CpStateInp* GetFinp(int aId) { return nullptr; }
+	int InpIcCount(const CpStateInp* aInp);
+	int InpIcCount(int aInpId);
+        MDVarGet* InpIc(const CpStateInp* aInp, int aIcId = 0);
+        MDVarGet* InpIc(int aInpId, int aIcId = 0);
     protected:
 	CpStateInp* AddInput(const string& aName);
 	bool mCInv;              //!< Sign of data cache invalidated
@@ -50,25 +55,11 @@ template <class T> inline const T* TrBase::GetInpData(CpStateInp* aInp, const T*
 {
     const T* data = nullptr;
 
-    MDVarGet* get =  aInp->mPairs.empty() ? nullptr : aInp->mPairs.at(0)->lIft<MDVarGet*>();
+    MDVarGet* get =  aInp->mPairs.empty() ? nullptr : aInp->mPairs.at(0)->lIft<MDVarGet>();
     data = get ? get->DtGet(data) : nullptr;
     if (get && !data) { // There already is the log in GetInps
         LOGN(EDbg, "Cannot get input [" + aInp->name() + "] data");
     }
-
-
-    /*
-    Func::TInpIc* Ic = GetInps(aInp);
-    if (Ic) {
-	auto* get = (Ic->size() == 1) ? Ic->at(0) : nullptr;
-	data = get ? get->DtGet(data) : nullptr;
-	if (get && !data) { // There already is the log in GetInps
-	    LOGN(EDbg, "Cannot get input [" + aInp.mName + "]");
-	}
-    }
-    */
-
-
     return data;
 }
 
@@ -87,12 +78,11 @@ class TrVar: public TrBase, public Func::Host
 	inline void log(int aCtg, const string& aMsg) override { LOGN(aCtg, aMsg); }
 	bool hostIsLogLevel(int aLevel) const override { return isLogLevel(aLevel);}
 	string getHostUri() const override { return getUriS(nullptr);}
-        int GetInpIcCount(int aInpId) override;
+	int GetInpIcCount(int aInpId) override;
         MDVarGet* GetInpIc(int aInpId, int aIcId = 0) override;
     protected:
 	// Local
 	virtual void Init(const string& aIfaceName);
-	virtual CpStateInp* GetFinp(int aId) { return nullptr; }
 	/** @brief Gets value of MDVarGet MDtGet input */
 	template<typename T> bool DtGetInp(T& aData, const string& aInpName);
 	/** @brief Gets value of MDVarGet MDtGet Sdata<T> input */
@@ -165,7 +155,7 @@ class TrSub2Var: public TrVar
 };
 
 
-
+#endif
 
 
 /** @brief Transition "Multiplication of Var data"
@@ -173,15 +163,16 @@ class TrSub2Var: public TrVar
 class TrMplVar: public TrVar
 {
     public:
-	static const char* Type() { return "TrMplVar";};
+	inline static constexpr std::string_view idStr() { return "TrMplVar"sv;}
 	TrMplVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From TrVar
-	virtual void Init(const string& aIfaceName) override;
-	virtual FInp* GetFinp(int aId) override;
-	virtual int GetInpCpsCount() const override {return 2;}
+	void Init(const string& aIfaceName) override;
+	CpStateInp* GetFinp(int aId) override;
+	int GetInpCpsCount() const override {return 2;}
     protected:
 	const static string K_InpInp;
-	FInp mInp;
+	CpStateInp* mInp = nullptr;
 };
 
 /** @brief Transition "Division of Var data"
@@ -189,17 +180,18 @@ class TrMplVar: public TrVar
 class TrDivVar: public TrVar
 {
     public:
-	static const char* Type() { return "TrDivVar";};
+	inline static constexpr std::string_view idStr() { return "TrDivVar"sv;}
 	TrDivVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From TrVar
-	virtual void Init(const string& aIfaceName) override;
-	virtual FInp* GetFinp(int aId) override;
-	virtual int GetInpCpsCount() const override {return 2;}
+	void Init(const string& aIfaceName) override;
+	CpStateInp * GetFinp(int aId) override;
+	int GetInpCpsCount() const override {return 2;}
     protected:
 	const static string K_InpInp;
 	const static string K_InpInp2;
-	FInp mInp;
-	FInp mInp2;
+	CpStateInp* mInp = nullptr;
+	CpStateInp* mInp2 = nullptr;
 };
 
 
@@ -209,14 +201,15 @@ class TrDivVar: public TrVar
 class TrMinVar: public TrVar
 {
     public:
-	static const char* Type() { return "TrMinVar";};
+	inline static constexpr std::string_view idStr() { return "TrMinVar"sv;}
 	TrMinVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From ATrVar
-	virtual void Init(const string& aIfaceName) override;
-	virtual FInp* GetFinp(int aId) override;
+	void Init(const string& aIfaceName) override;
+	CpStateInp* GetFinp(int aId) override;
     protected:
 	const static string K_InpInp;
-	FInp mInp;
+	CpStateInp* mInp = nullptr;
 };
 
 
@@ -225,14 +218,15 @@ class TrMinVar: public TrVar
 class TrMaxVar: public TrVar
 {
     public:
-	static const char* Type() { return "TrMaxVar";};
+	inline static constexpr std::string_view idStr() { return "TrMaxVar"sv;}
 	TrMaxVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From ATrVar
-	virtual void Init(const string& aIfaceName) override;
-	virtual FInp* GetFinp(int aId) override;
+	void Init(const string& aIfaceName) override;
+	CpStateInp* GetFinp(int aId) override;
     protected:
 	const static string K_InpInp;
-	FInp mInp;
+	CpStateInp* mInp = nullptr;
 };
 
 
@@ -241,19 +235,21 @@ class TrMaxVar: public TrVar
 class TrCmpVar: public TrVar
 {
     public:
-	static const char* Type() { return "TrCmpVar";};
+	inline static constexpr std::string_view idStr() { return "TrCmpVar"sv;}
 	TrCmpVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	FCmpBase::TFType GetFType();
-	virtual void Init(const string& aIfaceName) override;
-	virtual FInp* GetFinp(int aId) override;
-	virtual int GetInpCpsCount() const override {return 2;}
+	void Init(const string& aIfaceName) override;
+	CpStateInp* GetFinp(int aId) override;
+	int GetInpCpsCount() const override {return 2;}
     protected:
 	const static string K_InpInp;
 	const static string K_InpInp2;
-	FInp mInp;
-	FInp mInp2;
+	CpStateInp* mInp = nullptr;
+	CpStateInp* mInp2 = nullptr;
 };
 
+#if 0
 /** @brief Transition "Is equal"
  * */
 // TODO Not completed. To complete
@@ -272,23 +268,27 @@ class TrEqVar: public TrVar
 	FInp mInp2;
 };
 
-
+#endif
 
 /** @brief Agent function "Switcher"
  * */
 class TrSwitchBool: public TrBase
 {
     public:
-	static const char* Type() { return "TrSwitchBool";};
+	inline static constexpr std::string_view idStr() { return "TrSwitchBool"sv;}
 	TrSwitchBool(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
-	virtual const DtBase* doVDtGet(const string& aType) override;
-	virtual string VarGetIfid() const override;
+	void Construct() override;
+	const DtBase* doVDtGet(const string& aType) override;
+	string VarGetIfid() const override;
     protected:
 	MDVarGet* GetInp();
     protected:
-	FInp mInp1, mInp2, mSel;
+	CpStateInp* mInp1 = nullptr;
+	CpStateInp* mInp2 = nullptr;
+	CpStateInp* mSel = nullptr;
 	const static string K_InpInp1, K_InpInp2, K_InpSel;
 };
+
 
 /** @brief Agent function "Switcher" ver.2
  * Updated for solving desinp observing from non-selected inp, ref ds_dsps
@@ -308,16 +308,18 @@ class TrSwitchBool2: public TrBase
 	};
     friend class IobsPx;
     public:
-	static const char* Type() { return "TrSwitchBool2";};
+	inline static constexpr std::string_view idStr() { return "TrSwitchBool2"sv;}
 	TrSwitchBool2(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct();
 	virtual const DtBase* doVDtGet(const string& aType) override;
 	virtual string VarGetIfid() const override;
     protected:
-	virtual void resolveIfc(const string& aName, MIfReq::TIfReqCp* aReq) override;
 	MDVarGet* GetInp();
 	void notifyInpsUpdated(const IobsPx* aPx);
     protected:
-	FInp mInp1, mInp2, mSel;
+	CpStateInp* mInp1 = nullptr;
+	CpStateInp* mInp2 = nullptr;
+	CpStateInp* mSel = nullptr;
 	const static string K_InpInp1, K_InpInp2, K_InpSel;
 	bool mSelV = false;
 	bool mSelected = false;
@@ -333,11 +335,14 @@ class TrBool: public TrBase
 	TrBool(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
 	// From MDVarGet
 	virtual string VarGetIfid() const override { return TData::TypeSig();}
+	// From TrBase
+	CpStateInp* GetFinp(int aId) override { return (aId == EInp) ? mInp : nullptr; }
     protected:
-	FInp mInp;
+	CpStateInp* mInp = nullptr;
 	const static string K_InpInp;
 	TData mRes;
 };
+
 
 
 /** @brief Agent function "Boolena AND of Var data"
@@ -345,10 +350,9 @@ class TrBool: public TrBase
 class TrAndVar: public TrBool
 {
     public:
-	static const char* Type() { return "TrAndVar";};
+	inline static constexpr std::string_view idStr() { return "TrAndVar"sv;}
 	TrAndVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL): TrBool(aType, aName, aEnv) {}
-	virtual string parentName() const override { return Type(); }
-	virtual const DtBase* doVDtGet(const string& aType) override;
+	const DtBase* doVDtGet(const string& aType) override;
 };
 
 /** @brief Agent function "Boolena OR of Var data"
@@ -356,9 +360,9 @@ class TrAndVar: public TrBool
 class TrOrVar: public TrBool
 {
     public:
-	static const char* Type() { return "TrOrVar";};
+	inline static constexpr std::string_view idStr() { return "TrOrVar"sv;}
 	TrOrVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL): TrBool(aType, aName, aEnv) {}
-	virtual const DtBase* doVDtGet(const string& aType) override;
+	const DtBase* doVDtGet(const string& aType) override;
 };
 
 
@@ -367,11 +371,10 @@ class TrOrVar: public TrBool
 class TrNegVar: public TrBool
 {
     public:
-	static const char* Type() { return "TrNegVar";};
+	inline static constexpr std::string_view idStr() { return "TrNegVar"sv;}
 	TrNegVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL): TrBool(aType, aName, aEnv) {}
 	virtual const DtBase* doVDtGet(const string& aType) override;
 };
-
 
 /** @brief Transition agent "Convert to URI"
  * */
@@ -381,12 +384,13 @@ class TrToUriVar: public TrBase
 	using TRes = DGuri;
 	using TInp = Sdata<string>;
     public:
-	static const char* Type() { return "TrToUriVar";};
+	inline static constexpr std::string_view idStr() { return "TrToUriVar"sv;}
 	TrToUriVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	virtual string VarGetIfid() const override { return TRes::TypeSig();}
 	virtual const DtBase* doVDtGet(const string& aType) override;
     protected:
-	FInp mInp;
+	CpStateInp* mInp = nullptr;
 	const static string K_InpInp;
 	TRes mRes;
 };
@@ -397,14 +401,16 @@ class TrToUriVar: public TrBase
 class TrApndVar: public TrVar
 {
     public:
-	static const char* Type() { return "TrApndVar";}
+	inline static constexpr std::string_view idStr() { return "TrApndVar"sv;}
 	TrApndVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From ATrVar
-	virtual void Init(const string& aIfaceName) override;
-	virtual FInp* GetFinp(int aId) override;
+	void Init(const string& aIfaceName) override;
+	CpStateInp* GetFinp(int aId) override;
     protected:
 	const static string K_InpInp1, K_InpInp2;
-	FInp mInp1, mInp2;
+	CpStateInp* mInp1 = nullptr;
+	CpStateInp* mInp2 = nullptr;
 };
 
 /** @brief Transition agent "Select valid"
@@ -412,13 +418,15 @@ class TrApndVar: public TrVar
 class TrSvldVar: public TrBase
 {
     public:
-	static const char* Type() { return "TrSvldVar";};
+	inline static constexpr std::string_view idStr() { return "TrSvldVar"sv;}
 	TrSvldVar(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From MDVarGet
 	virtual string VarGetIfid() const override;
 	virtual const DtBase* doVDtGet(const string& aType) override;
     protected:
-	FInp mInp1, mInp2;
+	CpStateInp* mInp1 = nullptr;
+	CpStateInp* mInp2 = nullptr;
 	static const string K_InpInp1, K_InpInp2;
 };
 
@@ -428,13 +436,15 @@ class TrSvldVar: public TrBase
 class TrTailVar: public TrVar
 {
     public:
-	static const char* Type() { return "TrTailVar";}
+	inline static constexpr std::string_view idStr() { return "TrTailVar"sv;}
 	TrTailVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From ATrVar
 	virtual void Init(const string& aIfaceName) override;
-	virtual FInp* GetFinp(int aId) override;
+	virtual CpStateInp* GetFinp(int aId) override;
     protected:
-	FInp mInpInp, mInpHead;
+	CpStateInp* mInpInp = nullptr;
+	CpStateInp* mInpHead = nullptr;
 	static const string K_InpInp, K_InpHead;
 };
 
@@ -443,13 +453,15 @@ class TrTailVar: public TrVar
 class TrHeadVar: public TrVar
 {
     public:
-	static const char* Type() { return "TrHeadVar";}
+	inline static constexpr std::string_view idStr() { return "TrHeadVar"sv;}
 	TrHeadVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From ATrVar
-	virtual void Init(const string& aIfaceName) override;
-	virtual FInp* GetFinp(int aId) override;
+	void Init(const string& aIfaceName) override;
+	CpStateInp* GetFinp(int aId) override;
     protected:
-	FInp mInpInp, mInpTail;
+	CpStateInp* mInpInp = nullptr;
+	CpStateInp* mInpTail = nullptr;
 	static const string K_InpInp, K_InpTail;
 };
 
@@ -458,13 +470,15 @@ class TrHeadVar: public TrVar
 class TrHeadtnVar: public TrVar
 {
     public:
-	static const char* Type() { return "TrHeadtnVar";}
+	inline static constexpr std::string_view idStr() { return "TrHeadtnVar"sv;}
 	TrHeadtnVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From ATrVar
-	virtual void Init(const string& aIfaceName) override;
-	virtual FInp* GetFinp(int aId) override;
+	void Init(const string& aIfaceName) override;
+	CpStateInp* GetFinp(int aId) override;
     protected:
-	FInp mInpInp, mInpTailn;
+	CpStateInp* mInpInp = nullptr;
+	CpStateInp* mInpTailn = nullptr;
 	static const string K_InpInp, K_InpTailn;
 };
 
@@ -474,13 +488,15 @@ class TrHeadtnVar: public TrVar
 class TrTailnVar: public TrVar
 {
     public:
-	static const char* Type() { return "TrTailnVar";}
+	inline static constexpr std::string_view idStr() { return "TrTailnVar"sv;}
 	TrTailnVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From ATrVar
-	virtual void Init(const string& aIfaceName) override;
-	virtual FInp* GetFinp(int aId) override;
+	void Init(const string& aIfaceName) override;
+	CpStateInp* GetFinp(int aId) override;
     protected:
-	FInp mInpInp, mInpNum;
+	CpStateInp* mInpInp = nullptr;
+	CpStateInp* mInpNum = nullptr;
 	static const string K_InpInp, K_InpNum;
 };
 
@@ -490,29 +506,32 @@ class TrTailnVar: public TrVar
 class TrSizeVar: public TrVar
 {
     public:
-	static const char* Type() { return "TrSizeVar";};
+	inline static constexpr std::string_view idStr() { return "TrSizeVar"sv;}
 	TrSizeVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
-	virtual void Init(const string& aIfaceName) override;
-	virtual int GetInpCpsCount() const override {return 1;}
-	virtual string VarGetIfid() const override;
-	virtual FInp* GetFinp(int aId) override;
+	void Init(const string& aIfaceName) override;
+	int GetInpCpsCount() const override {return 1;}
+	string VarGetIfid() const override;
+	CpStateInp* GetFinp(int aId) override;
     protected:
-	FInp mInpInp;
+	CpStateInp* mInpInp = nullptr;
 	static const string K_InpInp;
 };
+
 
 /** @brief Agent function "Getting component, wrapping it by Sdata"
  * */
 class TrAtVar: public TrVar
 {
     public:
-	static const char* Type() { return "TrAtVar";};
+	inline static constexpr std::string_view idStr() { return "TrAtVar"sv;}
 	TrAtVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
-	virtual void Init(const string& aIfaceName) override;
-	virtual int GetInpCpsCount() const override {return 2;}
-	virtual FInp* GetFinp(int aId) override;
+	void Construct();
+	void Init(const string& aIfaceName) override;
+	int GetInpCpsCount() const override {return 2;}
+	CpStateInp* GetFinp(int aId) override;
     protected:
-	FInp mInpInp, mInpIndex;
+	CpStateInp* mInpInp = nullptr;
+	CpStateInp* mInpIndex = nullptr;
 	static const string K_InpInp, K_InpIndex;
 };
 
@@ -522,28 +541,33 @@ class TrAtVar: public TrVar
 class TrAtgVar: public TrVar
 {
     public:
-	static const char* Type() { return "TrAtgVar";};
+	inline static constexpr std::string_view idStr() { return "TrAtgVar"sv;}
 	TrAtgVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
-	virtual void Init(const string& aIfaceName) override;
-	virtual int GetInpCpsCount() const override {return 2;}
-	virtual FInp* GetFinp(int aId) override;
+	void Construct();
+	void Init(const string& aIfaceName) override;
+	int GetInpCpsCount() const override {return 2;}
+	CpStateInp* GetFinp(int aId) override;
     protected:
-	FInp mInpInp, mInpIndex;
+	CpStateInp* mInpInp = nullptr;
+	CpStateInp* mInpIndex = nullptr;
 	static const string K_InpInp, K_InpIndex;
 };
+
 
 /** @brief Transition "Find in Vert<Pair<T>> by first element of pair"
  * */
 class TrFindByP: public TrVar
 {
     public:
-	static const char* Type() { return "TrFindByP";};
+	inline static constexpr std::string_view idStr() { return "TrFindByP"sv;}
 	TrFindByP(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
-	virtual void Init(const string& aIfaceName) override;
-	virtual int GetInpCpsCount() const override {return 2;}
-	virtual FInp* GetFinp(int aId) override;
+	void Construct();
+	void Init(const string& aIfaceName) override;
+	int GetInpCpsCount() const override {return 2;}
+	CpStateInp* GetFinp(int aId) override;
     protected:
-	FInp mInpInp, mInpSample;
+	CpStateInp* mInpInp = nullptr;
+	CpStateInp* mInpSample = nullptr;
 	static const string K_InpInp, K_InpSample;
 };
 
@@ -555,13 +579,17 @@ class TrFindByP: public TrVar
 class TrTuple: public TrBase
 {
     public:
-	static const char* Type() { return "TrTuple";};
+	inline static constexpr std::string_view idStr() { return "TrTuple"sv;}
 	TrTuple(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct();
 	// From MDVarGet
 	virtual string VarGetIfid() const override;
 	virtual const DtBase* doVDtGet(const string& aType) override;
+	// From MOwner
+	// Required to bind inputs added on model creation
+	void onOwnedAttached(MOwned* aOwned) override;
     protected:
-	FInp mInpInp;
+	CpStateInp* mInpInp = nullptr;
 	const static string K_InpInp;
 	NTuple mRes;
 };
@@ -571,13 +599,15 @@ class TrTuple: public TrBase
 class TrTupleSel: public TrBase
 {
     public:
-	static const char* Type() { return "TrTupleSel";};
+	inline static constexpr std::string_view idStr() { return "TrTupleSel"sv;}
 	TrTupleSel(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct();
 	// From MDVarGet
-	virtual string VarGetIfid() const override;
-	virtual const DtBase* doVDtGet(const string& aType) override;
+	string VarGetIfid() const override;
+	const DtBase* doVDtGet(const string& aType) override;
     protected:
-	FInp mInpInp, mInpComp;
+	CpStateInp* mInpInp = nullptr;
+	CpStateInp* mInpComp = nullptr;
 	const static string K_InpInp, K_InpComp;
 };
 
@@ -589,14 +619,15 @@ class TrTostrVar: public TrBase
 {
     using TRes = Sdata<string>;
     public:
-	static const char* Type() { return "TrTostrVar";};
+	inline static constexpr std::string_view idStr() { return "TrTostrVar"sv;}
 	TrTostrVar(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct();
 	// From MDVarGet
-	virtual string VarGetIfid() const override { return TRes::TypeSig();}
-	virtual const DtBase* doVDtGet(const string& aType) override;
+	string VarGetIfid() const override { return TRes::TypeSig();}
+	const DtBase* doVDtGet(const string& aType) override;
     protected:
 	TRes mRes;
-	FInp mInpInp;
+	CpStateInp* mInpInp = nullptr;
 	const static string K_InpInp;
 };
 
@@ -606,15 +637,17 @@ class TrTostrVar: public TrBase
 class TrInpSel: public TrBase
 {
     public:
-	static const char* Type() { return "TrInpSel";};
+	inline static constexpr std::string_view idStr() { return "TrInpSel"sv;}
 	TrInpSel(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct();
 	// From MDVarGet
-	virtual string VarGetIfid() const override;
-	virtual const DtBase* doVDtGet(const string& aType) override;
+	string VarGetIfid() const override;
+	const DtBase* doVDtGet(const string& aType) override;
     protected:
 	MDVarGet* GetInp();
     protected:
-	FInp mInpInp, mInpIdx;
+	CpStateInp* mInpInp = nullptr;
+	CpStateInp* mInpIdx = nullptr;
 	const static string K_InpInp, K_InpIdx;
 };
 
@@ -624,13 +657,14 @@ class TrInpCnt: public TrBase
 {
     public:
 	using TRes = Sdata<int>;
-	static const char* Type() { return "TrInpCnt";};
+	inline static constexpr std::string_view idStr() { return "TrInpCnt"sv;}
 	TrInpCnt(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct();
 	// From MDVarGet
-	virtual string VarGetIfid() const override;
-	virtual const DtBase* doVDtGet(const string& aType) override;
+	string VarGetIfid() const override;
+	const DtBase* doVDtGet(const string& aType) override;
     protected:
-	FInp mInpInp;
+	CpStateInp* mInpInp = nullptr;
 	TRes mRes;
 	const static string K_InpInp;
 };
@@ -640,13 +674,15 @@ class TrInpCnt: public TrBase
 class TrPair: public TrVar
 {
     public:
-	static const char* Type() { return "TrPair";};
+	inline static constexpr std::string_view idStr() { return "TrPair"sv;}
 	TrPair(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
-	virtual void Init(const string& aIfaceName) override;
-	virtual int GetInpCpsCount() const override {return 2;}
-	virtual FInp* GetFinp(int aId) override;
+	void Construct() override;
+	void Init(const string& aIfaceName) override;
+	int GetInpCpsCount() const override {return 2;}
+	CpStateInp* GetFinp(int aId) override;
     protected:
-	FInp mInpFirst, mInpSecond;
+	CpStateInp* mInpFirst = nullptr;
+	CpStateInp* mInpSecond = nullptr;
 	const static string K_InpFirst, K_InpSecond;
 };
 
@@ -674,11 +710,13 @@ class TrMutNode: public TrMut
     public:
 	enum { EInpName, EInpParent };
     public:
-	static const char* Type() { return "TrMutNode";};
+	inline static constexpr std::string_view idStr() { return "TrMutNode"sv;}
 	TrMutNode(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	virtual const DtBase* doVDtGet(const string& aType) override;
     protected:
-	FInp mInpParent, mInpName;
+	CpStateInp* mInpParent = nullptr;
+	CpStateInp* mInpName = nullptr;
 	static const string K_InpParent, K_InpName;
 };
 
@@ -688,11 +726,13 @@ class TrMutConn: public TrMut
 {
     public:
 	using TInp = Sdata<string>;
-	static const char* Type() { return "TrMutConn";};
+	inline static constexpr std::string_view idStr() { return "TrMutConn"sv;}
 	TrMutConn(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
-	virtual const DtBase* doVDtGet(const string& aType) override;
+	void Construct() override;
+	const DtBase* doVDtGet(const string& aType) override;
     protected:
-	FInp mInpCp1, mInpCp2;
+	CpStateInp* mInpCp1 = nullptr;
+	CpStateInp* mInpCp2 = nullptr;
 	static const string K_InpCp1, K_InpCp2;
 };
 
@@ -701,11 +741,14 @@ class TrMutConn: public TrMut
 class TrMutCont: public TrMut
 {
     public:
-	static const char* Type() { return "TrMutCont";};
+	inline static constexpr std::string_view idStr() { return "TrMutCont"sv;}
 	TrMutCont(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
-	virtual const DtBase* doVDtGet(const string& aType) override;
+	void Construct() override;
+	const DtBase* doVDtGet(const string& aType) override;
     protected:
-	FInp mInpName, mInpValue, mInpTarget;
+	CpStateInp* mInpName = nullptr;
+	CpStateInp* mInpValue = nullptr;
+	CpStateInp* mInpTarget = nullptr;
 	static const string K_InpName, K_InpValue, K_InpTarget;
 };
 
@@ -716,13 +759,16 @@ class TrMutDisconn: public TrMut
 {
     public:
 	using TInp = Sdata<string>;
-	static const char* Type() { return "TrMutDisconn";};
+	inline static constexpr std::string_view idStr() { return "TrMutDisconn"sv;}
 	TrMutDisconn(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
-	virtual const DtBase* doVDtGet(const string& aType) override;
+	void Construct() override;
+	const DtBase* doVDtGet(const string& aType) override;
     protected:
-	FInp mInpCp1, mInpCp2;
+	CpStateInp* mInpCp1 = nullptr;
+	CpStateInp* mInpCp2 = nullptr;
 	static const string K_InpCp1, K_InpCp2;
 };
+
 
 
 /** @brief Agent function "Chromo composer"
@@ -730,29 +776,33 @@ class TrMutDisconn: public TrMut
 class TrChr: public TrBase
 {
     public:
-	static const char* Type() { return "TrChr";};
+	inline static constexpr std::string_view idStr() { return "TrChr"sv;}
 	TrChr(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From MDVarGet
-	virtual string VarGetIfid() const override;
-	virtual const DtBase* doVDtGet(const string& aType) override;
+	string VarGetIfid() const override;
+	const DtBase* doVDtGet(const string& aType) override;
     protected:
-	FInp mInpBase, mInpMut;
+	CpStateInp* mInpBase = nullptr;
+	CpStateInp* mInpMut = nullptr;
 	DChr2 mRes;
 	static const string K_InpBase, K_InpMut;
 };
+
 
 /** @brief Agent function "Chromo composer from chromo"
  * */
 class TrChrc: public TrBase
 {
     public:
-	static const char* Type() { return "TrChrc";};
+	inline static constexpr std::string_view idStr() { return "TrChrc"sv;}
 	TrChrc(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From MDVarGet
 	virtual string VarGetIfid() const override;
 	virtual const DtBase* doVDtGet(const string& aType) override;
     protected:
-	FInp mInpInp;
+	CpStateInp* mInpInp = nullptr;
 	DChr2 mRes;
 	static const string K_InpInp;
 };
@@ -765,13 +815,14 @@ class TrIsValid: public TrBase
     public:
 	using TRes = Sdata<bool>;
     public:
-	static const char* Type() { return "TrIsValid";};
+	inline static constexpr std::string_view idStr() { return "TrIsValid"sv;}
 	TrIsValid(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From MDVarGet
 	virtual string VarGetIfid() const override { return TRes::TypeSig(); }
 	virtual const DtBase* doVDtGet(const string& aType) override;
     protected:
-	FInp mInpInp;
+	CpStateInp* mInpInp = nullptr;
 	TRes mRes;
 	static const string K_InpInp;
 };
@@ -783,19 +834,21 @@ class TrIsInvalid: public TrBase
     public:
 	using TRes = Sdata<bool>;
     public:
-	static const char* Type() { return "TrIsInvalid";};
+	inline static constexpr std::string_view idStr() { return "TrIsInvalid"sv;}
 	TrIsInvalid(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From MDVarGet
 	virtual string VarGetIfid() const override { return TRes::TypeSig(); }
 	virtual const DtBase* doVDtGet(const string& aType) override;
     protected:
-	FInp mInpInp;
+	CpStateInp* mInpInp = nullptr;
 	TRes mRes;
 	static const string K_InpInp;
 };
 
 
 
+#if 0
 /** @brief Transition "Type enforcing"
  * !! NOT COMPLETED
  * */
@@ -808,6 +861,7 @@ class TrType: public TrBase
     protected:
 	static const string K_InpInp;
 };
+#endif
 
 
 /** @brief Transition "Hash of data", ref ds_dcs_iui_tgh
@@ -817,17 +871,17 @@ class TrHash: public TrBase
     public:
 	using TRes = Sdata<int>;
     public:
-	static const char* Type() { return "TrHash";};
+	inline static constexpr std::string_view idStr() { return "TrHash"sv;}
 	TrHash(const string& aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From MDVarGet
 	virtual string VarGetIfid() const override { return TRes::TypeSig();}
 	virtual const DtBase* doVDtGet(const string& aType) override;
     protected:
-	FInp mInpInp;
+	CpStateInp* mInpInp;
 	TRes mRes;
 	static const string K_InpInp;
 };
 
-#endif
 
 #endif

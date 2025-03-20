@@ -60,26 +60,30 @@ template<class T> const DtBase* FAddDt<T>::FDtGet()
     for (int i = 0; i < mHost.GetInpIcCount(EInp); i++) {
         MDVarGet* dget = mHost.GetInpIc(EInp, i);
         const T* arg = dget->DtGet(arg);
-        if (arg && arg->mValid) {
-            if (first) { mRes.mData = arg->mData; first = false;
-            } else { mRes.mData = mRes.mData + arg->mData; }
-            resSet = true;
-        } else {
-            mRes.mValid = false; break;
-        }
+	if (arg) { // ds_hinv_sls_s1
+	    if (arg->mValid) {
+		if (first) { mRes.mData = arg->mData; first = false;
+		} else { mRes.mData = mRes.mData + arg->mData; }
+		resSet = true;
+	    } else {
+		mRes.mValid = false; break;
+	    }
+	}
     }
     for (int i = 0; i < mHost.GetInpIcCount(EInpN); i++) {
-        MDVarGet* dget = mHost.GetInpIc(EInpN, i);
-        const T* arg = dget->DtGet(arg);
-        if (arg && arg->mValid) {
-            if (resSet) {
-                mRes.mData = mRes.mData - arg->mData;
-            } else {
-                mRes.mData = -arg->mData;
-            }
-	    resSet = true;
-	} else {
-	    mRes.mValid = false; break;
+	MDVarGet* dget = mHost.GetInpIc(EInpN, i);
+	const T* arg = dget->DtGet(arg);
+	if (arg) { // ds_hinv_sls_s1
+	    if (arg->mValid) {
+		if (resSet) {
+		    mRes.mData = mRes.mData - arg->mData;
+		} else {
+		    mRes.mData = -arg->mData;
+		}
+		resSet = true;
+	    } else {
+		mRes.mValid = false; break;
+	    }
 	}
     }
     if (!resSet) {
@@ -166,7 +170,7 @@ template<class T> const DtBase* FSubDt2<T>::FDtGet()
     return &mRes;
 }
 
-
+#endif
 
 ///// FMplDt
 
@@ -176,8 +180,8 @@ template<class T> Func* FMplDt<T>::Create(Host* aHost, const string& aString)
     if (aString.empty()) {
 	// Weak negotiation, basing on inputs only
 	bool inpok = true;
-	auto* inps = aHost->GetInps(EInp);
-	for (auto get : *inps) {
+	for (int i = 0; i < aHost->GetInpIcCount(EInp); i++) {
+	    auto* get = aHost->GetInpIc(EInp, i);
 	    auto* idata = get->VDtGet(T::TypeSig());
 	    if (!idata) { inpok = false; break; }
 	}
@@ -193,10 +197,10 @@ template<class T> Func* FMplDt<T>::Create(Host* aHost, const string& aString)
 template<class T> const DtBase* FMplDt<T>::FDtGet()
 {
     mRes.mValid = true;
-    TInpIc* InpIc = mHost.GetInps(EInp);
     bool first = true;
-    if (InpIc && InpIc->size() > 0) {
-	for (auto dget : *InpIc) {
+    if (mHost.GetInpIcCount(EInp) > 1) {
+	for (int i = 0; i < mHost.GetInpIcCount(EInp); i++) {
+	    auto* dget = mHost.GetInpIc(EInp, i);
 	    const T* arg = dget->DtGet(arg);
 	    if (arg && arg->mValid) {
 		if (first) { mRes = *arg; first = false;
@@ -210,7 +214,6 @@ template<class T> const DtBase* FMplDt<T>::FDtGet()
     }
     return &mRes;
 }
-
 
 ///// FDivDt
 
@@ -307,10 +310,10 @@ template<class T> Func* FMinDt<T>::Create(Host* aHost, const string& aString)
 template<class T> const DtBase* FMinDt<T>::FDtGet()
 {
     mRes.mValid = true;
-    TInpIc* InpIc = mHost.GetInps(EInp);
     bool first = true;
-    if (InpIc && InpIc->size() > 0) {
-	for (auto dget : *InpIc) {
+    if (mHost.GetInpIcCount(EInp) > 0) {
+	for (int i = 0; i < mHost.GetInpIcCount(EInp); i++) {
+	    auto* dget = mHost.GetInpIc(EInp, i);
 	    const T* arg = dget->DtGet(arg);
 	    if (arg && arg->mValid) {
 		if (first) { mRes.mData = arg->mData; first = false;
@@ -319,6 +322,8 @@ template<class T> const DtBase* FMinDt<T>::FDtGet()
 		mRes.mValid = false; break;
 	    }
 	}
+    } else {
+	mRes.mValid = false;
     }
     return &mRes;
 }
@@ -345,23 +350,27 @@ template<class T> Func* FMaxDt<T>::Create(Host* aHost, const string& aString)
 template<class T> const DtBase* FMaxDt<T>::FDtGet()
 {
     mRes.mValid = true;
-    TInpIc* InpIc = mHost.GetInps(EInp);
     bool first = true;
-    if (InpIc && InpIc->size() > 0) {
-	for (auto dget : *InpIc) {
+    if (mHost.GetInpIcCount(EInp) > 0) {
+	for (int i = 0; i < mHost.GetInpIcCount(EInp); i++) {
+	    auto* dget = mHost.GetInpIc(EInp, i);
 	    const T* arg = dget->DtGet(arg);
-	    if (arg && arg->mValid) {
-		if (first) {
-		    mRes.mData = arg->mData; first = false;
+	    if (arg) {
+		if (arg->mValid) {
+		    if (first) {
+			mRes.mData = arg->mData; first = false;
+		    } else {
+			if (arg->mData > mRes.mData)  mRes.mData = arg->mData;
+		    }
+		    LOGF(EDbg, "Inp [" + dget->Uid() + ": " + arg->ToString(true) + "], res [" + mRes.ToString(true) + "]");
 		} else {
-		    if (arg->mData > mRes.mData)  mRes.mData = arg->mData;
+		    LOGF(EDbg, "Inp [" + dget->Uid() + ": _INV]");
+		    mRes.mValid = false; break;
 		}
-		LOGF(EDbg, "Inp [" + dget->Uid() + ": " + arg->ToString(true) + "], res [" + mRes.ToString(true) + "]");
-	    } else {
-		LOGF(EDbg, "Inp [" + dget->Uid() + ": _INV]");
-		mRes.mValid = false; break;
 	    }
 	}
+    } else {
+	mRes.mValid = false;
     }
     return &mRes;
 }
@@ -456,6 +465,7 @@ template <class T> string FSizeVect<T>::GetInpExpType(int aId) const
     }
     return res;
 }
+
 
 
 // Getting component of container: vector, wrapping comp by Sdata
@@ -597,6 +607,7 @@ template <class T> string FAtgPair<T>::GetInpExpType(int aId) const
     return res;
 }
 
+
 // Find in Vert<Pair<T>> by first element of pair
 //
 template <class T>
@@ -721,7 +732,6 @@ const DtBase* FHeadTnUri::FDtGet()
 
 
 
-
 /// Getting tail as num of elems, URI
 
 Func* FTailnUri::Create(Host* aHost, const string& aOutId)
@@ -782,7 +792,6 @@ template<class T> const DtBase* FPair<T>::FDtGet()
     return &mRes;
 }
 
-#endif
 
 
 // Just to keep templated methods in cpp
@@ -792,29 +801,29 @@ void __attribute__((optimize("O0"))) Init()
 {
     Fhost* host = nullptr;
     FAddDt<Sdata<int>>::Create(host, "");
-    /*
-    FAddDt2<Sdata<int>>::Create(host, "");
-    FSubDt2<Sdata<int>>::Create(host, "");
+    FSizeVect<string>::Create(host, string(), string());
+    FSizeVect<Pair<DGuri>>::Create(host, string(), string());
+    FSizeVect<DGuri>::Create(host, string(), string());
     FMplDt<Sdata<int>>::Create(host, "");
     FDivDt<Sdata<int>>::Create(host, "");
     FMinDt<Sdata<int>>::Create(host, "");
     FMaxDt<Sdata<int>>::Create(host, "");
-    FCmp<Sdata<int> >::Create(host, "", "", FCmpBase::ELt);
-    FCmp<Sdata<string> >::Create(host, "", "", FCmpBase::ELt);
-    FCmp<Enum>::Create(host, "", "", FCmpBase::ELt);
-    FCmp<DGuri>::Create(host, "", "", FCmpBase::ELt);
-    FSizeVect<string>::Create(host, string(), string());
-    FSizeVect<Pair<DGuri>>::Create(host, string(), string());
-    FSizeVect<DGuri>::Create(host, string(), string());
     FAtVect<string>::Create(host, string(), string());
     FAtgVect<DGuri>::Create(host, string(), string());
     FAtgVect<Pair<DGuri>>::Create(host, string(), string());
     FAtgPair<DGuri>::Create(host, string(), string());
     FAtgPair<Sdata<int>>::Create(host, string(), string());
     FFindByP<DGuri>::Create(host, string(), string());
-    FApnd<Sdata<string>>::Create(host, string(), string());
-    FApnd<DGuri>::Create(host, string(), string());
+    FCmp<Sdata<int> >::Create(host, "", "", FCmpBase::ELt);
+    FCmp<Sdata<string> >::Create(host, "", "", FCmpBase::ELt);
+    FCmp<Enum>::Create(host, "", "", FCmpBase::ELt);
+    FCmp<DGuri>::Create(host, "", "", FCmpBase::ELt);
     FPair<DGuri>::Create(host, "", "");
     FPair<Sdata<int>>::Create(host, "", "");
+    FApnd<Sdata<string>>::Create(host, string(), string());
+    FApnd<DGuri>::Create(host, string(), string());
+    /*
+    FAddDt2<Sdata<int>>::Create(host, "");
+    FSubDt2<Sdata<int>>::Create(host, "");
     */
 }

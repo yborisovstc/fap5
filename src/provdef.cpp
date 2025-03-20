@@ -40,43 +40,51 @@ const string KChromRarg_Chs = "chs";
 
 /** Native agents factory registry */
 const ProvDef::TFReg ProvDef::mReg ( {
-	Item<Node>(), Item<Elem>(), Item<Import>(), Item<Syst>(), Item<State>(), Item<Des>(),
+        Item<Node>(), Item<Elem>(), Item<Import>(), Item<Syst>(), Item<State>(), Item<Des>(),
         Item<DesLauncher>(), Item<Const>(),
-        Item<TrAddVar>(),
-        Item<ExtdStateOutp>(),
-	/* DES constants */
-	Item<SI_0>(), Item<SI_1>(), Item<SB_False>(), Item<SB_True>(),
+        /* Transitions */
+        Item<TrAddVar>(), Item<TrSizeVar>(), Item<TrSwitchBool>(), Item<TrSwitchBool2>(), Item<TrMplVar>(),
+        Item<TrDivVar>(), Item<TrMinVar>(), Item<TrMaxVar>(), Item<TrAndVar>(), Item<TrOrVar>(), Item<TrNegVar>(), 
+        Item<TrToUriVar>(), Item<TrAtVar>(), Item<TrAtgVar>(), Item<TrApndVar>(),
+        Item<TrFindByP>(), Item<TrTuple>(), Item<TrTupleSel>(), 
+        Item<TrCmpVar>(), Item<TrTostrVar>(),
+        Item<TrInpSel>(), Item<TrInpCnt>(),
+        Item<TrChr>(), Item<TrChrc>(), 
+        Item<TrMutNode>(), Item<TrMutConn>(), Item<TrMutDisconn>(), Item<TrMutCont>(), 
+        Item<TrIsValid>(), Item<TrIsInvalid>(), Item<TrSvldVar>(), 
+        Item<TrTailVar>(), Item<TrHeadVar>(), Item<TrHeadtnVar>(), Item<TrTailnVar>(),
+        Item<TrHash>(), Item<TrPair>(),
+        /* Connpoints */
+        Item<CpStateInp>(), Item<CpStateInpPin>(), Item<CpStateOutp>(), Item<CpStateOutpPin>(), Item<ExtdStateInp>(), Item<ExtdStateOutp>(),
+        Item<Socket>(),
+         
+        /* DES constants */
+        Item<SI_0>(), Item<SI_1>(), Item<SB_False>(), Item<SB_True>(),
 #if 0
         , Item<Content>(), Item<Vertu>(), Item<Vert>(), Item<Link>(),
-	Item<ConnPointu>(), Item<CpMnodeOutp>(), Item<CpMnodeInp>(),
-	Item<Extd>(), Item<Extde>(), Item<Const>(), Item<TrAdd2Var>(), Item<TrSub2Var>(),
-	Item<CpStateInp>(), Item<CpStateOutp>(), Item<ExtdStateInp>(), Item<ExtdStateOutp>(), Item<ExtdStateOutpI>(), Item<ExtdStateMnodeOutp>(),
-	Item<CpStateMnodeInp>(),  Item<CpStateMnodeOutp>(), Item<ExtdStateMnodeInp>(),
-	Item<Sout>(), Item<ADes>(), Item<Socket>(),
-	/* Transitions */
-	Item<TrMinVar>(), Item<TrMaxVar>(), Item<TrSwitchBool>(), Item<TrSwitchBool2>(), Item<TrCmpVar>(), Item<TrApndVar>(),
-	Item<TrAndVar>(), Item<TrOrVar>(), Item<TrNegVar>(), Item<TrToUriVar>(), Item<TrTostrVar>(),
-	Item<TrMutNode>(), Item<TrMutConn>(), Item<TrMutDisconn>(), Item<TrMutCont>(), Item<TrHash>(), Item<TrPair>(),
-	Item<TrSizeVar>(), Item<TrAtVar>(), Item<TrAtgVar>(), Item<TrMplVar>(), Item<TrDivVar>(), Item<TrSvldVar>(), Item<TrInpSel>(), Item<TrInpCnt>(),
-	Item<TrTuple>(), Item<TrTupleSel>(), Item<TrChr>(), Item<TrChrc>(), Item<TrIsValid>(), Item<TrIsInvalid>(), Item<TrTailVar>(), Item<TrHeadVar>(), Item<TrTailnVar>(),
-        Item<TrHeadtnVar>(), Item<TrFindByP>(),
-	/* Des adapters */
-	Item<AMnodeAdp>(), Item<AMelemAdp>(), Item<AMntp>(), Item<DAdp>(),
-	/* SDCs */
-	Item<ASdcMut>(), Item<ASdcComp>(), Item<ASdcRm>(), Item<ASdcConn>(), Item<ASdcDisconn>(), Item<ASdcInsert2>(), Item<ASdcInsertN>(),
-	Item<ASdcExtract>(), Item<ASdcPause>(), Item<ASdcResume>(), Item<ASdcCompT>(), Item<ASdcConnT>(), 
-	/* SDOs */
+        Item<ConnPointu>(), Item<CpMnodeOutp>(), Item<CpMnodeInp>(),
+        Item<Extd>(), Item<Extde>(), Item<Const>(), Item<TrAdd2Var>(), Item<TrSub2Var>(),
+        Item<ExtdStateOutpI>(), Item<ExtdStateMnodeOutp>(),
+        Item<CpStateMnodeInp>(),  Item<CpStateMnodeOutp>(), Item<ExtdStateMnodeInp>(),
+        Item<Sout>(), Item<ADes>(),
+        /* Transitions */
+        /* Des adapters */
+        Item<AMnodeAdp>(), Item<AMelemAdp>(), Item<AMntp>(), Item<DAdp>(),
+        /* SDCs */
+        Item<ASdcMut>(), Item<ASdcComp>(), Item<ASdcRm>(), Item<ASdcConn>(), Item<ASdcDisconn>(), Item<ASdcInsert2>(), Item<ASdcInsertN>(),
+        Item<ASdcExtract>(), Item<ASdcPause>(), Item<ASdcResume>(), Item<ASdcCompT>(), Item<ASdcConnT>(), 
+        /* SDOs */
         Item<SdoName>(), Item<SdoUri>(), Item<SdoParent>(), Item<SdoParents>(), Item<SdoComp>(), Item<SdoConn>(), Item<SdoCompsCount>(), Item<SdoCompsNames>(), 
-	Item<SdoPairsCount>(), Item<SdoPair>(), Item<SdoCompOwner>(), Item<SdoCompComp>(), Item<SdoPairs>(), Item<SdoTPairs>(),
+        Item<SdoPairsCount>(), Item<SdoPair>(), Item<SdoCompOwner>(), Item<SdoCompComp>(), Item<SdoPairs>(), Item<SdoTPairs>(),
         Item<SdoTcPair>(), Item<SdoEdges>(), Item<SdoCompsUri>(), Item<SdoDesIdle>(), 
-	/* DES context */
-	Item<DesCtxSpl>(), Item<DesCtxCsm>(), 
-	/* DES active subs */
-	Item<DesAs>(), Item<DesAs2>(),
-	/* DES service point */
-	Item<DesSpe>(), Item<DesSp>(), Item<DesSpt>(), Item<ADesSpc>(), 
+        /* DES context */
+        Item<DesCtxSpl>(), Item<DesCtxCsm>(), 
+        /* DES active subs */
+        Item<DesAs>(), Item<DesAs2>(),
+        /* DES service point */
+        Item<DesSpe>(), Item<DesSp>(), Item<DesSpt>(), Item<ADesSpc>(), 
 #endif
-	});
+});
 
 /** Data factory registry */
 const ProvDef::TDtFReg ProvDef::mDtReg ( {

@@ -10,7 +10,6 @@
 class Func
 {
     public:
-	using TInpIc = vector<MDVarGet*>;
 	enum { EInp1 = 0, EInp2, EInp3, EInp4 };
     public:
 	class Host {
@@ -55,10 +54,8 @@ template <class T> inline const T* Func::GetInpData(int aInpId, const T* aData)
             LOGF(EDbg, "Input [" + mHost.GetInpIc(i)->Uid() + "]");
         }
     } else {
-        data = mHost.GetInpIc(aInpId);
-        if (!data) {
-            mHost.log(EDbg, "Cannot get input [" + mHost.GetInpUri(aInpId) + "]");
-        }
+        auto* get = mHost.GetInpIc(aInpId);
+	data = get ? get->DtGet(data) : nullptr;
     }
     return data;
 }
@@ -278,6 +275,7 @@ class FSizeVect: public Func {
     protected:
 	TOutp mRes;
 };
+
 
 /** @brief Getting component of container: base
  * */
@@ -503,6 +501,6 @@ class FPair: public Func {
 	virtual string GetInpExpType(int aId) const override { return TInpData::TypeSig();}
     protected:
 	TData mRes;
-};
+    };
 
 #endif

@@ -22,10 +22,13 @@ class CpStateInp: public ConnPoint<MDesInpObserver, MDVarGet>
 	inline static constexpr std::string_view idStr() { return "CpStateInp"sv;}
         CpStateInp(const string &aType, const string& aName, MEnv* aEnv):
             ConnPoint<MDesInpObserver, MDVarGet> (aType, aName, aEnv) {}
+        virtual ~CpStateInp() {}
     protected:
         // From ConnPoint
 	void onConnected() override;
 	void onDisconnected() override;
+	void onBound() override;
+	void onUnbound() override;
 };
 
 class CpStateOutp: public ConnPoint<MDVarGet, MDesInpObserver>
@@ -34,22 +37,114 @@ class CpStateOutp: public ConnPoint<MDVarGet, MDesInpObserver>
 	inline static constexpr std::string_view idStr() { return "CpStateOutp"sv;}
         CpStateOutp(const string &aType, const string& aName, MEnv* aEnv):
             ConnPoint<MDVarGet, MDesInpObserver> (aType, aName, aEnv) {}
+        virtual ~CpStateOutp() {}
 };
 
-#if 0
-/** @brief CpStateInp direct extender (extd as inp)
+/** @brief State input CP that implement required iface and proxied provided
+ *  Can be used as pin in combined CPs (Socket etc.)
  * */
-class ExtdStateInp : public Extd
+class CpStateInpPin: public CpStateInp, public MDesInpObserver, public MDVarGet
 {
     public:
-	static const char* Type() { return "ExtdStateInp";};
-	static vector<GUri> getParentsUri();
-	ExtdStateInp(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
-	virtual string parentName() const override { return Type(); }
-	vector<GUri> parentsUri() const override { return getParentsUri(); }
+	inline static constexpr std::string_view idStr() { return "CpStateInpPin"sv;}
+        CpStateInpPin(const string &aType, const string& aName, MEnv* aEnv):
+            CpStateInp(aType, aName, aEnv) {}
+        virtual ~CpStateInpPin();
+	// From MDesInpObserver
+	string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
+	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
+	void onInpUpdated() override { if (mProvidedPx) mProvidedPx->onInpUpdated(); }
+        // From MDVarGet
+	string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
+	string VarGetIfid() const override;
+	MIface* DoGetDObj(const char *aName) override {return nullptr;}
+	const DtBase* VDtGet(const string& aType) override {
+            const DtBase* res = nullptr;
+            auto* pair = (mPairs.size() == 1) ? mPairs.at(0) : nullptr; 
+            MDVarGet* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
+            res = pairDget ? pairDget->VDtGet(aType) : nullptr;
+            return res;
+        }
+    protected:
+        // From ConnPoint
+	void onConnected() override;
+	void onDisconnected() override;
 };
 
-#endif
+
+/** @brief State output CP that implement required iface
+ *  Can be used as pin in combined CPs (Socket etc.)
+ * */
+class CpStateOutpPin: public CpStateOutp, public MDVarGet, public MDesInpObserver
+{
+    public:
+	inline static constexpr std::string_view idStr() { return "CpStateOutpPin"sv;}
+        CpStateOutpPin(const string &aType, const string& aName, MEnv* aEnv):
+            CpStateOutp(aType, aName, aEnv) {}
+        virtual ~CpStateOutpPin();
+        // From MDVarGet
+	string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
+	string VarGetIfid() const override;
+	MIface* DoGetDObj(const char *aName) override {return nullptr;}
+        /*
+	const DtBase* VDtGet(const string& aType) override {
+            const DtBase* res = nullptr;
+            auto* pair = (mPairs.size() == 1) ? mPairs.at(0) : nullptr; 
+            MDVarGet* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
+            res = pairDget ? pairDget->VDtGet(aType) : nullptr;
+            return res;
+        }
+        */
+	const DtBase* VDtGet(const string& aType) override {
+            return mProvidedPx ? mProvidedPx->VDtGet(aType) : nullptr;
+        }
+	// From MDesInpObserver
+	string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
+	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
+	void onInpUpdated() override {
+            for (auto pair : mPairs) {
+                auto inpObs = pair->lIft<MDesInpObserver>();
+                if (inpObs) inpObs->onInpUpdated();
+            }
+        }
+    protected:
+        // From ConnPoint
+	void onBound() override {
+            onInpUpdated();
+        }
+	void onUnbound() override {
+            onInpUpdated();
+        }
+};
+
+
+/** @brief CpStateInp direct extender (extd as inp)
+ * */
+class ExtdStateInp : public CpStateInp, public MDVarGet, public MDesInpObserver
+{
+    public:
+	inline static constexpr std::string_view idStr() { return "ExtdStateInp"sv;}
+        void Construct() override;
+	//static vector<GUri> getParentsUri();
+	ExtdStateInp(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	//virtual string parentName() const override { return Type(); }
+	//vector<GUri> parentsUri() const override { return getParentsUri(); }
+	// From MDVarGet
+	string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
+	string VarGetIfid() const override;
+	MIface* DoGetDObj(const char *aName) override {return nullptr;}
+	const DtBase* VDtGet(const string& aType) override;
+	// From MDesInpObserver
+	string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
+	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
+	void onInpUpdated() override;
+    protected:
+        CpStateOutp* mInt = nullptr;
+    protected:
+        static string KIntName;
+
+};
+
 
 /** @brief CpStateOutp direct extender (extd as outp)
  * */
@@ -158,7 +253,7 @@ class State: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, p
 	MIface* MOwner_getLif(TIdHash aId) override;
 	GUri parentUri() const override { return string(idStr());}
 	// From MVert
-	bool isCompatible(MVert* aPair, bool aExt) const override;
+	bool isCompatible(const MVert* aPair, bool aExt) const override;
 	virtual TDir getDir() const override { return EOut;}
 	// From MDesSyncable
 	virtual string MDesSyncable_Uid() const override {return getUid<MDesSyncable>();}
@@ -236,7 +331,7 @@ class Const: public ConnPoint<MDVarGet, MDesInpObserver>, public MDVarGet
 	MIface* MOwner_getLif(TIdHash aId) override;
 	GUri parentUri() const override { return string(idStr());}
 	// From MVert
-	bool isCompatible(MVert* aPair, bool aExt) const override;
+	bool isCompatible(const MVert* aPair, bool aExt) const override;
 	virtual TDir getDir() const override { return EOut;}
 	// From Node.MContentOwner
 	int contCount() const override { return Node::contCount() + 1;}

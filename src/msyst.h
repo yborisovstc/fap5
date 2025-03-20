@@ -18,7 +18,6 @@ using TEdges = std::vector<TEdge>;
 class MSyst: public MIface
 {
     public:
-    public:
 	inline static constexpr std::string_view idStr() { return "MSyst"sv;}
 	inline static constexpr TIdHash idHash() { return 0x3558aa937bbb2f;}
 	// From MIface

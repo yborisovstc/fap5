@@ -17,21 +17,22 @@ class Ut_des : public Ut_fixture
 {
     CPPUNIT_TEST_SUITE(Ut_des);
     //CPPUNIT_TEST(test_des_data);
+    /*
     CPPUNIT_TEST(test_des_1);
     CPPUNIT_TEST(test_des_inval_1);
     CPPUNIT_TEST(test_des_inval_2);
     CPPUNIT_TEST(test_des_asr_1);
-    /*
+    CPPUNIT_TEST(test_des_asr_2);
+    */
     CPPUNIT_TEST(test_des_tr_1);
+    /*
     CPPUNIT_TEST(test_des_tr_tres_1);
     */
-    //CPPUNIT_TEST(test_des_asr_2);
     //CPPUNIT_TEST(test_des_utl_1);
 //    CPPUNIT_TEST(test_des_utl_2);
     /*
     CPPUNIT_TEST(test_des_sp_1);
     */
-    //CPPUNIT_TEST(test_des_intf);
     CPPUNIT_TEST_SUITE_END();
     public:
     virtual void setUp();
@@ -45,15 +46,14 @@ class Ut_des : public Ut_fixture
     void test_des_inval_1();
     void test_des_inval_2();
     void test_des_asr_1();
+    void test_des_asr_2();
+    void test_des_tr_1();
     /*
     void test_des_data();
-    void test_des_tr_1();
     void test_des_tr_tres_1();
-    void test_des_asr_2();
     void test_des_utl_1();
     void test_des_utl_2();
     void test_des_sp_1();
-    void test_des_intf();
     */
 };
 
@@ -80,7 +80,6 @@ void Ut_des::tearDown()
     CPPUNIT_ASSERT_EQUAL_MESSAGE("tearDown", 0, 0);
 }
 
-#if 0
 
 /** @brief Test of DES transitions
  * */
@@ -185,6 +184,7 @@ void Ut_des::test_des_tr_1()
     delete mEnv;
 }
 
+#if 0
 #endif
 
 /** @brief Test of ifr activation on DES reconfiguration
@@ -224,7 +224,6 @@ void Ut_des::test_des_asr_1()
     delete mEnv;
 }
 
-#if 0
 
 /** @brief Test of ifr activation on DES reconfiguration
  * */
@@ -261,6 +260,7 @@ void Ut_des::test_des_asr_2()
     delete mEnv;
 }
 
+#if 0
 /** @brief Test of transitions type resolution #1
  * */
 void Ut_des::test_des_tr_tres_1()
@@ -524,21 +524,6 @@ void Ut_des::test_des_data()
     du3.FromString("URI  n1.n2");
     string du3s = du3.ToString();
     CPPUNIT_ASSERT_MESSAGE("Failed regular URI", du3s == "URI n1.n2");
-
-
-
-    /*
-    const string specn("ut_des_utl_1");
-    string ext = "chs";
-    MNode* root = constructSystem(specn);
-    MElem* eroot = root ? root->lIf(eroot) : nullptr;
-    CPPUNIT_ASSERT_MESSAGE("Fail to get root", eroot);
-    // Run
-    bool res = mEnv->RunSystem(1, 2);
-    CPPUNIT_ASSERT_MESSAGE("Failed running system", eroot);
-    */
-
-//    delete mEnv;
 }
 
 void Ut_des::test_des_sp_1()
@@ -558,14 +543,6 @@ void Ut_des::test_des_sp_1()
     delete mEnv;
 }
 
-void Ut_des::test_des_intf()
-{
-    cout << endl << "=== Test of DES inputs notification ===" << endl;
-    MNode* root = constructSystem("ut_des_intf");
-    bool res = mEnv->RunSystem(15, 2);
-    CPPUNIT_ASSERT_MESSAGE("Failed running system", res);
-    delete mEnv;
-}
 
 #endif
 

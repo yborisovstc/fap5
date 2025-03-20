@@ -11,35 +11,96 @@
 void CpStateInp::onConnected()
 {
     // Notify inp updated
-    if (mProvided) mProvided->onInpUpdated();
+    if (mProvidedPx) mProvidedPx->onInpUpdated();
 }
 
 void CpStateInp::onDisconnected()
 {
     // Notify inp updated
-    if (mProvided) mProvided->onInpUpdated();
+    if (mProvidedPx) mProvidedPx->onInpUpdated();
+}
+
+void CpStateInp::onBound()
+{
+    // Notify inp updated
+    if (mProvidedPx) mProvidedPx->onInpUpdated();
+}
+
+void CpStateInp::onUnbound()
+{
+    // Notify inp updated
+    if (mProvidedPx) mProvidedPx->onInpUpdated();
 }
 
 
 
-#if 0
+CpStateInpPin::~CpStateInpPin() {}
+
+string CpStateInpPin::VarGetIfid() const
+{
+    return string();
+}
+
+void CpStateInpPin::onConnected()
+{
+}
+
+void CpStateInpPin::onDisconnected()
+{
+}
+
+
+CpStateOutpPin::~CpStateOutpPin() {}
+
+string CpStateOutpPin::VarGetIfid() const
+{
+    return string();
+}
+
 /// CpStateInp direct extender
 
-vector<GUri> ExtdStateInp::getParentsUri()
+string ExtdStateInp::KIntName = "Int";
+
+ExtdStateInp::ExtdStateInp(const string &aType, const string& aName, MEnv* aEnv): CpStateInp(aType, aName, aEnv)
 {
-    auto p = Extd::getParentsUri();
-    p.insert(p.begin(), Type());
-    return p;
 }
 
-ExtdStateInp::ExtdStateInp(const string &aType, const string& aName, MEnv* aEnv): Extd(aType, aName, aEnv)
+void ExtdStateInp::Construct()
 {
-    MNode* cp = Provider()->createNode(CpStateOutp::Type(), Extd::KUriInt , mEnv);
-    assert(cp);
-    bool res = attachOwned(cp);
+    mInt = new CpStateOutp(string(CpStateOutp::idStr()), KIntName, mEnv);
+    assert(mInt);
+    bool res = attachOwned(mInt);
+    assert(res);
+    //mInt->setProvided(this);
+    res = mInt->bind(this);
     assert(res);
 }
-#endif
+
+string ExtdStateInp::VarGetIfid() const
+{
+    return string();
+}
+
+const DtBase* ExtdStateInp::VDtGet(const string& aType)
+{
+    const DtBase* res = nullptr;
+    if (mPairs.size() == 1) {
+	auto* pair = mPairs.at(0);
+	auto ifc = pair->lIft<MDVarGet>();
+	res = ifc ? ifc->VDtGet(aType) : nullptr;
+    }
+    return res;
+}
+
+void ExtdStateInp::onInpUpdated()
+{
+    // Redirect to internal point
+    auto pair = (mInt->mPairs.begin() != mInt->mPairs.end()) ? *(mInt->mPairs.begin()) : nullptr;
+    auto* ifc = pair ? pair->lIft<MDesInpObserver>() : nullptr;
+    if (ifc) ifc->onInpUpdated();
+}
+
+
 
 /// CpStateOutp direct extender
 
@@ -64,8 +125,9 @@ void ExtdStateOutp::Construct()
     assert(mInt);
     bool res = attachOwned(mInt);
     assert(res);
-    mInt->setProvided(this);
-
+    //mInt->setProvided(this);
+    res = mInt->bind(this);
+    assert(res);
 }
 
 const DtBase* ExtdStateOutp::VDtGet(const string& aType)
@@ -188,7 +250,7 @@ void State::Construct()
     assert(mInp);
     bool res = attachOwned(mInp);
     assert(res);
-    mInp->setProvided(this);
+    mInp->bind(this);
 }
 
 State::~State()
@@ -276,22 +338,22 @@ bool State::setContent(const string& aId, const string& aData)
     return res;
 }
 
-bool State::isCompatible(MVert* aPair, bool aExt) const
+bool State::isCompatible(const MVert* aPair, bool aExt) const
 {
     bool res = false;
     bool ext = aExt;
-    MVert* cp = aPair;
+    const MVert* cp = aPair;
     // Checking if the pair is Extender
     if (aPair != this) {
-	MVert* ecp = cp->getExtd(); 
+	MVert* ecp = const_cast<MVert*>(cp)->getExtd(); 
 	if (ecp) {
 	    ext = !ext;
 	    cp = ecp;
 	}
 	if (cp) {
 	    // Check roles conformance
-	    TRequired* rq = cp->lIf(rq);
-            TProvided* pv = cp->lIf(pv);
+	    const TRequired* rq = cp->lIf(rq);
+            const TProvided* pv = cp->lIf(pv);
             if (ext) {
                 res = (pv != nullptr);
             } else {
@@ -563,22 +625,22 @@ bool Const::setContent(const string& aId, const string& aData)
     return res;
 }
 
-bool Const::isCompatible(MVert* aPair, bool aExt) const
+bool Const::isCompatible(const MVert* aPair, bool aExt) const
 {
     bool res = false;
     bool ext = aExt;
-    MVert* cp = aPair;
+    const MVert* cp = aPair;
     // Checking if the pair is Extender
     if (aPair != this) {
-	MVert* ecp = cp->getExtd(); 
+	MVert* ecp = const_cast<MVert*>(cp)->getExtd(); 
 	if (ecp) {
 	    ext = !ext;
 	    cp = ecp;
 	}
 	if (cp) {
 	    // Check roles conformance
-	    TRequired* rq = cp->lIf(rq);
-            TProvided* pv = cp->lIf(pv);
+	    const TRequired* rq = cp->lIf(rq);
+            const TProvided* pv = cp->lIf(pv);
             if (ext) {
                 res = (pv != nullptr);
             } else {

@@ -119,7 +119,10 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	const MNode* getComp(const string& aId) const;
 	MNode* getComp(const string& aId) { return const_cast<MNode*>(const_cast<const Node*>(this)->getComp(aId));}
 	template<class T> inline MIface* checkLif2(TIdHash aId, T*& aPtr) {
-	    return (aId == T::idHash()) ? ((!aPtr) ? (aPtr = dynamic_cast<T*>(this)) : aPtr)  : nullptr;
+	    return (aId == T::idHash()) ? (aPtr ? aPtr : (aPtr = dynamic_cast<T*>(this)))  : nullptr;
+	}
+	template<class T> inline MIface* checkLifn(TIdHash aId, T*& aPtr) {
+	    return (aId == T::idHash()) ? aPtr : nullptr;
 	}
 	template<class T> string getUid() const {return getUriS() + Ifu::KUidSep + string(T::idStr());}
 	MOwner* owner();

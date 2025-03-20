@@ -28,7 +28,7 @@ class MVert: public MIface
 	void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MVert_doDump(aLevel, aIdt, std::cout);}
 	virtual void MVert_doDump(int aLevel, int aIdt, ostream& aOs) const = 0;
 	/** @brief Indicates if connnectable is compatible */
-	virtual bool isCompatible(MVert* aPair, bool aExt = false) const = 0;
+	virtual bool isCompatible(const MVert* aPair, bool aExt = false) const = 0;
 	/** @brief Gets extended part in case if checked is extender */
 	virtual MVert* getExtd() = 0;
 	/** @brief Indicates direction */
@@ -51,6 +51,12 @@ class MVert: public MIface
 	static bool disconnect(MVert* aSelf, MVert* aPair) { return aPair->disconnect(aSelf) ? aSelf->disconnect(aPair) : false;}
 	/** @brief Indicates of connected to pair */
 	virtual bool isConnected(const MVert* aPair) const = 0;
+        /** @brief Bounds two verted for extending connection abilities
+         * */
+        // TODO maybe it makes sense to move this to separate iface, like MConnPoint
+	virtual bool isBound(const MVert* aBound) const = 0;
+        virtual bool bind(MVert* aBound) = 0;
+        virtual bool unbind(MVert* aBound) = 0;
 };
 
 #endif

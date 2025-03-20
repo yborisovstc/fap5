@@ -1,145 +1,138 @@
 #ifndef __FAP5_CONNPOINT_H
 #define __FAP5_CONNPOINT_H
 
-#include "mvert.h"
+#include "mconnpoint.h"
+#include "vert.h"
 #include "node.h"
+#include "elem.h"
 
 template <class Provided, class Required>
-class ConnPoint : public Node, public MVert
+class ConnPoint : public Vert
 {
     public:
         using TProvided = Provided;
         using TRequired = Required;
-        using TPair = MVert;
-	using TPairs = vector<TPair*>;
     public:
-        void setProvided(TProvided* aProvided) {
-            assert(mProvided == nullptr);
-            mProvided = aProvided;
-        }
+        /*
+           void setProvided(TProvided* aProvided) {
+           assert(mProvided == nullptr);
+           mProvided = aProvided;
+           }
+           */
     public:
         //ConnPoint(const string &aType, const string &aName, MEnv* aEnv);
-        ConnPoint(const string &aType, const string &aName, MEnv* aEnv): Node(aType, aName, aEnv) {}
+        ConnPoint(const string &aType, const string &aName, MEnv* aEnv): Vert(aType, aName, aEnv) {}
         virtual ~ConnPoint() {}
         // From MNode
         MIface *MNode_getLif(TIdHash aId) override;
+        MIface *MOwned_getLif(TIdHash aId) override {
+            MIface* res = nullptr;
+            if (res = checkLif2(aId, mMVert));
+            else res = Vert::MOwned_getLif(aId);
+            return res;
+        }
         // From MVert
-        string MVert_Uid() const override { return getUid<MVert>();}
         MIface *MVert_getLif(TIdHash aId) override;
-        void MVert_doDump(int aLevel, int aIdt, ostream& aOs) const override;
-        bool isCompatible(MVert* aPair, bool aExt = false) const override;
+        bool isCompatible(const MVert* aPair, bool aExt = false) const override;
         MVert* getExtd() override;
-        TDir getDir() const override;
-        int pairsCount() const override;
-        MVert* getPair(int aInd) const override;
-	bool connect(MVert* aPair) override;
-	bool disconnect(MVert* aPair) override;
-	bool isConnected(const MVert* aPair) const override;
+        TDir getDir() const override { return ERegular;}
+        bool bind(MVert* aBound) override {
+            auto* bound = aBound->lIft<TProvided>();
+	    assert(mProvidedPx == nullptr);
+            bool res = bound ? mProvidedPx = bound, true : false;
+            if (res) onBound();
+            return res;
+        }
+        bool unbind(MVert* aBound) override {
+	    auto* bound = aBound->lIft<TProvided>();
+	    assert(mProvidedPx == bound);
+            bool res = mProvidedPx ? mProvidedPx = nullptr, true : false;
+            if (res) onUnbound();
+            return res;
+        }
+	bool isBound(const MVert* aBound) const override {
+	    const auto* bound = const_cast<MVert*>(aBound)->lIft<TProvided>();
+	    return bound && (mProvidedPx == bound);
+	}
     protected:
-        // Local
-	virtual void onConnected() {}
-	virtual void onDisconnected() {}
-    public:
-        TPairs mPairs;
-    protected:
-        TProvided* mProvided = nullptr;
+        TProvided* mProvidedPx = nullptr;
     private:
-	MVert* mMVert = nullptr;
+        MVert* mMVert = nullptr;
+        TRequired* mRequired = nullptr;
+        TProvided* mProvided = nullptr;
 };
 
-template <class Provided, class Required>
+    template <class Provided, class Required>
 MIface* ConnPoint<Provided, Required>::MNode_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
     if (res = checkLif2(aId, mMVert));
+    else if (res = checkLifn(aId, mProvidedPx));    // Keep binded as priority
     else if (res = checkLif2(aId, mProvided));
     else res = Node::MNode_getLif(aId);
     return res;
 }
 
-template <class Provided, class Required>
+    template <class Provided, class Required>
 MIface* ConnPoint<Provided, Required>::MVert_getLif(TIdHash aId)
 {
-    MIface* res = checkLif2(aId, mProvided);
+    MIface* res = nullptr;
+    if (res = checkLifn(aId, mProvidedPx));    // Keep binded as priority
+    else if (res = checkLif2(aId, mProvided));
+    else if (res = checkLif2(aId, mRequired)); // Needs for CPs binding
     return res;
 }
 
 template <class Provided, class Required>
-void ConnPoint<Provided, Required>::MVert_doDump(int aLevel, int aIdt, ostream& aOs) const
+bool ConnPoint<Provided, Required>::isCompatible(const MVert* aPair, bool aExt) const
 {
-}
-
-template <class Provided, class Required>
-bool ConnPoint<Provided, Required>::isCompatible(MVert* aPair, bool aExt) const
-{
-    TRequired* pRif = aPair->lIf(pRif);
+    const TRequired* pRif = aPair->lIf(pRif);
     return (pRif != nullptr);
 }
 
-template <class Provided, class Required>
+    template <class Provided, class Required>
 MVert* ConnPoint<Provided, Required>::getExtd()
 {
     return nullptr;
 }
 
-template <class Provided, class Required>
-MVert::TDir ConnPoint<Provided, Required>::getDir() const
-{
-    return ERegular;
-}
 
-template <class Provided, class Required>
-int ConnPoint<Provided, Required>::pairsCount() const
-{
-    return mPairs.size();
-}
 
-template <class Provided, class Required>
-MVert* ConnPoint<Provided, Required>::getPair(int aInd) const
-{
-    return nullptr;
-}
 
-template <class Provided, class Required>
-bool ConnPoint<Provided, Required>::isConnected(const MVert* aPair) const
+/** @brief Socket, monolitic.
+*/
+class Socket: public Vert, public MSocket
 {
-    bool res = false;
-    for (auto pair : mPairs) {
-        if (pair == aPair) {
-            res = true; break;
-        }
-    }
-    return res;
-}
+    public:
+        inline static constexpr std::string_view idStr() { return "Socket"sv;}
+        Socket(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+        // From MNode
+        MIface* MNode_getLif(TIdHash aId) override;
+        //string parentName() const override { return Type(); }
+        // From MVert
+        MIface* MVert_getLif(TIdHash aId) override;
+        bool isCompatible(const MVert* aPair, bool aExt = false) const override;
+        MVert* getExtd() override;
+        TDir getDir() const override;
+        // From MSocket
+        string MSocket_Uid() const override  { return getUid<MSocket>();}
+        int PinsCount() const override;
+        MVert* GetPin(int aInd) override;
+        MVert* GetPin(const string& aId) override;
+        string GetPinId(int aInd) override;
+    protected:
+        // From Vert
+        void onConnected() override;
+        void onDisconnecting(MVert* aPair) override;
+        void onDisconnected() override;
+    protected:
+        void bindPins(bool aUnbind = false);
+    protected:
+        MVert* mMVert = nullptr;
+        MSocket* mMSocket = nullptr;
+};
 
-template <class Provided, class Required>
-bool ConnPoint<Provided, Required>::connect(MVert* aPair)
-{
-    assert(aPair && !isConnected(aPair));
-    bool res = isCompatible(aPair, false);
-    if (res) {
-        mPairs.push_back(aPair);
-        onConnected();
-        res = true;
-    }
-    return res;
-}
 
-    template <class Provided, class Required>
-bool ConnPoint<Provided, Required>::disconnect(MVert* aPair)
-{
-    bool res = false;
-    assert(aPair && isConnected(aPair));
-    for (auto it = mPairs.begin(); it != mPairs.end(); it++) {
-        if (*it == aPair) {
-            mPairs.erase(it);
-            onDisconnected();
-            res = true;
-            break;
-        }
-    }
-    return res;
-}
 
 
 #endif

@@ -367,5 +367,33 @@
 	</sect2>
     </sect1>
 
+    <sect1 id="ds_hinv"><title>Handling of iface is not valid (proxy not set in proxied iface)</title>
+	<sect2><title>Intro</title>
+	    <simpara> Ref <ulink url="../../../fap3/doc/design/index.html#ds_dri_nic"/> </simpara>
+	    <simpara>
+		<xref linkend="gls_dri"/> assumes that we use iface call propagation instead of ifaces resolution.
+		    But with this design we need to invent specific mechanism of handling the case where at some point of
+		    iface call propagation chain the chain gets broken (i.e. the next iface is not found).
+		    The example is MDVarGet iface. Lets assume that there is the following chain:
+		<programlisting>
+		    (Extd (Int)-)-(-(Inp)-Add2)
+		</programlisting>
+		    Add2 trasition will call MDVarGet::VDtGet() method. This method will be propagated till Extd::VDtGet() that will returns  
+		    nullptr (DbBase*). Currently transition Add will consider this as error so will return error as result. This is not 
+		    correct behaviour. 
+	    </simpara>
+	</sect2>
+	<sect2 id="ds_hinv_sls"><title>Solutions</title>
+	    <simpara>
+		We need to indication of iface is not able to serve the request from the client. This is the case where proxied iface is
+		requested but the proxy is not set. Such indication can be done via two solutions:
+	    </simpara>
+	    <sect3 id="ds_hinv_sls_s1"><title>S#1 Modify iface methos to return indication of method cannot be completed because of iface is not "valid" </title>
+	    </sect3>
+	    <sect3><title>S#2 Add to iface base  the method returning indication of iface is not "valid"</title>
+	    </sect3>
+	</sect2>
+    </sect1>
+
 </article>
 
