@@ -1,10 +1,84 @@
 #include "syst.h"
 
 
+/// CpSystExplorable
+
+MIface* CpSystExplorable::MOwned_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMSystExploring));
+    else res = TBase::MOwned_getLif(aId);
+    return res;
+
+}
+
+MIface* CpSystExplorable::MSystExplorable_getLif(TIdHash aId)
+{
+    MIface* res = checkLif2(aId, mMSystExplorable);
+    return res;
+}
+
+MIface* CpSystExplorable::MSystExploring_getLif(TIdHash aId)
+{
+    MIface* res = checkLif2(aId, mMSystExploring);
+    return res;
+}
+
+void CpSystExplorable::onConnected()
+{
+}
+
+void CpSystExplorable::onDisconnected()
+{
+}
+
+void CpSystExplorable::onBound()
+{
+}
+
+void CpSystExplorable::onUnbound()
+{
+}
+
+MNode* CpSystExplorable::getMag()
+{
+    MNode* res = nullptr;
+    if (mExploringCp.pcount() == 1) {
+	auto expbl = mExploringCp.pairAt(0);
+	assert(expbl);
+	res = expbl->provided()->getMag();
+    }
+    return res;
+}
+
+/// CpSystExploring
+
+
+void CpSystExploring::onConnected()
+{
+    if (mProvidedPx) {
+	mProvidedPx->onMagChanged();
+    }
+}
+
+void CpSystExploring::onDisconnected()
+{
+}
+
+void CpSystExploring::onBound()
+{
+}
+
+void CpSystExploring::onUnbound()
+{
+}
+
+
 
 // System
 
-Syst::Syst(const string &aType, const string &aName, MEnv* aEnv): Elem(aType, aName, aEnv)
+Syst::Syst(const string &aType, const string &aName, MEnv* aEnv): Elem(aType, aName, aEnv),
+    mExplorableCp(this)
 {
 }
 
@@ -18,6 +92,36 @@ MIface* Syst::MNode_getLif(TIdHash aId)
     if (res = checkLif2(aId, mMSyst));
     else res = Elem::MNode_getLif(aId);
     return res;
+}
+
+MIface* Syst::MAhost_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMNode));
+    else res = Elem::MNode_getLif(aId);
+    return res;
+}
+
+MIface* Syst::MSystExplorable_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMNode));
+    return res;
+}
+
+MNode* Syst::getMag()
+{
+    return MNode::lIft<MNode>();
+}
+
+void Syst::onOwnedAttached(MOwned* aOwned)
+{
+    auto expl = aOwned->lIft<MSystExploring>();
+    if (expl) {
+	// Connect owned as explorinbg
+	bool res = mExplorableCp.connect(expl->getCp());
+	assert(res);
+    }
 }
 
 void Syst::mutConnect(const ChromoNode& aMut, bool aUpdOnly, const MutCtx& aCtx)

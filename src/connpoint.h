@@ -6,6 +6,11 @@
 #include "node.h"
 #include "elem.h"
 
+/** @brief Connection point in native treee.
+ * In contrastof native connpoints (nconn.h) it is native tree node
+ * so can be managed via model mutation.
+ * Connpoint proxies provided iface, set via binding operation
+ * */
 template <class Provided, class Required>
 class ConnPoint : public Vert
 {
@@ -25,33 +30,28 @@ class ConnPoint : public Vert
         virtual ~ConnPoint() {}
         // From MNode
         MIface *MNode_getLif(TIdHash aId) override;
-        MIface *MOwned_getLif(TIdHash aId) override {
-            MIface* res = nullptr;
-            if (res = checkLif2(aId, mMVert));
-            else res = Vert::MOwned_getLif(aId);
-            return res;
-        }
+        MIface *MOwned_getLif(TIdHash aId) override;
         // From MVert
         MIface *MVert_getLif(TIdHash aId) override;
         bool isCompatible(const MVert* aPair, bool aExt = false) const override;
         MVert* getExtd() override;
         TDir getDir() const override { return ERegular;}
-        bool bind(MVert* aBound) override {
+        bool bind(MIface* aBound) override {
             auto* bound = aBound->lIft<TProvided>();
 	    assert(mProvidedPx == nullptr);
             bool res = bound ? mProvidedPx = bound, true : false;
             if (res) onBound();
             return res;
         }
-        bool unbind(MVert* aBound) override {
+        bool unbind(MIface* aBound) override {
 	    auto* bound = aBound->lIft<TProvided>();
 	    assert(mProvidedPx == bound);
             bool res = mProvidedPx ? mProvidedPx = nullptr, true : false;
             if (res) onUnbound();
             return res;
         }
-	bool isBound(const MVert* aBound) const override {
-	    const auto* bound = const_cast<MVert*>(aBound)->lIft<TProvided>();
+	bool isBound(const MIface* aBound) const override {
+	    const auto* bound = const_cast<MIface*>(aBound)->lIft<TProvided>();
 	    return bound && (mProvidedPx == bound);
 	}
     protected:
@@ -65,11 +65,23 @@ class ConnPoint : public Vert
     template <class Provided, class Required>
 MIface* ConnPoint<Provided, Required>::MNode_getLif(TIdHash aId)
 {
+    // TODO to reuse MOwned resolver?
     MIface* res = nullptr;
     if (res = checkLif2(aId, mMVert));
     else if (res = checkLifn(aId, mProvidedPx));    // Keep binded as priority
     else if (res = checkLif2(aId, mProvided));
     else res = Node::MNode_getLif(aId);
+    return res;
+}
+
+    template <class Provided, class Required>
+MIface* ConnPoint<Provided, Required>::MOwned_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMVert));
+    else if (res = checkLifn(aId, mProvidedPx));    // Keep binded as priority
+    else if (res = checkLif2(aId, mProvided));
+    else res = Node::MOwned_getLif(aId);
     return res;
 }
 

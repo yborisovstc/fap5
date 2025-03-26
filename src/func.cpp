@@ -102,7 +102,6 @@ template <class T> string FAddDt<T>::GetInpExpType(int aId) const
     return res;
 }
 
-#if 0
 
 //// Addition, single connecting inputs (ref iss_014), generic data
 
@@ -137,6 +136,7 @@ template<class T> const DtBase* FAddDt2<T>::FDtGet()
     return &mRes;
 }
 
+#if 0
 //// Subtraction, single connecting inputs (ref iss_014), generic data
 
 template<class T> Func* FSubDt2<T>::Create(Host* aHost, const string& aString)
@@ -822,8 +822,8 @@ void __attribute__((optimize("O0"))) Init()
     FPair<Sdata<int>>::Create(host, "", "");
     FApnd<Sdata<string>>::Create(host, string(), string());
     FApnd<DGuri>::Create(host, string(), string());
-    /*
     FAddDt2<Sdata<int>>::Create(host, "");
+    /*
     FSubDt2<Sdata<int>>::Create(host, "");
     */
 }

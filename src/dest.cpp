@@ -52,8 +52,8 @@ CpStateInp* TrBase::AddInput(const string& aName)
     bool res = attachOwned(inp);
     assert(res);
     // This check needs because transition can support auto-bounding like TrTuple
-    if (!inp->isBound(this)) {
-	res = inp->bind(this);
+    if (!inp->isBound(MNode::lIft<MVert>())) {
+	res = inp->bind(MNode::lIft<MVert>());
 	assert(res);
     }
     return inp;
@@ -227,17 +227,19 @@ CpStateInp* TrAddVar::GetFinp(int aId)
 }
 
 
-#if 0
 //// Transition "Addition of Var data, single connection inputs"
 
 const string TrAdd2Var::K_InpInp = "Inp";
 const string TrAdd2Var::K_InpInp2 = "Inp2";
 
-TrAdd2Var::TrAdd2Var(const string &aType, const string& aName, MEnv* aEnv): TrVar(aType, aName, aEnv),
-    mInp(K_InpInp), mInp2(K_InpInp2)
+TrAdd2Var::TrAdd2Var(const string &aType, const string& aName, MEnv* aEnv): TrVar(aType, aName, aEnv)
 {
-    AddInput(K_InpInp);
-    AddInput(K_InpInp2);
+}
+
+void TrAdd2Var::Construct()
+{
+    mInp = AddInput(K_InpInp);
+    mInp2 = AddInput(K_InpInp2);
 }
 
 void TrAdd2Var::Init(const string& aIfaceName)
@@ -252,13 +254,14 @@ void TrAdd2Var::Init(const string& aIfaceName)
     }
 }
 
-FInp* TrAdd2Var::GetFinp(int aId)
+CpStateInp* TrAdd2Var::GetFinp(int aId)
 {
-    if (aId == Func::EInp1) return &mInp;
-    else if (aId == Func::EInp2) return &mInp2;
+    if (aId == Func::EInp1) return mInp;
+    else if (aId == Func::EInp2) return mInp2;
     else return nullptr;
 }
 
+#if 0
 
 //// Transition "Subtraction of Var data, single connection inputs"
 
@@ -1199,7 +1202,7 @@ void TrTuple::onOwnedAttached(MOwned* aOwned)
 {
     auto vert = aOwned->lIft<MVert>();
     if (vert) {
-	vert->bind(this);
+	vert->bind(MNode::lIft<MVert>());
     }
 }
 

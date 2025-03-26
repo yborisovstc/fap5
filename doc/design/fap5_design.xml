@@ -395,5 +395,43 @@
 	</sect2>
     </sect1>
 
+    <sect1 id="ds_naom"><title>Redesign of native agents observing mechanism</title>
+	<sect2><title>Intro</title>
+	    <simpara>
+		Ref
+		<ulink url="../../../fap3/doc/design/index.html#ds_obsi"/> for initial proposal of improvement.
+	    </simpara>
+	</sect2>
+    </sect1>
+
+    <sect1 id="ds_rdadp"></sect1><title>Redesig of DES adapter</title>
+	<sect2><title>Intro</title>
+	    <simpara>FAP3 DES adapter (DAdp) has the following weaknesses: </simpara>
+	    <itemizedlist>
+		<listitem>
+		    <glossterm id="ds_rdadp_w1">W#1</glossterm> It uses Link to get the access to managed/observer agent
+		    <para>
+			MLink iface and Link impl seem inconsistent. They introduce one-way linkage that is
+			used in DES adapter only. Ref
+			<xref linkend="ds_rdadp_uac"/> for solution.
+		    </para>
+		</listitem>
+	    </itemizedlist>
+	</sect2>
+	<sect2 id="ds_rdadp_uac"><title>Using agent connpoint to avoid using Link for DES adapter.</title>
+	    <sect3><title>Intro</title>
+		<simpara> This is the solution of the problem <xref linkend="ds_rdadp_w1"/> </simpara>
+		<simpara>
+		    The idea is to exployt the ifaces MAgent/MAhost to get the access from DES adapter
+		    to managed/explored agent (MAG). Let's assume that we will manage/explore only systems, but
+		    not nodes etc. This is reasonable because simple agents usually dont include owneds tree.
+		    System supports agents mechanism so implements MAhost iface. So we can introduce connpoint that
+		    provides MNode and requires iface MAdp that includes the method of getting notification regarding
+		    MAG change.
+		</simpara>
+	    </sect3>
+	</sect2>
+    </sect1>
+
 </article>
 

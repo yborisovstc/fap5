@@ -2,18 +2,14 @@ DesUtils : Elem {
     # "DES utilities"
     BChange : Des {
         # "Boolean change"
-        SInp : Extd {
-            Int : CpStateOutp
-        }
-        Outp : Extd {
-            Int : CpStateInp
-        }
+        SInp : ExtdStateInp
+        Outp : ExtdStateOutp
         TAnd : TrAndVar (
             Inp ~ SInp.Int
             Inp ~ : TrNegVar (
                 Inp ~ Delay : State (
                     _@ < = "SB false"
-                    _@ < Debug.LogLevel = "Dbg"
+                    _@ < LogLevel = "Dbg"
                     Inp ~ SInp.Int
                 )
             )
@@ -22,27 +18,19 @@ DesUtils : Elem {
     }
     BChangeCnt : Des {
         # "Boolean change counter"
-        SInp : Extd {
-            Int : CpStateOutp
-        }
-        Outp : Extd {
-            Int : CpStateInp
-        }
+        SInp : ExtdStateInp
+        Outp : ExtdStateOutp
         Chg : BChange
         Chg.SInp ~ SInp.Int
         Cnt : State (
             _@ < = "SI 0"
-            _@ < Debug.LogLevel = "Dbg"
+            _@ < LogLevel = "Dbg"
             Inp ~ : TrAddVar (
                 Inp ~ Cnt
                 Inp ~ : TrSwitchBool (
                     Sel ~ Chg.Outp
-                    Inp1 ~ Const_0 : State {
-                        = "SI 0"
-                    }
-                    Inp2 ~ Const_1 : State {
-                        = "SI 1"
-                    }
+                    Inp1 ~ : SI_0
+                    Inp2 ~ : SI_1
                 )
             )
         )
@@ -50,15 +38,11 @@ DesUtils : Elem {
     }
     SetTg : Des {
         # "Set trigger"
-        InpSet : Extd {
-            Int : CpStateOutp
-        }
-        Outp : Extd {
-            Int : CpStateInp
-        }
+        InpSet : ExtdStateInp
+        Outp : ExtdStateOutp
         Outp.Int ~ Value : State (
             _@ <  {
-                Debug.LogLevel = "Dbg"
+                LogLevel = "Dbg"
                 = "SB false"
             }
             Inp ~ : TrOrVar (
@@ -69,18 +53,12 @@ DesUtils : Elem {
     }
     RSTg : Des {
         # "R/S trigger, positive inputs"
-        InpS : Extd {
-            Int : CpStateOutp
-        }
-        InpR : Extd {
-            Int : CpStateOutp
-        }
-        Outp : Extd {
-            Int : CpStateInp
-        }
+        InpS : ExtdStateInp
+        InpR : ExtdStateInp
+        Outp : ExtdStateOutp
         Outp.Int ~ Value : State (
             _@ <  {
-                Debug.LogLevel = "Dbg"
+                LogLevel = "Dbg"
                 = "SB false"
             }
             Inp ~ : TrOrVar (
@@ -98,15 +76,9 @@ DesUtils : Elem {
         # "Data pulse"
         # "Set delay and const type before usage"
         # "InpD - data input, InpE - data to pass when no changes happen"
-        InpD : Extd {
-            Int : CpStateOutp
-        }
-        InpE : Extd {
-            Int : CpStateOutp
-        }
-        Outp : Extd {
-            Int : CpStateInp
-        }
+        InpD : ExtdStateInp
+        InpE : ExtdStateInp
+        Outp : ExtdStateOutp
         Outp.Int ~ : TrSwitchBool (
             Sel ~ Cmp_Neq : TrCmpVar (
                 Inp ~ InpD.Int
@@ -130,7 +102,7 @@ DesUtils : Elem {
         OutpDone : ExtdStateOutp
         ICnt_Dbg : State (
             _@ <  {
-                Debug.LogLevel = "Dbg"
+                LogLevel = "Dbg"
                 = "SI _INV"
             }
             Inp ~ InpCnt.Int
@@ -139,7 +111,7 @@ DesUtils : Elem {
             # "Index"
             _@ <  {
                 = "SI 0"
-                Debug.LogLevel = "Dbg"
+                LogLevel = "Dbg"
             }
             Inp ~ Sw1 : TrSwitchBool (
                 Inp1 ~ Sw2 : TrSwitchBool (
@@ -211,7 +183,7 @@ DesUtils : Elem {
         Outp.Int ~ Cmp_Neq : TrCmpVar (
             Cmp_Neq.Inp ~ StInpSig : State (
                 _@ <  {
-                    Debug.LogLevel = "Err"
+                    LogLevel = "Err"
                     = "SI _INV"
                 }
                 StInpSig.Inp ~ Hash : TrHash (
@@ -231,17 +203,17 @@ DesUtils : Elem {
         }
         # "Output: URI of list node with given pos"
         OutpNode : ExtdStateOutp
-        Debug.LogLevel = "Err"
+        LogLevel = "Err"
         Subsys : DAdp {
             InpPos : ExtdStateInp
             # "Desas init"
             Init : State {
                 = "SB false"
-                Debug.LogLevel = "Err"
+                LogLevel = "Err"
             }
             CurPos : State (
                 _@ <  {
-                    Debug.LogLevel = "Err"
+                    LogLevel = "Err"
                     = "SI 0"
                 }
                 Inp ~ : TrSwitchBool (
@@ -266,7 +238,7 @@ DesUtils : Elem {
             )
             Res : State {
                 = "URI _INV"
-                Debug.LogLevel = "Err"
+                LogLevel = "Err"
             }
             PairOfPrev : SdoTcPair (
                 Targ ~ Res
@@ -276,7 +248,7 @@ DesUtils : Elem {
             )
             PairOfPrev_Dbg : State (
                 _@ <  {
-                    Debug.LogLevel = "Err"
+                    LogLevel = "Err"
                     = "URI _INV"
                 }
                 Inp ~ PairOfPrev
@@ -323,10 +295,10 @@ DesUtils : Elem {
             # "Desas init indicator"
             Init : State {
                 = "SB false"
-                Debug.LogLevel = "Err"
+                LogLevel = "Err"
             }
             ParentsIter : VectIter (
-                _@ < Debug.LogLevel = "Dbg"
+                _@ < LogLevel = "Dbg"
                 InpV ~ InpSsParents.Int
                 _ < InpDone ~ : SB_True
                 InpReset ~ Init
@@ -343,12 +315,12 @@ DesUtils : Elem {
             Outp.Int ~ FindCrp
         }
         Parents_Dbg : State (
-            _@ < Debug.LogLevel = "Dbg"
+            _@ < LogLevel = "Dbg"
             _@ < = "VDU"
             Inp ~ InpParents.Int
         )
         Res_Dbg : State (
-            _@ < Debug.LogLevel = "Dbg"
+            _@ < LogLevel = "Dbg"
             _@ < = "URI"
             Inp ~ Subsys.Outp
         )
@@ -368,13 +340,13 @@ DesUtils : Elem {
         _ <  {
             OutpRes.Int ~ Subsys.Outp
             OutpRes.Int ~ OutpRes_Int : TrSvldVar (
-                _@ < Debug.LogLevel = "Dbg"
+                _@ < LogLevel = "Dbg"
                 Inp1 ~ Subsys.Outp
                 Inp2 ~ InpDefRes.Int
             )
         }
         OutpRes.Int ~ OutpRes_Int : TrSwitchBool (
-            _@ < Debug.LogLevel = "Dbg"
+            _@ < LogLevel = "Dbg"
             Inp1 ~ Subsys.Outp
             Inp2 ~ InpDefRes.Int
             Sel ~ NotFound
@@ -392,7 +364,7 @@ DesUtils : Elem {
         InpDefRes : ExtdStateInp
         # "Output: Resolved CRP URI, buf and CP"
         OutpRes : State {
-            Debug.LogLevel = "Dbg"
+            LogLevel = "Dbg"
             = "URI"
         }
         Subsys : Des {
@@ -402,10 +374,10 @@ DesUtils : Elem {
             # "Desas init indicator"
             Init : State {
                 = "SB false"
-                Debug.LogLevel = "Err"
+                LogLevel = "Err"
             }
             ParentsIter : VectIter (
-                _@ < Debug.LogLevel = "Dbg"
+                _@ < LogLevel = "Dbg"
                 InpV ~ InpSsParents.Int
                 _ < InpDone ~ : SB_True
                 InpReset ~ Init
@@ -422,12 +394,12 @@ DesUtils : Elem {
             Outp.Int ~ FindCrp
         }
         Parents_Dbg : State (
-            _@ < Debug.LogLevel = "Dbg"
+            _@ < LogLevel = "Dbg"
             _@ < = "VDU"
             Inp ~ InpParents.Int
         )
         Res_Dbg : State (
-            _@ < Debug.LogLevel = "Dbg"
+            _@ < LogLevel = "Dbg"
             _@ < = "URI"
             Inp ~ Subsys.Outp
         )

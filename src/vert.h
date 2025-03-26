@@ -25,9 +25,9 @@ class Vert : public Node, public MVert
 	bool connect(MVert* aPair) override;
 	bool disconnect(MVert* aPair) override;
 	bool isConnected(const MVert* aPair) const override;
-        bool bind(MVert* aBound) override { return false; }
-        bool unbind(MVert* aBound) override { return false; }
-	bool isBound(const MVert* aBound) const override { return false;}
+        bool bind(MIface* aBound) override { return false; }
+        bool unbind(MIface* aBound) override { return false; }
+	bool isBound(const MIface* aBound) const override { return false;}
     protected:
         // Local
 	virtual void onConnected() {}

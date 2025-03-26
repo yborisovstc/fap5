@@ -275,7 +275,7 @@ class State: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, p
 	bool getContentId(int aIdx, string& aRes) const override;
 	bool getContent(const string& aId, string& aRes) const override;
 	bool setContent(const string& aId, const string& aData) override;
-	void onContentChanged(const string* aId) override {}
+	void onContentChanged(const string& aId) override {}
 	// From MDVarGet
 	virtual string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
 	virtual string VarGetIfid() const override;
@@ -338,7 +338,7 @@ class Const: public ConnPoint<MDVarGet, MDesInpObserver>, public MDVarGet
 	bool getContentId(int aIdx, string& aRes) const override;
 	bool getContent(const string& aId, string& aRes) const override;
 	bool setContent(const string& aId, const string& aData) override;
-	void onContentChanged(const string* aId) override {}
+	void onContentChanged(const string& aId) override {}
 	// From MDVarGet
 	virtual string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
 	virtual string VarGetIfid() const override;
@@ -463,14 +463,13 @@ class DesLauncher: public Des, public MLauncher
 	MLauncher* mMLauncher = nullptr;
 };
 
-#if 0
 /** @brief Active subsystem of DES
  * Runs on master DES confirm, ds_desas_nio_ric
  * */
 class DesAs: public DesLauncher
 {
     public:
-	static const char* Type() { return "DesAs";};
+	inline static constexpr std::string_view idStr() { return "DesAs"sv;}
 	DesAs(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	// From MLauncher
 	virtual bool Run(int aCount = 0, int aIdleCount = 0) override;
@@ -491,7 +490,7 @@ class DesAs: public DesLauncher
 class DesAs2: public DesLauncher
 {
     public:
-	static const char* Type() { return "DesAs2";};
+	inline static constexpr std::string_view idStr() { return "DesAs2"sv;}
 	DesAs2(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	// From MLauncher
 	virtual bool Run(int aCount = 0, int aIdleCount = 0) override;
@@ -509,6 +508,7 @@ class DesAs2: public DesLauncher
 	static const GUri K_SsysInitUri;
 };
 
+#if 0
 
 
 

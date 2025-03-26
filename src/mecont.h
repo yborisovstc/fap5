@@ -24,7 +24,7 @@ class MContentOwner: public MIface
 	virtual bool getContent(const string& aId, string& aRes) const = 0;
 	virtual bool setContent(const string& aId, const string& aData) = 0;
 	// TODO is it needed?
-	virtual void onContentChanged(const string* aId) = 0;
+	virtual void onContentChanged(const string& aId) = 0;
 };
 
 #endif

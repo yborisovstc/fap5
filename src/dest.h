@@ -105,9 +105,9 @@ class TrAddVar: public TrVar
 	TrAddVar(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	void Construct() override;
 	// From TrVar
-	virtual void Init(const string& aIfaceName) override;
-	virtual CpStateInp* GetFinp(int aId) override;
-	virtual int GetInpCpsCount() const override {return 2;}
+	void Init(const string& aIfaceName) override;
+	CpStateInp* GetFinp(int aId) override;
+	int GetInpCpsCount() const override {return 2;}
     protected:
 	const static string K_InpInp;
 	const static string K_InpInpN;
@@ -115,26 +115,28 @@ class TrAddVar: public TrVar
 	CpStateInp*  mInpN;
 };
 
-#if 0
 
 /** @brief Transition "Addition of Var data, single connection inputs"
  * */
 class TrAdd2Var: public TrVar
 {
     public:
-	static const char* Type() { return "TrAdd2Var";};
+	inline static constexpr std::string_view idStr() { return "TrAdd2Var"sv;}
 	TrAdd2Var(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
-	virtual string parentName() const override { return Type(); }
+	void Construct() override;
+	//virtual string parentName() const override { return Type(); }
 	// From TrVar
-	virtual void Init(const string& aIfaceName) override;
-	virtual FInp* GetFinp(int aId) override;
-	virtual int GetInpCpsCount() const override {return 2;}
+	void Init(const string& aIfaceName) override;
+	CpStateInp* GetFinp(int aId) override;
+	int GetInpCpsCount() const override {return 2;}
     protected:
 	const static string K_InpInp;
 	const static string K_InpInp2;
-	FInp mInp;
-	FInp mInp2;
+	CpStateInp* mInp = nullptr;
+	CpStateInp* mInp2 = nullptr;
 };
+
+#if 0
 
 /** @brief Transition "Subtraction of Var data, single connection inputs"
  * */

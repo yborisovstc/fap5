@@ -92,6 +92,7 @@ MIface* Node::MNode_getLif(TIdHash aId)
     else if (res = checkLif2(aId, mMObservable));
     else if (res = checkLif2(aId, mMParent));
     else if (res = checkLif2(aId, mMChild));
+    else if (res = checkLif2(aId, mMNode));
     return res;
 }
 
@@ -482,7 +483,7 @@ bool Node::setContent(const string& aId, const string& aData)
     return res;
 }
 
-void Node::onContentChanged(const string* aId)
+void Node::onContentChanged(const string& aId)
 {
 }
 

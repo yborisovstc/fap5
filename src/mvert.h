@@ -54,9 +54,9 @@ class MVert: public MIface
         /** @brief Bounds two verted for extending connection abilities
          * */
         // TODO maybe it makes sense to move this to separate iface, like MConnPoint
-	virtual bool isBound(const MVert* aBound) const = 0;
-        virtual bool bind(MVert* aBound) = 0;
-        virtual bool unbind(MVert* aBound) = 0;
+	virtual bool isBound(const MIface* aBound) const = 0;
+        virtual bool bind(MIface* aBound) = 0;
+        virtual bool unbind(MIface* aBound) = 0;
 };
 
 #endif

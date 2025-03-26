@@ -72,7 +72,7 @@ void ExtdStateInp::Construct()
     bool res = attachOwned(mInt);
     assert(res);
     //mInt->setProvided(this);
-    res = mInt->bind(this);
+    res = mInt->bind(MNode::lIft<MVert>());
     assert(res);
 }
 
@@ -126,7 +126,7 @@ void ExtdStateOutp::Construct()
     bool res = attachOwned(mInt);
     assert(res);
     //mInt->setProvided(this);
-    res = mInt->bind(this);
+    res = mInt->bind(MNode::lIft<MVert>());
     assert(res);
 }
 
@@ -250,7 +250,7 @@ void State::Construct()
     assert(mInp);
     bool res = attachOwned(mInp);
     assert(res);
-    mInp->bind(this);
+    mInp->bind(MNode::lIft<MVert>());
 }
 
 State::~State()
@@ -1050,7 +1050,6 @@ void DesLauncher::outputCounter(int aCnt)
 */
 
 
-#if 0
 /// Active subsystem of DES
 
 static const string K_SsInitUri = "Init";
@@ -1099,7 +1098,7 @@ bool DesAs::Run(int aCount, int aIdleCount)
             Des::update();
             if (!mUpdated->empty()) {
                 LOGN(EInfo, ">>> Confirm [" + to_string(cnt) + "]");
-                outputCounter(cnt);
+                //outputCounter(cnt);
                 Des::confirm();
             }
             cnt++;
@@ -1182,7 +1181,7 @@ bool DesAs2::Run(int aCount, int aIdleCount)
             LOGN(EInfo, ">>> Subs Update [" + to_string(cnt) + "]");
             ssds->update();
             LOGN(EInfo, ">>> Subs Confirm [" + to_string(cnt) + "]");
-            outputCounter(cnt);
+            //outputCounter(cnt);
             ssds->confirm();
             cnt++;
         }
@@ -1233,6 +1232,7 @@ void DesAs2::setActivated()
     }
 }
 
+#if 0
 
 
 

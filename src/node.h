@@ -65,7 +65,6 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	const MOwner* asOwner() const override { const MOwner* res = MOwned::lIf(res); return res; }
 	TOwnedCp* ownedCp() override { return &mOwsNode;}
 	const TOwnedCp* ownedCp() const override { return &mOwsNode;}
-	// From MOwned
 	// From MOwner
 	string MOwner_Uid() const {return getUid<MOwner>();}
 	MIface* MOwner_getLif(TIdHash aId) override;
@@ -112,7 +111,7 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	bool getContentId(int aIdx, string& aRes) const override;
 	bool getContent(const string& aId, string& aRes) const override;
 	bool setContent(const string& aId, const string& aData) override;
-	void onContentChanged(const string* aId) override;
+	void onContentChanged(const string& aId) override;
 
     protected:
 	//void addComp(const string& aType, const string& aName);
@@ -125,6 +124,8 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	    return (aId == T::idHash()) ? aPtr : nullptr;
 	}
 	template<class T> string getUid() const {return getUriS() + Ifu::KUidSep + string(T::idStr());}
+	// TODO YB to avoid using it:w
+	template<class T> string getUidC(const string& aCname) const {return getUriS() + Ifu::KUidSepIc + aCname + Ifu::KUidSep + string(T::idStr());}
 	MOwner* owner();
 	const MOwner* owner() const;
 	inline MLogRec* Logger() const {return mEnv ? mEnv->Logger(): nullptr; }
