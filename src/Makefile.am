@@ -5,6 +5,8 @@ AM_CPPFLAGS = -D_PLAT_LINUX_ -pthread
 lib_LTLIBRARIES = libfap5.la
 
 libfap5_la_SOURCES = \
+		     dessdc.h \
+		     dessdc.cpp \
 		     dessdo.h \
 		     dessdo.cpp \
 		     desadp.h \

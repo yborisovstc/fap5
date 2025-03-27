@@ -4,7 +4,7 @@
 #include "des.h"
 
 
-class DAdp: public Des, public MSystExploring
+class DAdp: public Des, public MSystExploring, public IDesEmbHost
 {
     public:
 	inline static constexpr std::string_view idStr() { return "DAdp"sv;}
@@ -13,6 +13,19 @@ class DAdp: public Des, public MSystExploring
     public:
 	// From Node
 	MIface* MNode_getLif(TIdHash aId) override;
+	// From MDesSyncable
+	void update() override;
+	void confirm() override;
+	// From IDesEmbHost
+	void registerIb(DesEIbb* aIap) override;
+	void registerOst(DesEOstb* aItem) override { assert(false);}
+	bool meetsLogLev(int aLev) const override { return Logger()->MeetsLevel(aLev) && isLogLevel(aLev); }
+	// TODO to avoid using it - decreases performance via TLog ctor
+	void logEmb(int aCtg, const TLog& aRec) override { 
+	    if (isLogLevel(aCtg)) {
+		const_cast<TLog&>(aRec).SetCtg(aCtg); Logger()->Write(aRec);
+	    }
+	}
 	// From MContentOwner
 	int contCount() const override;
 	bool getContentId(int aIdx, string& aRes) const override;
@@ -34,7 +47,10 @@ class DAdp: public Des, public MSystExploring
     protected:
 	CpSystExploring* mCpExpl = nullptr;
 	MSystExploring* mMSystExploring = nullptr;
+	// TODO not used atm!
 	string mContMagUri;
+	vector<DesEIbb*> mIbs; /*!< Inputs buffered registry */
+	DesEIbd<DGuri> mIbMagUri;   //!< Buffered input "MagUri"
 	MNode* mMagBase = nullptr;
 	MNode* mMag = nullptr;
     protected:

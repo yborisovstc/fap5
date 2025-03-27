@@ -45,10 +45,8 @@ testroot : Elem {
                 CompNames : SdoCompsNames
                 Parent : SdoParent
                 Parents : SdoParents
-                _ <  {
-                    AddComp : ASdcComp {
-                        LogLevel = "Dbg"
-                    }
+                AddComp : ASdcComp {
+                    LogLevel = "Dbg"
                 }
             }
             Adapter.CpExploring ~ Targets.CpExplorable
@@ -86,14 +84,6 @@ testroot : Elem {
                 _@ < = "VDU"
                 Inp ~ Adapter.Parents
             )
-            _ <  {
-                # "OutpMagUri debug"
-                OutpMagUri_Dbg : State (
-                    _@ < LogLevel = "Dbg"
-                    _@ < = "SS"
-                    Inp ~ Adapter.OutpMagUri
-                )
-            }
             # "Tics_Counter"
             Counter : State {
                 LogLevel = "Dbg"

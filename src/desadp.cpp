@@ -3,13 +3,15 @@
 
 
 const string KCont_AgentUri = "AgentUri";
+const string K_DAdp_CpUri_InpMagUri = "InpMagUri";
 
 static const vector<string> KContentIds = { KCont_AgentUri };
 
 
 const string DAdp::KCpExplName = "CpExploring";
 
-DAdp::DAdp(const string &aType, const string& aName, MEnv* aEnv): Des(aType, aName, aEnv)
+DAdp::DAdp(const string &aType, const string& aName, MEnv* aEnv): Des(aType, aName, aEnv),
+    mIbMagUri(this, K_DAdp_CpUri_InpMagUri)
 {
 }
 
@@ -62,10 +64,21 @@ MNode* DAdp::getMagBase()
 
 void DAdp::updateMag()
 {
+    /*
     if (mMagBase) {
 	GUri magUri(mContMagUri);
 	if (magUri.isValid()) {
 	    mMag = mMagBase->getNode(magUri);
+	}
+    }
+    */
+
+    if (mMagBase && mIbMagUri.mValid) {
+	MNode* magn = mMagBase->getNode(mIbMagUri.data().mData);
+	if (magn && magn != mMag) {
+	    mMag = magn;
+	    notifyMagChanged();
+	    LOGN(EInfo, "Managed agent attached [" + mMag->Uid() + "]");
 	}
     }
 }
@@ -136,10 +149,47 @@ bool DAdp::setContent(const string& aId, const string& aData)
 void DAdp::onContentChanged(const string& aId)
 {
     if (aId == KCont_AgentUri) {
-	updateMag();
-	notifyMagChanged();
+//	updateMag();
+//	notifyMagChanged();
     }
 }
+
+void DAdp::update()
+{
+    for (auto iap : mIbs) {
+	if (iap->mActivated) {
+	    iap->update();
+	}
+    }
+    Des::update();
+}
+
+void DAdp::confirm()
+{
+    for (auto iap : mIbs) {
+	iap->mChanged = false;
+	if (iap->mUpdated) {
+	    iap->confirm();
+	}
+    }
+    if (mIbMagUri.mChanged) {
+	updateMag();
+    }
+    Des::confirm();
+}
+
+void DAdp::registerIb(DesEIbb* aIb)
+{
+    MNode* cp = Provider()->createNode(aIb->mCpType, aIb->getUri(), mEnv);
+    assert(cp);
+    bool res = attachOwned(cp->MNode::lIft<MOwned>());
+    assert(res);
+    mIbs.push_back(aIb);
+    MVert* cpv = cp->lIf(cpv);
+    assert(cpv);
+    cpv->bind(aIb->MDesInpObserver::lIft<MDesInpObserver>());
+}
+
 
 
 

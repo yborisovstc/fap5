@@ -20,10 +20,12 @@ class MDVarGet: public MIface
     public:
 	// From MIface
 	TIdHash id() const override { return idHash();}
-	virtual string Uid() const override { return MDVarGet_Uid();}
+	string Uid() const override { return MDVarGet_Uid();}
+	void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDVarGet_doDump(aLevel, aIdt, std::cout);}
+	MIface* getLif(TIdHash aId) override { return MDVarGet_getLif(aId); }
 	virtual string MDVarGet_Uid() const = 0;
-	virtual void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDVarGet_doDump(aLevel, aIdt, std::cout);}
 	virtual void MDVarGet_doDump(int aLevel, int aIdt, ostream& aOs) const {}
+	virtual MIface* MDVarGet_getLif(TIdHash aId) {return nullptr;}
 	// Local
 	template <class T> T* GetDObj(T* aInst) { return aInst = static_cast<T*>(DoGetDObj(aInst->Type()));};
 	virtual MIface* DoGetDObj(const char *aName) = 0;

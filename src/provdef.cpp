@@ -22,10 +22,10 @@
 #include "desconst.h"
 #include "desadp.h"
 #include "dessdo.h"
+#include "dessdc.h"
 /*
 #include "content.h"
 #include "desio.h"
-#include "dessdc.h"
 #include "dessp.h"
 #include "mnt.h"
 #include "link.h"
@@ -65,6 +65,8 @@ const ProvDef::TFReg ProvDef::mReg ( {
 	Item<DAdp>(),
         /* SDOs */
 	Item<SdoName>(), Item<SdoCompsCount>(), Item<SdoCompsNames>(), Item<SdoParent>(), Item<SdoParents>(),
+        /* SDCs */
+	Item<ASdcComp>(),
 
 #if 0
         Item<Link>(),
@@ -77,7 +79,7 @@ const ProvDef::TFReg ProvDef::mReg ( {
         /* Transitions */
         /* Des adapters */
         Item<AMnodeAdp>(), Item<AMelemAdp>(), Item<AMntp>(),         /* SDCs */
-        Item<ASdcMut>(), Item<ASdcComp>(), Item<ASdcRm>(), Item<ASdcConn>(), Item<ASdcDisconn>(), Item<ASdcInsert2>(), Item<ASdcInsertN>(),
+        Item<ASdcMut>(),  Item<ASdcRm>(), Item<ASdcConn>(), Item<ASdcDisconn>(), Item<ASdcInsert2>(), Item<ASdcInsertN>(),
         Item<ASdcExtract>(), Item<ASdcPause>(), Item<ASdcResume>(), Item<ASdcCompT>(), Item<ASdcConnT>(), 
         /* SDOs */
         Item<SdoName>(), Item<SdoUri>(), Item<SdoComp>(), Item<SdoConn>(), 

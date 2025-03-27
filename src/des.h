@@ -9,7 +9,7 @@
 
 #include "nconn.h"
 #include "syst.h"
-//#include "rdatauri.h"
+#include "rdatauri.h"
 #include "connpoint.h"
 
 
@@ -258,7 +258,7 @@ class State: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, p
 	// From MDesSyncable
 	virtual string MDesSyncable_Uid() const override {return getUid<MDesSyncable>();}
 	virtual void MDesSyncable_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
-	virtual MIface* MDesSyncable_getLif(const char *aType) override { return nullptr; }
+	virtual MIface* MDesSyncable_getLif(TIdHash aId) override { return nullptr; }
 	virtual void update() override;
 	virtual void confirm() override;
 	virtual void setUpdated() override;
@@ -387,7 +387,7 @@ class Des: public Syst, public MDesSyncable, public MDesObserver/*, public MDesA
 	// From MDesSyncable
 	string MDesSyncable_Uid() const override {return getUid<MDesSyncable>();}
 	void MDesSyncable_doDump(int aLevel, int aIdt, ostream& aOs) const override;
-	MIface* MDesSyncable_getLif(const char *aType) override { return nullptr; }
+	MIface* MDesSyncable_getLif(TIdHash aId) override { return nullptr; }
 	void update() override;
 	void confirm() override;
 	void setUpdated() override;
@@ -508,8 +508,6 @@ class DesAs2: public DesLauncher
 	static const GUri K_SsysInitUri;
 };
 
-#if 0
-
 
 
 
@@ -519,8 +517,8 @@ class DesAs2: public DesLauncher
 template <typename T> bool GetSData(MNode* aDvget, T& aData)
 {
     bool res = false;
-    MUnit* vgetu = aDvget->lIf(vgetu);
-    MDVarGet* vget = vgetu ? vgetu->getSif(vget) : nullptr;
+    MVert* inpv = aDvget->lIf(inpv);
+    MDVarGet* vget = (inpv && inpv->pairsCount() == 1) ? inpv->getPair(0)->lIf(vget) : nullptr;
     if (vget) {
 	const Sdata<T>* data = vget->DtGet(data);
 	if (data) {
@@ -535,8 +533,8 @@ template <typename T> bool GetSData(MNode* aDvget, T& aData)
 template <typename T> bool GetGData(MNode* aDvget, T& aData)
 {
     bool res = false;
-    MUnit* vgetu = aDvget->lIf(vgetu);
-    MDVarGet* vget = vgetu->getSif(vget);
+    MVert* inpv = aDvget->lIf(inpv);
+    MDVarGet* vget = (inpv && inpv->pairsCount() == 1) ? inpv->getPair(0)->lIf(vget) : nullptr;
     if (vget) {
 	const T* data = vget->DtGet(data);
 	if (data) {
@@ -546,6 +544,7 @@ template <typename T> bool GetGData(MNode* aDvget, T& aData)
     }
     return res;
 }
+
 
 ///// Embedded DES elements support
 
@@ -576,23 +575,27 @@ class IDesEmbHost
 class DesEIbb: public MDesInpObserver, public MDesSyncable
 {
     public:
-	DesEIbb(MNode* aHost, const string& aInpUri, const string& aCpType = CpStateInp::Type()):
+	DesEIbb(MNode* aHost, const string& aInpUri, const string& aCpType = string(CpStateInp::idStr())):
 	    mHost(aHost), mUri(aInpUri), mCpType(aCpType), mUpdated(false), mActivated(true),
 	    mChanged(false), mValid(false) { eHost()->registerIb(this);}
 	string getUri() const { return mUri;}
 	// From MDesInpObserver
-	virtual void onInpUpdated() override { setActivated();}
-	virtual string MDesInpObserver_Uid() const override { return MDesInpObserver::Type();}
-	virtual void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
+	void onInpUpdated() override { setActivated();}
+	string MDesInpObserver_Uid() const override { return string(MDesInpObserver::idStr());}
+	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
+	virtual MIface* MDesInpObserver_getLif(TIdHash aId) {
+	    return checkLif2(aId, mMDesInpObserver);
+	}
 	// From MDesSyncable
-	virtual string MDesSyncable_Uid() const override {return MDesSyncable::Type();} 
-	virtual void MDesSyncable_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
-	virtual MIface* MDesSyncable_getLif(const char *aType) override { return nullptr; }
-	virtual void update() override { mChanged = false;}
-	virtual void setUpdated() override { mUpdated = true; sHost()->setUpdated();}
-	virtual void setActivated() override { mActivated = true; auto shost = sHost(); if (shost) shost->setActivated();}
-	virtual bool isActive() const override { return false;}
-	virtual int countOfActive(bool aLocal = false) const override { return 1;}
+	string MDesSyncable_Uid() const override {return string(MDesSyncable::idStr());} 
+	void MDesSyncable_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
+	MIface* MDesSyncable_getLif(TIdHash aId) override { return nullptr; }
+	void update() override { mChanged = false;}
+	void setUpdated() override { mUpdated = true; sHost()->setUpdated();}
+	void setActivated() override { mActivated = true; auto shost = sHost(); if (shost) shost->setActivated();}
+	bool isActive() const override { return false;}
+	int countOfActive(bool aLocal = false) const override { return 1;}
+        TDesSyncableCp* desSyncableCp() override { return nullptr;}
     protected:
 	template <typename S> string toStr(const S& aData) { return to_string(aData); }
 	string toStr(const string& aData) { return aData; }
@@ -601,6 +604,9 @@ class DesEIbb: public MDesInpObserver, public MDesSyncable
 	string toStr(const DGuri& aData) { return aData.ToString(true); }
 	MDesSyncable* sHost() { MDesSyncable* ss = mHost->lIf(ss); return ss;}
 	IDesEmbHost* eHost() { return dynamic_cast<IDesEmbHost*>(mHost);}
+	template<class T> inline MIface* checkLif2(TIdHash aId, T*& aPtr) {
+	    return (aId == T::idHash()) ? (aPtr ? aPtr : (aPtr = dynamic_cast<T*>(this)))  : nullptr;
+	}
     public:
 	MNode* mHost;  /*!< Host */
 	string mUri;  /*!< Input URI */
@@ -609,6 +615,7 @@ class DesEIbb: public MDesInpObserver, public MDesSyncable
 	bool mUpdated; /*!< Indication of data is updated */
 	bool mChanged; /*!< Indication of data is changed */
 	bool mValid;  /*!< Indication of data validity */
+	MDesInpObserver* mMDesInpObserver = nullptr;
 };
 
 #define LOGEMB(aLevel, rec) \
@@ -623,7 +630,7 @@ class DesEIbb: public MDesInpObserver, public MDesSyncable
 template <typename T> class DesEIbt: public DesEIbb
 {
     public:
-	DesEIbt(MNode* aHost, const string& aInpUri, const string& aCpType = CpStateInp::Type()): DesEIbb(aHost, aInpUri, aCpType) {}
+	DesEIbt(MNode* aHost, const string& aInpUri, const string& aCpType = string(CpStateInp::idStr())): DesEIbb(aHost, aInpUri, aCpType) {}
 	// From MDesSyncable
 	virtual void confirm() override;
 	// Local
@@ -692,29 +699,15 @@ template <typename T> void DesEIbs<T>::update()
 }
 
 
-/** @brief Input buffered MNode based
- * @param  T  data type 
- * */
-class DesEIbMnode: public DesEIbt<MNode*>
-{
-    public:
-	using TP = DesEIbb;
-	using TPT = DesEIbt<MNode*>;
-	DesEIbMnode(MNode* aHost, const string& aUri): DesEIbt<MNode*>(aHost, aUri, CpStateMnodeInp::Type())
-	{ TPT::mCdt = nullptr; TPT::mUdt = nullptr; }
-	// From MDesSyncable
-	virtual void update() override;
-};
-
 /** @brief Output state - embedded pseudo-state "connnected" to host output
  * */
 class DesEOstb: public MDVarGet {
     public:
-	DesEOstb(MNode* aHost, const string& aCpUri, const string& aCpType = CpStateOutp::Type()):
+	DesEOstb(MNode* aHost, const string& aCpUri, const string& aCpType = string(CpStateOutp::idStr())):
 	    mHost(aHost), mCpUri(aCpUri), mCpType(aCpType) { eHost()->registerOst(this);}
 	string getCpUri() const { return mCpUri;}
 	// From MDVarGet
-	virtual string MDVarGet_Uid() const override {return MDVarGet::Type();}
+	virtual string MDVarGet_Uid() const override {return string(MDVarGet::idStr());}
     public:
 	void NotifyInpsUpdated();
     protected:
@@ -798,6 +791,7 @@ void DesEOst<T>::updateInvalid()
 
 
 
+#if 0
 
 /** @brief DES affecting Parameter base (not completed)
  * */

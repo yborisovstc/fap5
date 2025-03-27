@@ -44,10 +44,12 @@ class MDesInpObserver: public MIface
     public:
 	// From MIface
 	TIdHash id() const override { return idHash();}
-	virtual string Uid() const override { return MDesInpObserver_Uid();}
+	string Uid() const override { return MDesInpObserver_Uid();}
+	MIface* getLif(TIdHash aId) override { return MDesInpObserver_getLif(aId); }
 	virtual string MDesInpObserver_Uid() const = 0;
 	virtual void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDesInpObserver_doDump(aLevel, aIdt, std::cout);}
 	virtual void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const = 0;
+	virtual MIface* MDesInpObserver_getLif(TIdHash aId) {return nullptr;}
 	// Local
 	/** @brief Notification that input state was changed */
 	virtual void onInpUpdated() = 0;
@@ -69,8 +71,8 @@ class MDesSyncable: public MIface
 	virtual string MDesSyncable_Uid() const = 0;
 	virtual void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDesSyncable_doDump(aLevel, aIdt, std::cout);}
 	virtual void MDesSyncable_doDump(int aLevel, int aIdt, ostream& aOs) const = 0;
-	virtual MIface* getLif(const char *aType) { return MDesSyncable_getLif(aType); }
-	virtual MIface* MDesSyncable_getLif(const char *aType) = 0;
+	virtual MIface* getLif(TIdHash aId) { return MDesSyncable_getLif(aId); }
+	virtual MIface* MDesSyncable_getLif(TIdHash aId) = 0;
 	// Local
 	virtual void update() = 0;
 	virtual void confirm() = 0;

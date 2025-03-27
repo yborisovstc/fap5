@@ -1243,30 +1243,6 @@ void DesAs2::setActivated()
 
 /// Embedded Input buffered
 
-void DesEIbMnode::update()
-{
-    bool res = false;
-    DesEIbb::update();
-    MNode* inp = TP::mHost->getNode(TP::mUri);
-    MUnit* inpu = inp ? inp->lIf(inpu) : nullptr;
-    if (inpu) {
-        // Resolve MLink first to avoid MNode wrong resolution
-        MLink* mmtl = inpu->getSif(mmtl);
-        if (mmtl) {
-            mUdt = mmtl->pair(); res = true;
-        }
-    }
-    if (!res) {
-        //this->eHost()->logEmb(TLogRecCtg::EDbg, TLog(TP::mHost) + "Cannot get input [" + this->mUri + "]");
-        LOGEMB(TLogRecCtg::EDbg, (TLog(mHost) + "Cannot get input [" + this->mUri + "]"));
-    } else {
-        this->mActivated = false;
-        this->setUpdated();
-    }
-}
-
-
-
 
 
 /// Embedded Output state
