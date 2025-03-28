@@ -114,7 +114,7 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	void onContentChanged(const string& aId) override;
 
     protected:
-	//void addComp(const string& aType, const string& aName);
+	MNode* addComp(const string_view& aId, const string& aName);
 	const MNode* getComp(const string& aId) const;
 	MNode* getComp(const string& aId) { return const_cast<MNode*>(const_cast<const Node*>(this)->getComp(aId));}
 	template<class T> inline MIface* checkLif2(TIdHash aId, T*& aPtr) {

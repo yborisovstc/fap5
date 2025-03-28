@@ -96,15 +96,14 @@ MIface* Node::MNode_getLif(TIdHash aId)
     return res;
 }
 
-/*
-void Node::addComp(const string& aType, const string& aName)
+MNode* Node::addComp(const string_view& aId, const string& aName)
 {
-    MNode* cp = Provider()->createNode(aType, aName, mEnv);
+    MNode* cp = Provider()->createNode(string(aId), aName, mEnv);
     assert(cp);
-    bool res = attachOwned(cp);
+    bool res = attachOwned(cp->MNode::lIft<MOwned>());
     assert(res);
+    return cp;
 }
-*/
 
 const MNode* Node::getComp(const string& aId) const
 {

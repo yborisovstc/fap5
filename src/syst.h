@@ -51,7 +51,7 @@ class CpSystExploring: public ConnPoint<MSystExploring, MSystExplorable>
     public:
 	using TBase = ConnPoint<MSystExploring, MSystExplorable>;
     public:
-	inline static constexpr std::string_view idStr() { return "CpSystExplorable"sv;}
+	inline static constexpr std::string_view idStr() { return "CpSystExploring"sv;}
         CpSystExploring(const string &aType, const string& aName, MEnv* aEnv):
             TBase(aType, aName, aEnv) {}
     protected:

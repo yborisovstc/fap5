@@ -18,20 +18,26 @@ testroot : Elem {
                 Target2 : Node {
                     Cmp2_0 : Node
                     Cmp2_1 : Node
-                    Cmp2_2 : Node
+                    Cmp2_2 : Node {
+                        Cmp2_2_0 : Node
+                    }
                 }
                 # "Target_3"
                 Target3 : Elem3 {
                     Cmp3_0 : Node
                     Cmp3_1 : Node
                     Cmp3_2 : Node
-                    Cmp3_3 : Node
+                    Cmp3_3 : Node {
+                        Cmp3_3_0 : Node
+                    }
                 }
                 # "Target_4"
                 Target4 : Des {
+                    Ext1 : ExtdStateOutp
                     St1 : State {
                         = "SI 1"
                     }
+                    Ext1.Int ~ St1
                 }
                 # "Target_5"
                 Target5 : Target4
@@ -39,15 +45,68 @@ testroot : Elem {
             # "Controller uses adapter for access to target"
             Adapter : DAdp {
                 LogLevel = "Dbg"
-                AgentUri = "Target"
-                Name : SdoName
+                MName : SdoName
                 CompsCount : SdoCompsCount
                 CompNames : SdoCompsNames
                 Parent : SdoParent
                 Parents : SdoParents
+                CompsUri : SdoCompsUri
+                ExUri : SdoUri
+                CompOwner : SdoCompOwner (
+                    Comp ~ : Const {
+                        = "URI Cmp3_3.Cmp3_3_0"
+                    }
+                )
+                CompExists : SdoComp (
+                    Name ~ : Const {
+                        = "URI Cmp3_3.Cmp3_3_0"
+                    }
+                )
                 AddComp : ASdcComp {
                     LogLevel = "Dbg"
                 }
+                CComp : SdoCompComp (
+                    Comp ~ : Const {
+                        = "URI Cmp3_3"
+                    }
+                    CompComp ~ : Const {
+                        = "URI Cmp3_3_0"
+                    }
+                )
+                ConnExists : SdoConn (
+                    Vp ~ : Const {
+                        = "URI St1"
+                    }
+                    Vq ~ : Const {
+                        = "URI Ext1.Int"
+                    }
+                )
+                PairsCount : SdoPairsCount (
+                    Vp ~ : Const {
+                        = "URI St1"
+                    }
+                )
+                VPair : SdoPair (
+                    Vp ~ : Const {
+                        = "URI St1"
+                    }
+                )
+                TcPair : SdoTcPair (
+                    Targ ~ : Const {
+                        = "URI Ext1"
+                    }
+                    TargComp ~ : Const {
+                        = "URI Int"
+                    }
+                )
+                MagPairs : SdoPairs
+                TPairs : SdoTPairs (
+                    Targ ~ : Const {
+                        = "URI St1"
+                    }
+                )
+                MagEdges : SdoEdges
+                DesIsIdle : SdoDesIdle
             }
             Adapter.CpExploring ~ Targets.CpExplorable
             # "Components_count"
@@ -70,7 +129,79 @@ testroot : Elem {
             Name_Dbg : State (
                 _@ < LogLevel = "Dbg"
                 _@ < = "SS"
-                Inp ~ Adapter.Name
+                Inp ~ Adapter.MName
+            )
+            # "Uri"
+            ExUri : State (
+                _@ < LogLevel = "Dbg"
+                _@ < = "URI"
+                Inp ~ Adapter.ExUri
+            )
+            # "CompOwner"
+            CompOwner : State (
+                _@ < LogLevel = "Dbg"
+                _@ < = "URI"
+                Inp ~ Adapter.CompOwner
+            )
+            # "CompsUri"
+            CompsUri : State (
+                _@ < LogLevel = "Dbg"
+                _@ < = "VDU"
+                Inp ~ Adapter.CompsUri
+            )
+            # "CompComp"
+            CompComp : State (
+                _@ < LogLevel = "Dbg"
+                _@ < = "URI"
+                Inp ~ Adapter.CComp
+            )
+            # "Comp"
+            CompExists : State (
+                _@ < LogLevel = "Dbg"
+                _@ < = "SB"
+                Inp ~ Adapter.CompExists
+            )
+            # "Conn exists"
+            ConnExists : State (
+                _@ < LogLevel = "Dbg"
+                _@ < = "SB"
+                Inp ~ Adapter.ConnExists
+            )
+            # "Pairs count"
+            PairsCount : State (
+                _@ < LogLevel = "Dbg"
+                _@ < = "SI"
+                Inp ~ Adapter.PairsCount
+            )
+            # "Vertex pair"
+            VPair : State (
+                _@ < LogLevel = "Dbg"
+                _@ < = "URI"
+                Inp ~ Adapter.VPair
+            )
+            # "Tagtet comp pair"
+            TcPair : State (
+                _@ < LogLevel = "Dbg"
+                _@ < = "URI"
+                Inp ~ Adapter.TcPair
+            )
+            # "Mag pairs"
+            MagPairs : State (
+                _@ < LogLevel = "Dbg"
+                _@ < = "VDU"
+                Inp ~ Adapter.MagPairs
+            )
+            # "Targ pairs"
+            TPairs : State (
+                _@ < LogLevel = "Dbg"
+                _@ < = "VDU"
+                Inp ~ Adapter.TPairs
+            )
+            # "Mag edges"
+            MagEdges : State (
+                _@ < LogLevel = "Dbg"
+                _@ < = "VPDU"
+                Inp ~ Adapter.MagEdges
             )
             # "Parent"
             Parent_Dbg : State (
@@ -83,6 +214,12 @@ testroot : Elem {
                 _@ < LogLevel = "Dbg"
                 _@ < = "VDU"
                 Inp ~ Adapter.Parents
+            )
+            # "Des is idle"
+            DesIsIdle : State (
+                _@ < LogLevel = "Dbg"
+                _@ < = "SB"
+                Inp ~ Adapter.DesIsIdle
             )
             # "Tics_Counter"
             Counter : State {

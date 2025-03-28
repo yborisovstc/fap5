@@ -92,6 +92,7 @@ MIface* ConnPoint<Provided, Required>::MVert_getLif(TIdHash aId)
     if (res = checkLifn(aId, mProvidedPx));    // Keep binded as priority
     else if (res = checkLif2(aId, mProvided));
     else if (res = checkLif2(aId, mRequired)); // Needs for CPs binding
+    else res = Vert::MVert_getLif(aId);
     return res;
 }
 

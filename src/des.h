@@ -235,6 +235,7 @@ class CpStateMnodeOutp: public CpState
 #endif
 
 
+// TODO Use BState as a base
 /** @brief State, ver. 2, non-inhritable, monolitic, direct data, switching updated-confirmed
  * */
 class State: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, public MDesInpObserver, public MDVarGet, public MDVarSet
@@ -508,6 +509,88 @@ class DesAs2: public DesLauncher
 	static const GUri K_SsysInitUri;
 };
 
+/** @brief Binded State 
+ * It doesnt include input but gets bounded with input by owner
+ * So with inputs it expose simmetric dipole structure instead of asymmetric one in case of state
+ * This allows simplify "custom" systems (like DAdp) having pair CpStateInp-DState
+ * instead of ExtdStateInp-State. I.e. the system exposes input binded to state as it's own.
+ * */
+class BState: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, public MDesInpObserver, public MDVarGet, public MDVarSet
+{
+    public:
+        using TBase = ConnPoint<MDVarGet, MDesInpObserver>;
+        using TDesSyncCp = NCpOnp<MDesSyncable, MDesObserver>;  /*!< DES syncable connpoint */
+    public:
+	inline static constexpr std::string_view idStr() { return "BState"sv;}
+	BState(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	virtual ~BState();
+	// From Node.MIface
+	MIface* MNode_getLif(TIdHash aId) override;
+	// From Node
+	MIface* MOwner_getLif(TIdHash aId) override;
+	GUri parentUri() const override { return string(idStr());}
+	// From MVert
+	bool isCompatible(const MVert* aPair, bool aExt) const override;
+	TDir getDir() const override { return EOut;}
+        bool bind(MIface* aBound) override;
+	// From MDesSyncable
+	virtual string MDesSyncable_Uid() const override {return getUid<MDesSyncable>();}
+	virtual void MDesSyncable_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
+	virtual MIface* MDesSyncable_getLif(TIdHash aId) override { return nullptr; }
+	virtual void update() override;
+	virtual void confirm() override;
+	virtual void setUpdated() override;
+	virtual void setActivated() override;
+	virtual bool isActive() const override { return false;}
+	virtual int countOfActive(bool aLocal = false) const override { return 0;}
+        TDesSyncableCp* desSyncableCp() override { return &mDesSyncCp;}
+	// From MDesInpObserver
+	virtual string MDesInpObserver_Uid() const {return getUid<MDesInpObserver>();}
+	virtual void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
+	virtual void onInpUpdated() override;
+	// From Node.MContentOwner
+	int contCount() const override { return Node::contCount() + 1;}
+	bool getContentId(int aIdx, string& aRes) const override;
+	bool getContent(const string& aId, string& aRes) const override;
+	bool setContent(const string& aId, const string& aData) override;
+	void onContentChanged(const string& aId) override {}
+	// From MDVarGet
+	virtual string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
+	virtual string VarGetIfid() const override;
+	virtual MIface* DoGetDObj(const char *aName) override {return nullptr;}
+	virtual DtBase* VDtGet(const string& aType) override;
+	// From MDVarSet
+	virtual string MDVarSet_Uid() const override {return getUid<MDVarSet>();}
+	virtual string VarGetSIfid();
+	virtual const bool VDtSet(const DtBase& aData) override;
+    public:
+	static const string KCont_Value;
+    protected:
+	MDVarGet* GetInp();
+	bool updateWithContValue(const string& aCnt);
+        void notifyInpsUpdated();
+    protected:
+	// From MNode
+	MIface* MOwned_getLif(TIdHash aId) override;
+	// Local
+	DtBase* CreateData(const string& aSrc);
+        inline MDesObserver* desObserver() { return mDesSyncCp.mPair ? mDesSyncCp.mPair->provided() : nullptr;}
+    protected:
+        TDesSyncCp mDesSyncCp; //<! DES Syncable connpoint
+	DtBase* mPdata;   //<! Preparing (updating) phase data
+	DtBase* mCdata;   //<! Confirming phase data
+	bool mUpdNotified;  //<! Sign of that State notified observers on Update
+	bool mActNotified;  //<! Sign of that State notified observers on Activation
+	bool mInpValid;
+	bool mStDead;     //<! Sign of State destructed, needs to avoid callbacks initialted by bases */
+        MVert* mInp = nullptr; //<! Binded input
+	MDesSyncable* mMDesSyncable = nullptr;
+	MDesInpObserver* mMDesInpObserver = nullptr;
+	MDVarGet* mMDVarGet = nullptr;
+	MDVarSet* mMDVarSet = nullptr;
+};
+
+
 
 
 
@@ -517,8 +600,7 @@ class DesAs2: public DesLauncher
 template <typename T> bool GetSData(MNode* aDvget, T& aData)
 {
     bool res = false;
-    MVert* inpv = aDvget->lIf(inpv);
-    MDVarGet* vget = (inpv && inpv->pairsCount() == 1) ? inpv->getPair(0)->lIf(vget) : nullptr;
+    MDVarGet* vget = aDvget ? aDvget->lIf(vget) : nullptr;
     if (vget) {
 	const Sdata<T>* data = vget->DtGet(data);
 	if (data) {
@@ -533,8 +615,7 @@ template <typename T> bool GetSData(MNode* aDvget, T& aData)
 template <typename T> bool GetGData(MNode* aDvget, T& aData)
 {
     bool res = false;
-    MVert* inpv = aDvget->lIf(inpv);
-    MDVarGet* vget = (inpv && inpv->pairsCount() == 1) ? inpv->getPair(0)->lIf(vget) : nullptr;
+    MDVarGet* vget = aDvget ? aDvget->lIf(vget) : nullptr;
     if (vget) {
 	const T* data = vget->DtGet(data);
 	if (data) {

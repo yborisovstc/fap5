@@ -40,7 +40,7 @@ const string KChromRarg_Chs = "chs";
 
 /** Native agents factory registry */
 const ProvDef::TFReg ProvDef::mReg ( {
-        Item<Node>(), Item<Elem>(), Item<Import>(), Item<Syst>(), Item<State>(), Item<Des>(),
+        Item<Node>(), Item<Elem>(), Item<Import>(), Item<Syst>(), Item<State>(), Item<BState>(), Item<Des>(),
         Item<DesLauncher>(), Item<Const>(),
         /* Transitions */
         Item<TrAddVar>(), Item<TrAdd2Var>(), Item<TrSizeVar>(), Item<TrSwitchBool>(), Item<TrSwitchBool2>(), Item<TrMplVar>(),
@@ -64,27 +64,22 @@ const ProvDef::TFReg ProvDef::mReg ( {
 	/* DES adapter (system exploring) */
 	Item<DAdp>(),
         /* SDOs */
-	Item<SdoName>(), Item<SdoCompsCount>(), Item<SdoCompsNames>(), Item<SdoParent>(), Item<SdoParents>(),
+	Item<SdoName>(), Item<SdoUri>(), Item<SdoCompsCount>(), Item<SdoCompsNames>(), Item<SdoParent>(), Item<SdoParents>(),
+	Item<SdoCompOwner>(), Item<SdoCompsUri>(), Item<SdoCompComp>(), Item<SdoComp>(), 
+	Item<SdoConn>(), Item<SdoPairsCount>(), Item<SdoPair>(), Item<SdoTcPair>(), Item<SdoPairs>(), 
+        Item<SdoTPairs>(), Item<SdoEdges>(), Item<SdoDesIdle>(), 
         /* SDCs */
 	Item<ASdcComp>(),
 
 #if 0
         Item<Link>(),
-        , Item<Content>(), Item<Vertu>(), Item<Vert>(), 
-        Item<ConnPointu>(), Item<CpMnodeOutp>(), Item<CpMnodeInp>(),
-        Item<Extd>(), Item<Extde>(), Item<Const>(), Item<TrSub2Var>(),
-        Item<ExtdStateOutpI>(), Item<ExtdStateMnodeOutp>(),
-        Item<CpStateMnodeInp>(),  Item<CpStateMnodeOutp>(), Item<ExtdStateMnodeInp>(),
+        Item<Extd>(), Item<Extde>(), Item<TrSub2Var>(),
         Item<Sout>(), Item<ADes>(),
-        /* Transitions */
         /* Des adapters */
-        Item<AMnodeAdp>(), Item<AMelemAdp>(), Item<AMntp>(),         /* SDCs */
+        Item<AMntp>(),
+	/* SDCs */
         Item<ASdcMut>(),  Item<ASdcRm>(), Item<ASdcConn>(), Item<ASdcDisconn>(), Item<ASdcInsert2>(), Item<ASdcInsertN>(),
         Item<ASdcExtract>(), Item<ASdcPause>(), Item<ASdcResume>(), Item<ASdcCompT>(), Item<ASdcConnT>(), 
-        /* SDOs */
-        Item<SdoName>(), Item<SdoUri>(), Item<SdoComp>(), Item<SdoConn>(), 
-        Item<SdoPairsCount>(), Item<SdoPair>(), Item<SdoCompOwner>(), Item<SdoCompComp>(), Item<SdoPairs>(), Item<SdoTPairs>(),
-        Item<SdoTcPair>(), Item<SdoEdges>(), Item<SdoCompsUri>(), Item<SdoDesIdle>(), 
         /* DES context */
         Item<DesCtxSpl>(), Item<DesCtxCsm>(), 
         /* DES service point */

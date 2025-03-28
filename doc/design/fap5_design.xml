@@ -433,5 +433,15 @@
 	</sect2>
     </sect1>
 
+    <sect1 id="ds_owrowd"><title>Adjust Owner-Owned relationship</title>
+	<sect2><title>Intro</title>
+	    <simpara>
+		Currently Owner-Owned relationship isn't seep consistent.
+		For instance MOwner contains methods that allows owned (note that owned has access to its owner) manipulating
+		of owner, i.e. attachOwned(). This needs to be improved. 
+	    </simpara>
+	</sect2>
+    </sect1>
+
 </article>
 

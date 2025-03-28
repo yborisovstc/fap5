@@ -16,25 +16,10 @@ class SdoBase : public CpStateOutp, public MDVarGet, public MObserver, public MD
 	class InpBase {
 	    public:
 		InpBase(SdoBase* aHost, const string& aName);
+		void Construct();
 	    public:
 		SdoBase* mHost;
 		const string mName;
-	};
-	template <typename T> class Inp : public InpBase {
-	    public:
-		using Stype = Sdata<T>;
-	    public:
-		Inp(SdoBase* aHost, const string& aName): InpBase(aHost, aName) {}
-		bool getData(T& aData) {
-		    bool res = false;
-		    MNode* inp = mHost->getNode(mName);
-		    if (inp) {
-			res = GetSData(inp, aData);
-		    } else {
-			LOGNN(mHost, EDbg, "Cannot get input [" + mName + "]");
-		    }
-		    return res;
-		}
 	};
 	template <typename T> class Inpg : public InpBase {
 	    public:
@@ -44,10 +29,14 @@ class SdoBase : public CpStateOutp, public MDVarGet, public MObserver, public MD
 		bool getData(T& aData) {
 		    bool res = false;
 		    MNode* inp = mHost->getNode(mName);
-		    if (inp) {
-			res = GetGData(inp, aData);
-		    } else {
-			LOGNN(mHost, EDbg, "Cannot get input [" + mName + "]");
+		    MVert* inpv = inp ? inp->lIf(inpv) : nullptr;
+		    MDVarGet* vget = (inpv && inpv->pairsCount() == 1) ? inpv->getPair(0)->lIf(vget) : nullptr;
+		    if (vget) {
+			const T* data = vget->DtGet(data);
+			if (data) {
+			    aData = *data;
+			    res = data->IsValid();
+			}
 		    }
 		    return res;
 		}
@@ -157,18 +146,16 @@ class SdoName : public Sdog<Sdata<string>>
 	virtual const DtBase* VDtGet(const string& aType) override;
 };
 
-#if 0
 
 /** @brief SDO "URI of observed node"
  * */
 class SdoUri : public Sdog<DGuri>
 {
     public:
-	static const char* Type() { return "SdoUri";};
+	inline static constexpr std::string_view idStr() { return "SdoUri"sv;}
 	SdoUri(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
 };
-#endif
 
 
 /** @brief SDO "Parent"
@@ -192,15 +179,16 @@ class SdoParents : public Sdog<Vector<DGuri>>
 };
 
 
-#if 0
 /** @brief SDO "Comp Owner"
  * */
 class SdoCompOwner : public Sdog<DGuri>
 {
     public:
-	static const char* Type() { return "SdoCompOwner";};
+	inline static constexpr std::string_view idStr() { return "SdoCompOwner"sv;}
 	SdoCompOwner(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
+    protected:
+	void Construct() override;
     protected:
 	Inpg<DGuri> mInpCompUri;  //<! Comp URI
 };
@@ -210,15 +198,15 @@ class SdoCompOwner : public Sdog<DGuri>
 class SdoCompComp : public Sdog<DGuri>
 {
     public:
-	static const char* Type() { return "SdoCompComp";};
+	inline static constexpr std::string_view idStr() { return "SdoCompComp"sv;}
 	SdoCompComp(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
+    protected:
+	void Construct() override;
     protected:
 	Inpg<DGuri> mInpCompUri;  //<! Comp URI
 	Inpg<DGuri> mInpCompCompUri;  //<! Comp comp URI
 };
-
-
 
 
 /** @brief SDO "Component exists"
@@ -226,14 +214,15 @@ class SdoCompComp : public Sdog<DGuri>
 class SdoComp : public Sdog<Sdata<bool>>
 {
     public:
-	static const char* Type() { return "SdoComp";};
+	inline static constexpr std::string_view idStr() { return "SdoComp"sv;}
 	SdoComp(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
     protected:
-	Inp<string> mInpName;
+	void Construct() override;
+    protected:
+	Inpg<DGuri> mInpName;
 };
 
-#endif
 
 /** @brief SDO "Component count"
  * */
@@ -262,13 +251,12 @@ class SdoCompsNames : public Sdog<Vector<string>>
 	virtual void onEagOwnedDetached(MOwned* aOwned) override;
 };
 
-#if 0
-/** @brief SDO "Component count"
+/** @brief SDO "Components URIs"
  * */
 class SdoCompsUri : public Sdog<Vector<DGuri>>
 {
     public:
-	static const char* Type() { return "SdoCompsUri";};
+	inline static constexpr std::string_view idStr() { return "SdoCompsUri"sv;}
 	SdoCompsUri(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
 	virtual void onEagOwnedAttached(MOwned* aOwned) override;
@@ -283,13 +271,15 @@ class SdoCompsUri : public Sdog<Vector<DGuri>>
 class SdoConn : public Sdog<Sdata<bool>>
 {
     public:
-	static const char* Type() { return "SdoConn";};
+	inline static constexpr std::string_view idStr() { return "SdoConn"sv;}
 	SdoConn(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
 	virtual void onObsChanged(MObservable* aObl) override;
     protected:
-	Inp<string> mInpVp;
-	Inp<string> mInpVq;
+	void Construct() override;
+    protected:
+	Inpg<DGuri> mInpVp;
+	Inpg<DGuri> mInpVq;
 	MNode* mVpUe;        //<! Vertex under exploring 
 	MNode* mVqUe;        //<! Vertex under exploring 
 };
@@ -299,15 +289,16 @@ class SdoConn : public Sdog<Sdata<bool>>
 class SdoPairsCount : public Sdog<Sdata<int>>
 {
     public:
-	static const char* Type() { return "SdoPairsCount";};
+	inline static constexpr std::string_view idStr() { return "SdoPairsCount"sv;}
 	SdoPairsCount(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
 	virtual void onObsChanged(MObservable* aObl) override;
 	virtual void onObsOwnedAttached(MObservable* aObl, MOwned* aOwned) override;
     protected:
+	void Construct() override;
 	void observingVertUeExst();
     protected:
-	Inp<string> mInpVert;  //<! Vertex URI
+	Inpg<DGuri> mInpVert;  //<! Vertex URI
 	MNode* mVertUe;        //<! Vertex under exploring 
 	MNode* mVertUeOwr = nullptr;     //<! Vertex under exploring owner
 	int mVertUeOwrLevel = -1;
@@ -319,12 +310,14 @@ class SdoPairsCount : public Sdog<Sdata<int>>
 class SdoPair : public Sdog<DGuri>
 {
     public:
-	static const char* Type() { return "SdoPair";};
+	inline static constexpr std::string_view idStr() { return "SdoPair"sv;}
 	SdoPair(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
 	virtual void onObsChanged(MObservable* aObl) override;
     protected:
-	Inp<string> mInpTarg;  //<! Target Vertex URI
+	void Construct() override;
+    protected:
+	Inpg<DGuri> mInpTarg;  //<! Target Vertex URI
 	MNode* mVertUe;        //<! Vertex under exploring 
 };
 
@@ -335,9 +328,11 @@ class SdoPair : public Sdog<DGuri>
 class SdoTcPair : public Sdog<DGuri>
 {
     public:
-	static const char* Type() { return "SdoTcPair";};
+	inline static constexpr std::string_view idStr() { return "SdoTcPair"sv;}
 	SdoTcPair(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
+    protected:
+	void Construct() override;
     protected:
 	Inpg<DGuri> mInpTarg;  //<! Target URI
 	Inpg<DGuri> mInpTargComp;  //<! Target comp vertex URI relative to target
@@ -349,7 +344,7 @@ class SdoTcPair : public Sdog<DGuri>
 class SdoPairs : public Sdog<Vector<DGuri>>
 {
     public:
-	static const char* Type() { return "SdoPairs";};
+	inline static constexpr std::string_view idStr() { return "SdoPairs"sv;}
 	SdoPairs(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
 };
@@ -359,9 +354,11 @@ class SdoPairs : public Sdog<Vector<DGuri>>
 class SdoTPairs : public Sdog<Vector<DGuri>>
 {
     public:
-	static const char* Type() { return "SdoTPairs";};
+	inline static constexpr std::string_view idStr() { return "SdoTPairs"sv;}
 	SdoTPairs(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
+    protected:
+	void Construct() override;
     protected:
 	Inpg<DGuri> mInpTarg;  //<! Target URI
 };
@@ -371,7 +368,7 @@ class SdoTPairs : public Sdog<Vector<DGuri>>
 class SdoEdges : public Sdog<Vector<Pair<DGuri>>>
 {
     public:
-	static const char* Type() { return "SdoEdges";};
+	inline static constexpr std::string_view idStr() { return "SdoEdges"sv;}
 	SdoEdges(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
 };
@@ -381,13 +378,11 @@ class SdoEdges : public Sdog<Vector<Pair<DGuri>>>
 class SdoDesIdle : public Sdog<Sdata<bool>>
 {
     public:
-	static const char* Type() { return "SdoDesIdle";};
+	inline static constexpr std::string_view idStr() { return "SdoDesIdle"sv;}
 	SdoDesIdle(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
 	virtual void onEagChanged() override;
 };
-
-#endif
 
 
 

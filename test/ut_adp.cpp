@@ -242,13 +242,17 @@ void Ut_adp::test_Dadp_1()
     // Phase 1
     printf("\n ==== Phase#1\n");
     bool res = mEnv->RunSystem(2);
+    CPPUNIT_ASSERT_MESSAGE("Phase1: ExUri failed", getStateDstr("test.Controller.ExUri") == "URI .testroot.test.Controller.Targets.Target5");
     CPPUNIT_ASSERT_MESSAGE("Phase1: Counter failed", getStateDstr("test.Controller.Counter") == "SI 2");
     //CPPUNIT_ASSERT_MESSAGE("Phase1: OutpMagUri_Dbg failed", getStateDstr("test.Controller.OutpMagUri_Dbg") == "SS 'Target2'");
-    CPPUNIT_ASSERT_MESSAGE("Phase1: CompsCount failed", getStateDstr("test.Controller.CompCount") == "SI 1");
-    printf("test.Controller.CompNames: %s", getStateDstr("test.Controller.CompNames").c_str());
-    CPPUNIT_ASSERT_MESSAGE("Phase1: CompsNames failed", getStateDstr("test.Controller.CompNames") == "VS (St1)");
+    CPPUNIT_ASSERT_MESSAGE("Phase1: CompsCount failed", getStateDstr("test.Controller.CompCount") == "SI 2");
+    CPPUNIT_ASSERT_MESSAGE("Phase1: CompsNames failed", getStateDstr("test.Controller.CompNames") == "VS (Ext1,St1)");
     CPPUNIT_ASSERT_MESSAGE("Phase1: Name failed", getStateDstr("test.Controller.Name_Dbg") == "SS 'Target5'");
     CPPUNIT_ASSERT_MESSAGE("Phase1: AddCompOutp_Dbg failed", getStateDstr("test.Controller.AddCompOutp_Dbg") == "SB false");
+    CPPUNIT_ASSERT_MESSAGE("Phase2: CompExists failed", getStateDstr("test.Controller.CompExists") == "SB false");
+    CPPUNIT_ASSERT_MESSAGE("Phase2: CompExists failed", getStateDstr("test.Controller.ConnExists") == "SB true");
+    CPPUNIT_ASSERT_MESSAGE("Phase2: PairsCount failed", getStateDstr("test.Controller.PairsCount") == "SI 1");
+    CPPUNIT_ASSERT_MESSAGE("Phase2: DesIsIdle failed", getStateDstr("test.Controller.DesIsIdle") == "SB false");
 
 
     // Phase 2
@@ -259,6 +263,13 @@ void Ut_adp::test_Dadp_1()
     CPPUNIT_ASSERT_MESSAGE("Phase2: CompsCount failed", getStateDstr("test.Controller.CompCount") == "SI 4");
     CPPUNIT_ASSERT_MESSAGE("Phase2: CompsNames failed", getStateDstr("test.Controller.CompNames") == "VS (Cmp3_0,Cmp3_1,Cmp3_2,Cmp3_3)");
     CPPUNIT_ASSERT_MESSAGE("Phase2: AddCompOutp_Dbg failed", getStateDstr("test.Controller.AddCompOutp_Dbg") == "SB false");
+    //printf("test.Controller.CompsUri: %s\n", getStateDstr("test.Controller.CompsUri").c_str());
+    CPPUNIT_ASSERT_MESSAGE("Phase2: CompsUri failed", getStateDstr("test.Controller.CompsUri") == "VDU (URI Cmp3_0,URI Cmp3_1,URI Cmp3_2,URI Cmp3_3)");
+    CPPUNIT_ASSERT_MESSAGE("Phase2: CompComp failed", getStateDstr("test.Controller.CompComp") == "URI .testroot.test.Controller.Targets.Target3.Cmp3_3.Cmp3_3_0");
+    CPPUNIT_ASSERT_MESSAGE("Phase2: CompExists failed", getStateDstr("test.Controller.CompExists") == "SB true");
+    CPPUNIT_ASSERT_MESSAGE("Phase2: CompExists failed", getStateDstr("test.Controller.ConnExists") == "SB <ERR>");
+    CPPUNIT_ASSERT_MESSAGE("Phase2: PairsCount failed", getStateDstr("test.Controller.PairsCount") == "SI <ERR>");
+    CPPUNIT_ASSERT_MESSAGE("Phase2: DesIsIdle failed", getStateDstr("test.Controller.DesIsIdle") == "SB <ERR>");
 
     // Phase 3 - new comp added
     printf("\n ==== Phase#3\n");
@@ -266,6 +277,7 @@ void Ut_adp::test_Dadp_1()
     CPPUNIT_ASSERT_MESSAGE("Phase3: AddCompOutp_Dbg failed", getStateDstr("test.Controller.AddCompOutp_Dbg") == "SB true");
     CPPUNIT_ASSERT_MESSAGE("Phase3: CompsCount failed", getStateDstr("test.Controller.CompCount") == "SI 5");
     CPPUNIT_ASSERT_MESSAGE("Phase3: CompsNames failed", getStateDstr("test.Controller.CompNames") == "VS (Cmp3_0,Cmp3_1,Cmp3_2,Cmp3_3,New_node)");
+    CPPUNIT_ASSERT_MESSAGE("Phase2: CompsUri failed", getStateDstr("test.Controller.CompsUri") == "VDU (URI Cmp3_0,URI Cmp3_1,URI Cmp3_2,URI Cmp3_3,URI New_node)");
 
     delete mEnv;
 }

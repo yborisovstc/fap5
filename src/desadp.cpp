@@ -2,6 +2,7 @@
 #include "desadp.h"
 
 
+#if 0
 const string KCont_AgentUri = "AgentUri";
 const string K_DAdp_CpUri_InpMagUri = "InpMagUri";
 
@@ -65,13 +66,13 @@ MNode* DAdp::getMagBase()
 void DAdp::updateMag()
 {
     /*
-    if (mMagBase) {
-	GUri magUri(mContMagUri);
-	if (magUri.isValid()) {
-	    mMag = mMagBase->getNode(magUri);
-	}
-    }
-    */
+       if (mMagBase) {
+       GUri magUri(mContMagUri);
+       if (magUri.isValid()) {
+       mMag = mMagBase->getNode(magUri);
+       }
+       }
+       */
 
     if (mMagBase && mIbMagUri.mValid) {
 	MNode* magn = mMagBase->getNode(mIbMagUri.data().mData);
@@ -149,8 +150,8 @@ bool DAdp::setContent(const string& aId, const string& aData)
 void DAdp::onContentChanged(const string& aId)
 {
     if (aId == KCont_AgentUri) {
-//	updateMag();
-//	notifyMagChanged();
+	//	updateMag();
+	//	notifyMagChanged();
     }
 }
 
@@ -190,6 +191,114 @@ void DAdp::registerIb(DesEIbb* aIb)
     cpv->bind(aIb->MDesInpObserver::lIft<MDesInpObserver>());
 }
 
+#endif
 
 
 
+void DAdp::MagUriHandler::onInpUpdated()
+{
+    LOGN(EInfo, "MAG Uri changed");
+    mHost->updateMag();
+}
+
+const string DAdp::KCpExplName = "CpExploring";
+const string K_DAdp_InpMagUri = "InpMagUri";
+const string K_DAdp_StMagUri = "StMagUri";
+
+DAdp::DAdp(const string &aType, const string& aName, MEnv* aEnv): Des(aType, aName, aEnv)
+{
+}
+
+void DAdp::Construct()
+{
+    // Add exploring cp
+    auto ecp = addComp(CpSystExploring::idStr(), KCpExplName);
+    assert(ecp);
+    mCpExpl = ecp->lIft<MVert>();
+    assert(mCpExpl);
+    bool res = mCpExpl->bind(MNode::lIft<MNode>());
+    assert(res);
+    // Add MAG uri input
+    auto inpMagUrin = addComp(CpStateInp::idStr(), K_DAdp_InpMagUri);
+    auto inpMagUri = inpMagUrin ? inpMagUrin->lIft<MVert>() : nullptr;
+    assert(inpMagUri);
+    // Add MagUri state
+    mStMagUri = addComp(BState::idStr(), K_DAdp_StMagUri);
+    assert(mStMagUri);
+    mStMagUri->lIft<MContentOwner>()->setContent("", "URI");
+    res = inpMagUri->bind(mStMagUri->MNode::lIft<MNode>());
+    assert(res);
+    auto stMagUriv = mStMagUri->lIft<MVert>();
+    res = stMagUriv->bind(inpMagUri);
+    assert(res);
+    mHdlr = new MagUriHandler("MagUriHandler", mEnv, this);
+    MVert::connect(stMagUriv, mHdlr->lIft<MVert>());
+}
+
+DAdp::~DAdp()
+{
+    if (mHdlr) {
+	delete mHdlr;
+    }
+}
+
+MIface* DAdp::MNode_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMSystExploring));
+    else res = Des::MNode_getLif(aId);
+    return res;
+}
+
+MIface* DAdp::MSystExploring_getLif(TIdHash aId)
+{
+    MIface* res = checkLif2(aId, mMSystExploring);
+    return res;
+}
+
+MNode* DAdp::getMag()
+{
+    return mMag;
+}
+
+MNode* DAdp::getMagBase()
+{
+    MNode* res = nullptr;
+    if (mCpExpl && mCpExpl->pairsCount()) {
+	auto* pairv = mCpExpl->getPair(0);
+	auto* explb = pairv->lIft<MSystExplorable>();
+	res = explb ? explb->getMag() : nullptr;
+    }
+    return res;
+}
+
+void DAdp::updateMag()
+{
+    DGuri magUri;
+    GetGData(mStMagUri, magUri);
+    if (mMagBase && magUri.IsValid()) {
+	MNode* magn = mMagBase->getNode(magUri.mData);
+	if (magn && magn != mMag) {
+	    mMag = magn;
+	    notifyMagChanged();
+	    LOGN(EInfo, "Managed agent attached [" + mMag->Uid() + "]");
+	}
+    }
+}
+
+void DAdp::onMagChanged()
+{
+    auto magBase = getMagBase();
+    if (magBase != mMagBase) {
+	mMagBase = magBase;
+	updateMag();
+	notifyMagChanged();
+    }
+}
+
+void DAdp::notifyMagChanged()
+{
+    for (auto pair : mExplorableCp.mPairs) {
+	pair->provided()->onMagChanged();
+    }
+}

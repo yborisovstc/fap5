@@ -14,6 +14,7 @@ MIface* Vert::MNode_getLif(TIdHash aId)
 MIface* Vert::MVert_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
+    res = checkLif2(aId, mMVert);
     return res;
 }
 

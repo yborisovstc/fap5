@@ -29,6 +29,7 @@ class MOwner : public MIface
 	virtual MIface* getLif(TIdHash aId) { return MOwner_getLif(aId);}
 	virtual MIface* MOwner_getLif(TIdHash aId) = 0;
 	// Local
+        // TODO Vulnerability: it allows some owned to add another owner, ref ds_owrowd
 	virtual bool attachOwned(MOwned* aOwned) = 0;
 	/** @brief Gets node by URI
 	 * @param aReq  requesting node

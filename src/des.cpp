@@ -550,6 +550,323 @@ void State::notifyInpsUpdated()
 }
 
 
+// --- BState - Binded State ---
+
+const string BState::KCont_Value = "";
+
+BState::BState(const string &aType, const string& aName, MEnv* aEnv): ConnPoint<MDVarGet, MDesInpObserver>(aType, aName, aEnv),
+    mDesSyncCp(this), mPdata(NULL), mCdata(NULL), mUpdNotified(false), mActNotified(false), mStDead(false)
+{ }
+
+BState::~BState()
+{
+    if (mPdata) {
+	delete mPdata;
+    }
+    if (mCdata) {
+	delete mCdata;
+    }
+    mStDead = true;
+}
+
+MIface* BState::MNode_getLif(TIdHash aId)
+{
+    MIface* res = NULL;
+    if (res = checkLif2(aId, mMDesSyncable));
+    else if (res = checkLif2(aId, mMDesInpObserver));
+    else if (res = checkLif2(aId, mMDVarGet));
+    else if (res = checkLif2(aId, mMDVarSet));
+    else res = TBase::MNode_getLif(aId);
+    return res;
+}
+
+MIface* BState::MOwner_getLif(TIdHash aId)
+{
+    MIface* res = NULL;
+    if (res = checkLif2(aId, mMDesSyncable)); // ??
+    else res = TBase::MOwner_getLif(aId);
+    return res;
+}
+
+MIface* BState::MOwned_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMDesSyncable));
+    else res = TBase::MOwned_getLif(aId);
+    return res;
+}
+
+/*
+MDesObserver* State::desObserver()
+{
+    MDesObserver* res = nullptr;
+    auto it = mDesSyncCp.pairsBegin();
+    if (it != mDesSyncCp.pairsEnd()) {
+        res = it->provided();
+    }
+}
+*/
+
+bool BState::bind(MIface* aBound)
+{
+    bool res = false;
+    auto cpv = aBound->lIft<MVert>();
+    assert(mInp == nullptr);
+    if (cpv) {
+        mInp = cpv;
+        res = true;
+    }
+    return res;
+}
+
+bool BState::getContentId(int aIdx, string& aRes) const
+{
+    bool res = true;
+    if (aIdx < contCount()) {
+        if (aIdx < Node::contCount()) {
+            Node::getContentId(aIdx, aRes);
+        } else {
+            aRes = KCont_Value;
+        }
+    } else {
+        res = false;
+    }
+    return res;
+}
+
+bool BState::getContent(const string& aId, string& aRes) const
+{
+    bool res = true;
+    if (aId == KCont_Value) {
+        aRes = mCdata->ToString();
+    } else {
+	res = TBase::getContent(aId, aRes);
+    }
+    return res;
+}
+
+bool BState::setContent(const string& aId, const string& aData)
+{
+    bool res = true;
+    if (aId == KCont_Value)
+	res = updateWithContValue(aData);
+    else
+	res = TBase::setContent(aId, aData);
+    return res;
+}
+
+bool BState::isCompatible(const MVert* aPair, bool aExt) const
+{
+    bool res = false;
+    bool ext = aExt;
+    const MVert* cp = aPair;
+    // Checking if the pair is Extender
+    if (aPair != this) {
+	MVert* ecp = const_cast<MVert*>(cp)->getExtd(); 
+	if (ecp) {
+	    ext = !ext;
+	    cp = ecp;
+	}
+	if (cp) {
+	    // Check roles conformance
+	    const TRequired* rq = cp->lIf(rq);
+            const TProvided* pv = cp->lIf(pv);
+            if (ext) {
+                res = (pv != nullptr);
+            } else {
+                res = (rq != nullptr);
+            }
+        }
+    } else {
+        res = aExt;
+    }
+    return res;
+}
+
+void BState::setActivated()
+{
+    if (!mActNotified) {
+        // Propagate activation to owner
+        MDesObserver* obs = desObserver();
+	if (obs) {
+	    obs->onActivated(this);
+	    mActNotified = true;
+	}
+    }
+}
+
+void BState::update()
+{
+    PFL_DUR_STAT_START(PEvents::EDurStat_StUpdate);
+    mActNotified = false;
+    string dtype;
+    if (mCdata) {
+	dtype = mCdata->GetTypeSig();
+    }
+    MDVarGet* vget = GetInp();
+    if (vget) {
+	mInpValid = true;
+	const DtBase* pdata = nullptr;
+	try {
+	    pdata = vget->VDtGet(dtype);
+	} catch (std::exception e) {
+	    Logger()->Write(EErr, this, "Unspecified error on update");
+	}
+	if (pdata) {
+	    if (!mPdata) {
+		mPdata = CreateData(pdata->GetTypeSig());
+	    }
+	    if (mPdata) {
+		*mPdata = *pdata;
+	    }
+	} else {
+            mInpValid = false;
+	}
+    } else {
+	mInpValid = false;
+    }
+    PFL_DUR_STAT_REC(PEvents::EDurStat_StUpdate);
+}
+
+void BState::confirm()
+{
+    mUpdNotified = false;
+    bool changed = false;
+    PFL_DUR_STAT_START(PEvents::EDurStat_StConfirm);
+    if (mCdata) {
+	string old_value;
+	if (LOG_LEVEL(EDbg)) {
+	    old_value = mCdata->ToString();
+	}
+	if (mInpValid) {
+	    if (mPdata) {
+		if (*mCdata != *mPdata) {
+		    // Swap the data
+		    auto ptr = mCdata;
+		    mCdata = mPdata;
+		    mPdata = ptr;
+		    notifyInpsUpdated();
+		    changed = true;
+		}
+	    } else {
+		if (mCdata->IsValid()) {
+		    mCdata->mValid = false;
+		    changed = true;
+		}
+	    }
+	}
+	if (changed) {
+	    LOGN(EDbg, "Updated [" + mCdata->ToString() + " <- " + old_value + "]");
+	}
+    } else {
+	if (mPdata) {
+	    mCdata = CreateData(mPdata->GetTypeSig());
+	}
+	if (mCdata) {
+	    *mCdata = *mPdata;
+	    notifyInpsUpdated();
+	    LOGN(EInfo, "Updated [" + mCdata->ToString() + "]");
+	} else {
+	    LOGN(EInfo, "Not initialized");
+	}
+    }
+    PFL_DUR_STAT_REC(PEvents::EDurStat_StConfirm);
+}
+
+void BState::setUpdated()
+{
+    if (!mUpdNotified) {
+        MDesObserver* obs = desObserver();
+	if (obs) {
+	    obs->onUpdated(this);
+	    mUpdNotified = true;
+	}
+    }
+}
+
+void BState::onInpUpdated()
+{
+    if (!mStDead) {
+	setActivated();
+    }
+}
+
+MDVarGet* BState::GetInp()
+{
+    return (mInp && mInp->pairsCount() == 1) ? mInp->getPair(0)->lIft<MDVarGet>() : nullptr;
+}
+
+string BState::VarGetIfid() const
+{
+    return mCdata ? mCdata->GetTypeSig() : string();
+}
+
+string BState::VarGetSIfid()
+{
+    return mCdata ? mCdata->GetTypeSig() : string();
+}
+
+const bool BState::VDtSet(const DtBase& aData)
+{
+    bool res = false;
+    if (mCdata && mPdata) {
+	*mPdata = aData;
+	*mCdata = aData;
+	if (mCdata->IsChanged()) {
+	    notifyInpsUpdated();
+	}
+    }
+    return res;
+}
+
+DtBase* BState::CreateData(const string& aType)
+{
+   return Provider()->createData(aType);
+}
+
+bool BState::updateWithContValue(const string& aData)
+{
+    bool res = false;
+    if (!mCdata) {
+	string type;
+	DtBase::ParseSigPars(aData, type);
+	mCdata = CreateData(type);
+	mPdata = CreateData(type);
+    }
+    if (mCdata) {
+	res = true;
+	mCdata->FromString(aData);
+	mPdata->FromString(aData);
+	if (mCdata->IsValid()) {
+	    if (mCdata->IsChanged()) {
+		LOGN(EVerbose, "Initialized:  " + mCdata->ToString(true) + "]");
+		notifyInpsUpdated();
+	    }
+	}  else {
+	    if (!mCdata->IsValid() && mCdata->IsDsError()) {
+		LOGN(EErr, "Error on applying content [" + mName + "] value [" + aData + "]");
+		mCdata->FromString(aData);
+	    }
+	}
+    }
+    return res;
+}
+
+DtBase* BState::VDtGet(const string& aType)
+{
+    // Enable getting base data
+    return (mCdata && (aType == mCdata->GetTypeSig() || aType.empty())) ? mCdata : nullptr;
+}
+
+void BState::notifyInpsUpdated()
+{
+    for (auto* pair : mPairs) {
+        auto obs = pair->lIft<MDesInpObserver>();
+        if (obs) obs->onInpUpdated();
+    }
+}
+
+
 // Const
 
 const string Const::KCont_Value = "";

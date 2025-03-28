@@ -17,8 +17,8 @@ class Ut_des : public Ut_fixture
 {
     CPPUNIT_TEST_SUITE(Ut_des);
     //CPPUNIT_TEST(test_des_data);
-    /*
     CPPUNIT_TEST(test_des_1);
+    /*
     CPPUNIT_TEST(test_des_inval_1);
     CPPUNIT_TEST(test_des_inval_2);
     CPPUNIT_TEST(test_des_asr_1);
@@ -26,7 +26,7 @@ class Ut_des : public Ut_fixture
     CPPUNIT_TEST(test_des_tr_1);
     CPPUNIT_TEST(test_des_tr_tres_1);
     */
-    CPPUNIT_TEST(test_des_utl_1);
+//    CPPUNIT_TEST(test_des_utl_1);
 //    CPPUNIT_TEST(test_des_utl_2);
     //CPPUNIT_TEST(test_des_sp_1);
     CPPUNIT_TEST_SUITE_END();
@@ -342,7 +342,6 @@ void Ut_des::test_des_1()
     cout << endl << "=== Test of simple DES ===" << endl;
 
 
-#if 0
     // Benchmarking
     cout << endl << "Benchmarking ut_des_1_2 - many DES layers" << endl;
     constructSystem("ut_des_1_2");
@@ -365,6 +364,7 @@ void Ut_des::test_des_1()
         << PROF_FIELD(mEnv->profiler(), PROF_DUR_STAT, PEvents::EDurStat_Clbr, PIndFId::EStat_SUM) << endl;
 
     delete mEnv;
+#if 0
 #endif
 
 #if 0
