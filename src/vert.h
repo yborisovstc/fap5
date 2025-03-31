@@ -28,6 +28,7 @@ class Vert : public Node, public MVert
         bool bind(MIface* aBound) override { return false; }
         bool unbind(MIface* aBound) override { return false; }
 	bool isBound(const MIface* aBound) const override { return false;}
+	void vertGetUri(GUri& aUri, const MNode* aBase = nullptr) const override;
     protected:
         // Local
 	virtual void onConnected() {}

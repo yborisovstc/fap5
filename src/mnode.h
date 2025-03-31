@@ -64,9 +64,7 @@ class MNode: public MIface
 	virtual GUri parentUri() const = 0;
         /** @brief Gets the chain of native parents **/
 	virtual vector<GUri> parentsUris() const = 0;
-	// TODO !! All navigation thru native hier to be moved to owning iface ?
-	//virtual const MNode* getComp(const string& aId) const = 0;
-	//virtual MNode* getComp(const string& aId) = 0;
+	virtual MOwned* getOwned(const string& aId) const = 0;
 	virtual const MNode* getNode(const GUri& aUri) const = 0;
 	virtual MNode* getNode(const GUri& aUri) = 0;
 	virtual MNode* getNodeS(const char* aUri) = 0;
@@ -83,7 +81,7 @@ class MNode: public MIface
 	virtual void mutate(const ChromoNode& aMut, bool aChange /*EFalse*/, const MutCtx& aCtx, bool aTreatAsChromo = false, bool aLocal = false) = 0;
 	//virtual MNode* createHeir(const string& aName) = 0;
 	//virtual bool attachHeir(MNode* aHeir) = 0;
-	//virtual bool attachOwned(MNode* aOwned) = 0;
+	virtual bool attachOwned(MNode* aOwned) = 0;
 	virtual TOwnerCp* ownerCp() = 0;
 	virtual const TOwnerCp* ownerCp() const = 0;
 	// virtual TOwnedCp* ownedCp() = 0; //  Moved to MOwned

@@ -93,14 +93,23 @@ void ASdc::MagDobs::updateNuo(MNode* aNuo)
 ASdc::SdcIapb::SdcIapb(const string& aName, ASdc* aHost, const string& aInpUri):
     mName(aName), mHost(aHost), mInpUri(aInpUri)
 {
+}
+
+void ASdc::SdcIapb::Construct()
+{
     mHost->registerIap(this);
 }
 
 ASdc::SdcPapb::SdcPapb(const string& aName, ASdc* aHost, const string& aCpUri):
     mName(aName), mHost(aHost), mCpUri(aCpUri)
 {
+}
+
+void ASdc::SdcPapb::Construct()
+{
     mHost->registerPap(this);
 }
+
 
     template <class T>
 T& ASdc::SdcIap<T>::data(bool aConf)
@@ -192,6 +201,12 @@ ASdc::~ASdc()
 {
 }
 
+void ASdc::Construct()
+{
+    mIapEnb.Construct();
+    mOapOut.Construct();
+}
+
 MIface* ASdc::MNode_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
@@ -216,7 +231,7 @@ MVert* ASdc::addInput(const string& aName)
 {
     MNode* cp = Provider()->createNode(string(CpStateInp::idStr()), aName, mEnv);
     assert(cp);
-    bool res = attachOwned(cp->lIft<MOwned>());
+    bool res = attachOwned(cp);
     assert(res);
     MVert* cpv = cp->lIf(cpv);
     assert(cpv);
@@ -233,7 +248,7 @@ MVert* ASdc::addOutput(const string& aName)
 {
     MNode* cp = Provider()->createNode(string(CpStateOutp::idStr()), aName, mEnv);
     assert(cp);
-    bool res = attachOwned(cp->MNode::lIft<MOwned>());
+    bool res = attachOwned(cp);
     assert(res);
     MVert* cpv = cp->lIf(cpv);
     assert(cpv);
@@ -523,6 +538,13 @@ ASdcComp::ASdcComp(const string &aType, const string& aName, MEnv* aEnv): ASdc(a
     mIapName("Name", this, K_CpUri_Name), mIapParent("Parent", this, K_CpUri_Parent)
 { }
 
+void ASdcComp::Construct()
+{
+    ASdc::Construct();
+    mIapName.Construct();
+    mIapParent.Construct();
+}
+
 bool ASdcComp::getState(bool aConf)
 {
     bool res = false;
@@ -631,6 +653,13 @@ ASdcRm::ASdcRm(const string &aType, const string& aName, MEnv* aEnv): ASdc(aType
     mIapName("Name", this, K_CpUri_Name)
 { }
 
+void ASdcRm::Construct()
+{
+    ASdc::Construct();
+    mIapName.Construct();
+}
+
+
 bool ASdcRm::getState(bool aConf)
 {
     bool res = false;
@@ -681,6 +710,14 @@ const string K_CpUri_V2 = "V2";
 ASdcConn::ASdcConn(const string &aType, const string& aName, MEnv* aEnv): ASdc(aType, aName, aEnv),
     mIapV1("V1", this, K_CpUri_V1), mIapV2("V2", this, K_CpUri_V2), mNco1(this), mNco2(this)
 { }
+
+void ASdcConn::Construct()
+{
+    ASdc::Construct();
+    mIapV1.Construct();
+    mIapV2.Construct();
+}
+
 
 bool ASdcConn::getState(bool aConf)
 {
@@ -880,7 +917,6 @@ bool ASdcDisconn::doCtl()
 }
 
 
-#if 0
 // SDC agent "Insert node into the list, ver. 2"
 
 const string K_CpUri_Insr2_Name = "Name";
@@ -893,6 +929,16 @@ ASdcInsert2::ASdcInsert2(const string &aType, const string& aName, MEnv* aEnv): 
     mIapPname("Pname", this, K_CpUri_Insr2_Pname),
     mDobsNprev(this, MagDobs::EO_CHG)
 { }
+
+void ASdcInsert2::Construct()
+{
+    ASdc::Construct();
+    mIapName.Construct();
+    mIapPrev.Construct();
+    mIapNext.Construct();
+    mIapPname.Construct();
+}
+
 
 bool ASdcInsert2::getState(bool aConf)
 {
@@ -959,16 +1005,12 @@ bool ASdcInsert2::isBindedToEnd(MVert* aCurPrevv, const MVert* aEndNextv, const 
     bool res = false;
     auto* nextLinkNextv = aCurPrevv->getPair(0);
     while (nextLinkNextv && nextLinkNextv != aEndNextv) {
-	MUnit* nextLinkNextu = nextLinkNextv->lIf(nextLinkNextu); 
-	MNode* nextLinkNextn = nextLinkNextu ? nextLinkNextu->lIf(nextLinkNextn ) : nullptr; // TODO Access via munit - hack
-	if (nextLinkNextn) {
-	    GUri nextLinkNextUri; nextLinkNextn->getUri(nextLinkNextUri, mMag);
-	    GUri nextLinkUri;
-	    if (nextLinkNextUri.getHead(aUriN, nextLinkUri)) {
-		MNode* nextLinkPrevn = mMag->getNode(nextLinkUri + aUriP);
-		MVert* nextLinkPrevv = nextLinkPrevn ? nextLinkPrevn->lIf(nextLinkPrevv) : nullptr ;
-		nextLinkNextv = nextLinkPrevv ? nextLinkPrevv->getPair(0) : nullptr;
-	    }
+	GUri nextLinkNextUri; nextLinkNextv->vertGetUri(nextLinkNextUri, mMag);
+	GUri nextLinkUri;
+	if (nextLinkNextUri.getHead(aUriN, nextLinkUri)) {
+	    MNode* nextLinkPrevn = mMag->getNode(nextLinkUri + aUriP);
+	    MVert* nextLinkPrevv = nextLinkPrevn ? nextLinkPrevn->lIf(nextLinkPrevv) : nullptr ;
+	    nextLinkNextv = nextLinkPrevv ? nextLinkPrevv->getPair(0) : nullptr;
 	}
     }
     res = nextLinkNextv == aEndNextv;
@@ -1062,7 +1104,6 @@ void ASdcInsert2::onObsChanged(MObservable* aObl)
     mOapOut.NotifyInpsUpdated();
 }
 
-#endif
 
 #if 0
 
@@ -1310,6 +1351,15 @@ const string K_CpUri_Extr_Next = "Next";
 ASdcExtract::ASdcExtract(const string &aType, const string& aName, MEnv* aEnv): ASdc(aType, aName, aEnv),
     mIapName("Name", this, K_CpUri_Extr_Name), mIapPrev("Prev", this, K_CpUri_Extr_Prev), mIapNext("Next", this, K_CpUri_Extr_Next)
 { }
+
+void ASdcExtract::Construct()
+{
+    ASdc::Construct();
+    mIapName.Construct();
+    mIapPrev.Construct();
+    mIapNext.Construct();
+}
+
 
 bool ASdcExtract::getState(bool aConf)
 {

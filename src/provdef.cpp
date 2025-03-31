@@ -40,7 +40,7 @@ const string KChromRarg_Chs = "chs";
 
 /** Native agents factory registry */
 const ProvDef::TFReg ProvDef::mReg ( {
-        Item<Node>(), Item<Elem>(), Item<Import>(), Item<Syst>(), Item<State>(), Item<BState>(), Item<Des>(),
+        Item<Node>(), Item<Elem>(), Item<Vert>(), Item<Import>(), Item<Syst>(), Item<State>(), Item<BState>(), Item<Des>(),
         Item<DesLauncher>(), Item<Const>(),
         /* Transitions */
         Item<TrAddVar>(), Item<TrAdd2Var>(), Item<TrSizeVar>(), Item<TrSwitchBool>(), Item<TrSwitchBool2>(), Item<TrMplVar>(),
@@ -69,7 +69,8 @@ const ProvDef::TFReg ProvDef::mReg ( {
 	Item<SdoConn>(), Item<SdoPairsCount>(), Item<SdoPair>(), Item<SdoTcPair>(), Item<SdoPairs>(), 
         Item<SdoTPairs>(), Item<SdoEdges>(), Item<SdoDesIdle>(), 
         /* SDCs */
-	Item<ASdcComp>(),
+	Item<ASdcComp>(), Item<ASdcRm>(), Item<ASdcConn>(), 
+	Item<ASdcInsert2>(), Item<ASdcExtract>(), 
 
 #if 0
         Item<Link>(),
@@ -78,8 +79,8 @@ const ProvDef::TFReg ProvDef::mReg ( {
         /* Des adapters */
         Item<AMntp>(),
 	/* SDCs */
-        Item<ASdcMut>(),  Item<ASdcRm>(), Item<ASdcConn>(), Item<ASdcDisconn>(), Item<ASdcInsert2>(), Item<ASdcInsertN>(),
-        Item<ASdcExtract>(), Item<ASdcPause>(), Item<ASdcResume>(), Item<ASdcCompT>(), Item<ASdcConnT>(), 
+        Item<ASdcMut>(),  Item<ASdcDisconn>(), Item<ASdcInsertN>(),
+        Item<ASdcPause>(), Item<ASdcResume>(), Item<ASdcCompT>(), Item<ASdcConnT>(), 
         /* DES context */
         Item<DesCtxSpl>(), Item<DesCtxCsm>(), 
         /* DES service point */

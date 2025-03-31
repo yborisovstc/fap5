@@ -401,10 +401,64 @@
 		Ref
 		<ulink url="../../../fap3/doc/design/index.html#ds_obsi"/> for initial proposal of improvement.
 	    </simpara>
+	    <simpara>
+		Seems we need observable for particular ifaces, MVert, MSyst etc. because those ifaces
+		posess specific events that can be exposed.
+		Actually, current MObservable is just MNode observer. It includes vague method onObsChanged()
+		that tends to notify about some "any" changes. 
+	    </simpara>
+	</sect2>
+	<sect2 ds="ds_naom_rq"><title>Requirements</title>
+	    <sect3 id="ds_naom_rq_01"><title>RQ_01 Extending the events set</title>
+		<simpara>
+		    Observing shall allow extending the events set. It means that some new agent
+		    that can notify of it's specific event shall do it via observation mechaism.
+		</simpara>
+	    </sect3>
+	    <sect3 id="ds_naom_rq_02"><title>RQ_02 Oblservable provides events with parameter(s)</title>
+		<simpara>
+		    Example is the current MObservable method
+		    <programlisting>
+			void onObsContentChanged(MObservable* aObl, const MContent* aCont) = 0;
+		    </programlisting>
+		</simpara>
+	    </sect3>
+	</sect2>
+	<sect2 id="ds_naom_opt_1"><title>Option_1. Use events implementing MIface</title>
+	    <sect3><title>Intro</title>
+		<simpara>
+		    With this option events are just specific ifaces implementation. Since each iface if uniquely identified
+		    by its ID the observation mechanism is extandable. I.e. some new agents can provide its specific
+		    event.
+		</simpara>
+	    </sect3>
+	    <sect3><title>Pros</title>
+		<sect4><title>Event as the iface allows to pass events extra info to observer.</title>
+		    <simpara>
+			Example is the current MObservable method
+			<programlisting>
+			    void onObsContentChanged(MObservable* aObl, const MContent* aCont) = 0;
+			</programlisting>
+		    </simpara>
+		</sect4>
+	    </sect3>
+	</sect2>
+	<sect2 id="ds_naom_opt_2"><title>Option_2. Use specific Observer extension iface.</title>
+	    <sect3><title>Intro</title>
+		<simpara>
+		    With this option we extend MObserver iface instead of extending events. We can extend
+		    MObserver iface by introducing new agent specific MObserver (e.g MNewAgentObserver) that will expose new agent specific
+		    events for observation. Note that these new events don't need to be MIface, they can be just 
+		    particular contstants defined.
+		</simpara>
+		<simpara>
+		    New agent "base" MObserver needs to expose MNewAgentObserver via local iface resolution.
+		</simpara>
+	    </sect3>
 	</sect2>
     </sect1>
 
-    <sect1 id="ds_rdadp"></sect1><title>Redesig of DES adapter</title>
+    <sect1 id="ds_rdadp"><title>Redesig of DES adapter</title>
 	<sect2><title>Intro</title>
 	    <simpara>FAP3 DES adapter (DAdp) has the following weaknesses: </simpara>
 	    <itemizedlist>
@@ -438,10 +492,50 @@
 	    <simpara>
 		Currently Owner-Owned relationship isn't seep consistent.
 		For instance MOwner contains methods that allows owned (note that owned has access to its owner) manipulating
-		of owner, i.e. attachOwned(). This needs to be improved. 
+		of owner, i.e. attachOwned(), getOwned(). This needs to be fixed. 
+	    </simpara>
+	    <simpara>
+		On fap3 these vulnerable methods are missed in MOwner. They were added in the scope of 
+		ifaces review and improvement. 
+	    </simpara>
+	</sect2>
+	<sect2><title>Analysis</title>
+	    <simpara>
+		"Why we need to remove attachOwned() from MOwner? It is clearly Owner functionality." - can ask someone.
+		Right. But in our case the iface is just one part of mutual interaction Owner-Owned. And method in the 
+		iface shall expose the functionality for pair. In our case MOwner is owner iface for owned. Obviously
+		owner shall not offer attachOwned() for owned.
+	    </simpara>
+	    <simpara>
+		So, we can follow the approach where some methods prohibited for MOwner are moved to MOwner backend - MNode.
 	    </simpara>
 	</sect2>
     </sect1>
+
+    <sect1 id="ds_miuri"><title>Do we need method Uri() in MIface</title>
+	<sect2><title>Intro</title>
+	    <simpara>
+		In cases where agents are object of manipulation (examples are 
+		<xref linkend="gls_sdo"/>, <xref linkend="gls_sdc"/>, of distributed systems (ref project fap2-svr for instance)
+		    the ifaces are manipulated via its identifiers (UID).  (In case of distributed system there are explicit proxy agents
+		    that contains binded agents (or ifaces) UID. Ref
+		<ulink url="../../../../fap2-srv/doc/design/index.html#ds_uid"/> regarding UID in distributed system.
+	    </simpara>
+	    <simpara>
+		Consider simple
+		<xref linkend="gls_sdo"/> SdoPair. It outputs DGuri. This URI identifies the pair. URI plays UID role here.
+		    The problem here that the pair (actually MVert iface) doesn't have method for gerring URI.
+		    So the question is if we need to use UID for agent identification? Currently MIface::Uid() is used for 
+		    debugging puposes only and cannot be used for real identification - e.g. it is not possible to
+		    get agent ref by UID, only URI is used for that. 
+	    </simpara>
+	    <simpara>
+		Seems using UID for real identification requires serious re-design. So at the moment we can just extend MVert
+		iface with vertGetUri() method to provide SDO agents with explored agents URI.
+	    </simpara>
+	</sect2>
+    </sect1>
+
 
 </article>
 

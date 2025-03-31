@@ -53,6 +53,7 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
 	class SdcIapb {
 	    public:
 		SdcIapb(const string& aName, ASdc* aHost, const string& aInpUri);
+		void Construct();
 		string getInpUri() const { return mInpUri;}
 		virtual bool isDataValid() const = 0;
 		virtual bool updateData() = 0;
@@ -95,6 +96,7 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
 	class SdcPapb: public MDVarGet {
 	    public:
 		SdcPapb(const string& aName, ASdc* aHost, const string& aCpUri);
+		void Construct();
 		string getCpUri() const { return mCpUri;}
 		// From MDVarGet
 		virtual string MDVarGet_Uid() const override {return mHost->getUidC<MDVarGet>(mName);}
@@ -111,7 +113,7 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
 		string mName;
 		ASdc* mHost;
 		string mCpUri;  /*!< Output URI */
-		MVert* mOutp;
+		MVert* mOutp = nullptr;
 		MDVarGet* mMDVarGet = nullptr;
 	};
 
@@ -260,6 +262,7 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
 	bool registerIap(SdcIapb* aIap);
 	bool registerPap(SdcPapb* aPap);
     protected:
+	void Construct() override;
 	template<typename T> bool GetInpSdata(const string aInpUri, T& aRes);
 	template<typename T> bool GetInpData(const string aInpUri, T& aRes);
 	void getOut(Sdata<bool>& aData);
@@ -332,6 +335,7 @@ class ASdcComp : public ASdc
 	inline static constexpr std::string_view idStr() { return "ASdcComp"sv;}
 	ASdcComp(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
     protected:
+	void Construct() override;
 	// From ASdc
 	virtual bool getState(bool aConf = false) override;
 	bool doCtl() override;
@@ -369,9 +373,10 @@ class ASdcCompT : public ASdc
 class ASdcRm : public ASdc
 {
     public:
-	static const char* Type() { return "ASdcRm";};
+	inline static constexpr std::string_view idStr() { return "ASdcRm"sv;}
 	ASdcRm(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
     protected:
+	void Construct() override;
 	// From ASdc
 	virtual bool getState(bool aConf = false) override;
 	bool doCtl() override;
@@ -389,9 +394,10 @@ class ASdcRm : public ASdc
 class ASdcConn : public ASdc
 {
     public:
-	static const char* Type() { return "ASdcConn";};
+	inline static constexpr std::string_view idStr() { return "ASdcConn"sv;}
 	ASdcConn(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
     protected:
+	void Construct() override;
 	// From ASdc
 	virtual bool getState(bool aConf = false) override;
 	bool doCtl() override;
@@ -438,7 +444,6 @@ class ASdcDisconn : public ASdc
 	ASdc::SdcIap<Sdata<string>> mIapV2; /*!< "V2" input access point */
 };
 
-#if 0
 /** @brief SDC agent "Insert node into list, ver. 2. Insertion before the chain given node"
  * TODO The curret approach for insertion is wrong: the element is inserted BEFORE
  * given chain node (position node). But the insertion causes the change of position of this given chain node
@@ -451,9 +456,10 @@ class ASdcDisconn : public ASdc
 class ASdcInsert2 : public ASdc
 {
     public:
-	static const char* Type() { return "ASdcInsert2";};
+	inline static constexpr std::string_view idStr() { return "ASdcInsert2"sv;}
 	ASdcInsert2(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
     protected:
+	void Construct() override;
 	// From MObserver
 	virtual void onObsChanged(MObservable* aObl) override;
 	// From ASdc
@@ -469,7 +475,6 @@ class ASdcInsert2 : public ASdc
 	ASdc::MagDobs mDobsNprev; /*!< "Link prev CP" observation */
 	MVert* mCpPair;
 };
-#endif
 
 #if 0
 /** @brief SDC agent "Insert node into list, ver. 3. DS_ISS_013 fixed.
@@ -530,9 +535,10 @@ class ASdcInsertN : public ASdc
 class ASdcExtract : public ASdc
 {
     public:
-	static const char* Type() { return "ASdcExtract";};
+	inline static constexpr std::string_view idStr() { return "ASdcExtract"sv;}
 	ASdcExtract(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
     protected:
+	void Construct() override;
 	// From ASdc
 	virtual bool getState(bool aConf = false) override;
 	bool doCtl() override;

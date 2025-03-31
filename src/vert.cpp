@@ -90,4 +90,7 @@ bool Vert::disconnect(MVert* aPair)
     return res;
 }
 
-
+void Vert::vertGetUri(GUri& aUri, const MNode* aBase) const
+{
+    return getUri(aUri, aBase);
+}

@@ -4,9 +4,11 @@
 #include "nconn.h"
 #include "miface.h"
 #include "ifu.h"
+#include "guri.h"
 
 using namespace std;
 
+class MNode;
 
 /** @brief Interface of connectable
  * Represents generic connection of system level
@@ -57,6 +59,7 @@ class MVert: public MIface
 	virtual bool isBound(const MIface* aBound) const = 0;
         virtual bool bind(MIface* aBound) = 0;
         virtual bool unbind(MIface* aBound) = 0;
+	virtual void vertGetUri(GUri& aUri, const MNode* aBase = nullptr) const = 0;
 };
 
 #endif

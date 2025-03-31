@@ -100,7 +100,7 @@ MNode* Node::addComp(const string_view& aId, const string& aName)
 {
     MNode* cp = Provider()->createNode(string(aId), aName, mEnv);
     assert(cp);
-    bool res = attachOwned(cp->MNode::lIft<MOwned>());
+    bool res = attachOwned(cp);
     assert(res);
     return cp;
 }
@@ -326,14 +326,17 @@ void Node::ownerGetUri(GUri& aUri, const MOwner* aBase) const
 }
 
 
-bool Node::attachOwned(MOwned* aOwned)
+bool Node::attachOwned(MNode* aOwned)
 {
-    bool res = ownerCp()->connect(aOwned->ownedCp());
+    MOwned* owned = aOwned->lIf(owned);
+    assert(owned);
+    bool res = ownerCp()->connect(owned->ownedCp());
     if (res) {
-	aOwned->onOwnerAttached();
-	onOwnedAttached(aOwned);
+	// The order matters. First notify owner to configure and embed owned.
+	onOwnedAttached(owned);
+	owned->onOwnerAttached();
     } else {
-	LOGN(EErr, "Attaching owned: already exists [" + aOwned->ownedId() + "]");
+	LOGN(EErr, "Attaching owned: already exists [" + owned->ownedId() + "]");
     }
     return res;
 }
@@ -366,7 +369,8 @@ MOwned* Node::getOwned(const GUri& aUri, const MOwned* aReq) const
                         res = self->getOwned(aUri.at(2));
                         bool foundReq = res == aReq;
                         for (int i = 3; i < aUri.size() && res; i++) {
-                            res = res->asOwner()->getOwned(aUri.at(i));
+			    MNode* resn = res->lIft<MNode>();
+                            res = resn->getOwned(aUri.at(i));
                             foundReq |= (res == aReq);
                         }
                         res = foundReq ? res : nullptr;
@@ -375,7 +379,8 @@ MOwned* Node::getOwned(const GUri& aUri, const MOwned* aReq) const
             } else {
                 res = getOwned(aUri.at(0));
                 for (int i = 1; i < aUri.size() && res; i++) {
-                    res = res->asOwner()->getOwned(aUri.at(i));
+		    MNode* resn = res->lIft<MNode>();
+                    res = resn->getOwned(aUri.at(i));
                 }
             }
         }
@@ -560,8 +565,7 @@ MNode* Node::mutAddElem(const ChromoNode& aMut, bool aUpdOnly, const MutCtx& aCt
             if (uelem) {
                 uelem->Construct();
                 PFL_DUR_STAT_START(PEvents::EDurStat_MutAtt);
-                MOwned* elemOwned = uelem->lIft<MOwned>();
-                attachOwned(elemOwned);
+                attachOwned(uelem);
                 MChild* elemChild = uelem->lIft<MChild>();
                 parent->attachChild(elemChild);
                 PFL_DUR_STAT_REC(PEvents::EDurStat_MutAtt);

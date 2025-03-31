@@ -11,7 +11,7 @@ void SdoBase::InpBase::Construct()
     // Add  input to the host
     MNode* cp = mHost->Provider()->createNode(string(CpStateInp::idStr()), mName, mHost->mEnv);
     assert(cp);
-    bool res = mHost->attachOwned(cp->lIft<MOwned>());
+    bool res = mHost->attachOwned(cp);
     assert(res);
     auto cpv = cp->lIft<MVert>();
     assert(cpv);
@@ -747,10 +747,8 @@ const DtBase* SdoPair::VDtGet(const string& aType)
                 if (vertv) {
                     if (vertv->pairsCount() == 1) {
                         MVert* pair = vertv->getPair(0);
-			// !!
-                        MNode* pairn = pair ? pair->lIf(pairn) : nullptr;
-                        if (pairn) {
-                            pairn->getUri(mRes.mData, mSue);
+                        if (pair) {
+                            pair->vertGetUri(mRes.mData, mSue);
                             mRes.mValid = true;
                         }
                     }
@@ -813,11 +811,9 @@ const DtBase* SdoTcPair::VDtGet(const string& aType)
                     if (vertv) {
                         if (vertv->pairsCount() == 1) {
                             MVert* pair = vertv->getPair(0);
-			    // !! Doesn't work, find solution
-                            MNode* pairn = pair ? pair->lIf(pairn) : nullptr;
-                            if (pairn) {
+                            if (pair) {
                                 GUri uri;
-                                pairn->getUri(uri, mSue);
+                                pair->vertGetUri(uri, mSue);
                                 mRes.mData = uri;
                                 mRes.mValid = true;
                             }
@@ -852,16 +848,14 @@ const DtBase* SdoPairs::VDtGet(const string& aType)
                 mRes.mData.clear();
                 for (int ind = 0; ind < suev->pairsCount(); ind++) {
                     MVert* pair = suev->getPair(ind);
-		    // !! Doesnt work. find solution
-                    MNode* pairn = pair ? pair->lIf(pairn) : nullptr;
-                    if (!pairn) {
+                    if (!pair) {
                         LOGN(EErr, "Couldnt get URI for pair [" + pair->Uid() + "]");
                         mRes.mValid = false;
                         break;
                     } else {
                         mRes.mValid = true;
                         GUri puri;
-                        pairn->getUri(puri, mSue);
+                        pair->vertGetUri(puri, mSue);
                         DGuri purid(puri);
                         mRes.mData.push_back(purid);
                     }
@@ -906,16 +900,14 @@ const DtBase* SdoTPairs::VDtGet(const string& aType)
                     mRes.mValid = true;
                     for (int ind = 0; ind < targv->pairsCount(); ind++) {
                         MVert* pair = targv->getPair(ind);
-			// !!
-                        MNode* pairn = pair ? pair->lIf(pairn) : nullptr;
-                        if (!pairn) {
+                        if (!pair) {
                             LOGN(EErr, "Couldnt get URI for pair [" + pair->Uid() + "]");
                             mRes.mValid = false;
                             break;
                         } else {
                             mRes.mValid = true;
                             GUri puri;
-                            pairn->getUri(puri, mSue);
+                            pair->vertGetUri(puri, mSue);
                             DGuri purid(puri);
                             mRes.mData.push_back(purid);
                         }
@@ -948,20 +940,17 @@ const DtBase* SdoEdges::VDtGet(const string& aType)
                 mRes.mData.clear();
                 for (auto conn : sues->connections()) {
                     MVert* p = conn.first;
-		    // !!
-                    MNode* pn = p ? p->lIf(pn) : nullptr;
                     MVert* q = conn.second;
-                    MNode* qn = q ? q->lIf(qn) : nullptr;
-                    if (!pn || !qn) {
-                        LOGN(EErr, "Couldnt get URI for vert [" + (pn ? p->Uid(): q->Uid()) + "]");
+                    if (!p || !q) {
+                        LOGN(EErr, "Couldnt get URI for vert [" + (p ? p->Uid(): q->Uid()) + "]");
                         mRes.mValid = false;
                         break;
                     } else {
                         mRes.mValid = true;
                         GUri puri;
-                        pn->getUri(puri, mSue);
+                        p->vertGetUri(puri, mSue);
                         GUri quri;
-                        qn->getUri(quri, mSue);
+                        q->vertGetUri(quri, mSue);
                         DGuri purid(puri);
                         DGuri qurid(quri);
                         Pair<DGuri> elem;

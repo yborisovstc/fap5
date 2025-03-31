@@ -29,14 +29,10 @@ class MOwner : public MIface
 	virtual MIface* getLif(TIdHash aId) { return MOwner_getLif(aId);}
 	virtual MIface* MOwner_getLif(TIdHash aId) = 0;
 	// Local
-        // TODO Vulnerability: it allows some owned to add another owner, ref ds_owrowd
-	virtual bool attachOwned(MOwned* aOwned) = 0;
 	/** @brief Gets node by URI
 	 * @param aReq  requesting node
 	 * */
-	//virtual MNode* ownerGetNode(const GUri& aUri, const MNode* aReq) const = 0;
 	virtual MOwned* getOwned(const GUri& aUri, const MOwned* aReq) const = 0;
-	virtual MOwned* getOwned(const string& aId) const = 0;
 	virtual void ownerGetUri(GUri& aUri, const MOwner* aBase = nullptr) const = 0;
 	virtual void onOwnedMutated(const MOwned* aOwned, const ChromoNode& aMut, const MutCtx& aCtx) = 0;
 	virtual void onOwnedAttached(MOwned* aOwned) = 0;

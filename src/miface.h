@@ -6,6 +6,7 @@
 
 using namespace std;
 
+// TODO consider adding Uri() method or improve UID, ds_miuri
 /** @brief Interface of interface
  * Any interface has to include type static char* idStr() const
  * and static const  TIdHash idHash() const
@@ -16,7 +17,7 @@ class MIface
 	using TIdHash = std::size_t;
     public:
 	virtual TIdHash id() const = 0;
-	/** @brief Getting id unique in the scope of the env */
+	/** @brief Getting id unique in the scope of the env, mostly for debug puprose */
 	virtual string Uid() const = 0;
 	/** @brief Gets local interface of type aType */
 	virtual MIface* getLif(TIdHash aTid) { return nullptr;}

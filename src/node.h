@@ -54,6 +54,7 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	vector<GUri> parentsUris() const override { return vector(1, parentUri()); }
 	TOwnerCp* ownerCp() override { return mOwsNode.binded();}
 	const TOwnerCp* ownerCp() const override { return const_cast<const TOwnerCp*>(const_cast<Node*>(this)->mOwsNode.binded());}
+	bool attachOwned(MNode* aOwned) override;
 	// From Owned
 	string MOwned_Uid() const {return getUid<MOwned>();}
 	MIface* MOwned_getLif(TIdHash aId) override;
@@ -69,7 +70,6 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	string MOwner_Uid() const {return getUid<MOwner>();}
 	MIface* MOwner_getLif(TIdHash aId) override;
 	void ownerGetUri(GUri& aUri, const MOwner* aBase = nullptr) const override;
-	bool attachOwned(MOwned* aOwned) override;
 	//MNode* ownerGetNode(const GUri& aUri, const MNode* aReq) const override;
 	MOwned* getOwned(const GUri& aUri, const MOwned* aReq) const override;
 	MOwned* getOwned(const string& aId) const override;
