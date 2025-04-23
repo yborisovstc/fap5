@@ -23,9 +23,9 @@
 #include "desadp.h"
 #include "dessdo.h"
 #include "dessdc.h"
+#include "desio.h"
 /*
 #include "content.h"
-#include "desio.h"
 #include "dessp.h"
 #include "mnt.h"
 #include "link.h"
@@ -40,7 +40,7 @@ const string KChromRarg_Chs = "chs";
 
 /** Native agents factory registry */
 const ProvDef::TFReg ProvDef::mReg ( {
-        Item<Node>(), Item<Elem>(), Item<Vert>(), Item<Import>(), Item<Syst>(), Item<State>(), Item<BState>(), Item<Des>(),
+        Item<Node>(), Item<Elem>(), Item<Vert>(), Item<Verte>(), Item<Import>(), Item<Syst>(), Item<State>(), Item<BState>(), Item<Des>(),
         Item<DesLauncher>(), Item<Const>(),
         /* Transitions */
         Item<TrAddVar>(), Item<TrAdd2Var>(), Item<TrSizeVar>(), Item<TrSwitchBool>(), Item<TrSwitchBool2>(), Item<TrMplVar>(),
@@ -69,18 +69,20 @@ const ProvDef::TFReg ProvDef::mReg ( {
 	Item<SdoConn>(), Item<SdoPairsCount>(), Item<SdoPair>(), Item<SdoTcPair>(), Item<SdoPairs>(), 
         Item<SdoTPairs>(), Item<SdoEdges>(), Item<SdoDesIdle>(), 
         /* SDCs */
-	Item<ASdcComp>(), Item<ASdcRm>(), Item<ASdcConn>(), 
+	Item<ASdcComp>(), Item<ASdcCompT>(), Item<ASdcRm>(), Item<ASdcConn>(), Item<ASdcDisconn>(), 
 	Item<ASdcInsert2>(), Item<ASdcExtract>(), 
+	/* DES IO */
+	Item<Sout>(), 
 
 #if 0
         Item<Link>(),
         Item<Extd>(), Item<Extde>(), Item<TrSub2Var>(),
-        Item<Sout>(), Item<ADes>(),
+        Item<ADes>(),
         /* Des adapters */
         Item<AMntp>(),
 	/* SDCs */
-        Item<ASdcMut>(),  Item<ASdcDisconn>(), Item<ASdcInsertN>(),
-        Item<ASdcPause>(), Item<ASdcResume>(), Item<ASdcCompT>(), Item<ASdcConnT>(), 
+        Item<ASdcMut>(), Item<ASdcInsertN>(),
+        Item<ASdcPause>(), Item<ASdcResume>(), Item<ASdcConnT>(), 
         /* DES context */
         Item<DesCtxSpl>(), Item<DesCtxCsm>(), 
         /* DES service point */

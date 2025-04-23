@@ -10,6 +10,7 @@
 
 void CpStateInp::onConnected()
 {
+    Vert::onConnected();
     // Notify inp updated
     if (mProvidedPx) mProvidedPx->onInpUpdated();
 }
@@ -23,6 +24,8 @@ void CpStateInp::onDisconnected()
 void CpStateInp::onBound()
 {
     // Notify inp updated
+    // TODO seems we don't need such notif. it's because binding is the
+    // primary op followed by conn.
     if (mProvidedPx) mProvidedPx->onInpUpdated();
 }
 
@@ -43,6 +46,7 @@ string CpStateInpPin::VarGetIfid() const
 
 void CpStateInpPin::onConnected()
 {
+    CpStateInp::onConnected();
 }
 
 void CpStateInpPin::onDisconnected()
@@ -1075,7 +1079,7 @@ void Des::confirm()
     }
     if (mIsActive && !mActNotified) {
 	mIsActive = false;
-	//notifyChanged();
+        notifyChanged();
     }
     mUpdNotified = false;
 }
@@ -1102,7 +1106,7 @@ void Des::setActivated()
 	    // TODO Improve notification design, ref ds_obsi
 	    if (!mIsActive) {
 		mIsActive = true;
-		//notifyChanged();
+		notifyChanged();
 	    }
 	}
     }

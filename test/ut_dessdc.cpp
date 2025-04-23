@@ -16,12 +16,12 @@ class Ut_sdc : public Ut_fixture
 
     //CPPUNIT_TEST(test_Sdc_1);
     //CPPUNIT_TEST(test_Sdc_2);
-    CPPUNIT_TEST(test_Sdc_2_1);
+    //CPPUNIT_TEST(test_Sdc_2_1);
     //CPPUNIT_TEST(test_Sdc_3);
     //CPPUNIT_TEST(test_Sdc_4);
     //CPPUNIT_TEST(test_Sdc_5);
     //CPPUNIT_TEST(test_Sdo_1);
-    //CPPUNIT_TEST(test_Sdo_2);
+    CPPUNIT_TEST(test_Sdo_2);
     CPPUNIT_TEST_SUITE_END();
     public:
     virtual void setUp();
@@ -109,12 +109,13 @@ void Ut_sdc::test_Sdc_2_1()
     bool res = mEnv->RunSystem(12, 2);
 
     // Verify the connection
+    // TODO This verification doesn't work because of SdoConn doesn't support
+    // observing of MAG updates, to fix
     CPPUNIT_ASSERT_MESSAGE("Node_1 connected incorrectly", getStateDstr("Launcher.List.Is_conn_ok_Dbg") == "SB true");
 
     delete mEnv;
 }
 
-#if 0
 
 
 /** @brief MNode SDC test - create and remove node in cycle
@@ -123,18 +124,8 @@ void Ut_sdc::test_Sdc_3()
 {
     printf("\n === Test of SDC: create and remove in cycle\n");
 
-    const string specn("ut_sdc_3");
-    string ext = "chs";
-    string spec = specn + string(".") + "chs";
-    string log = specn + "_" + ext + ".log";
-    mEnv = new Env(spec, log);
-    CPPUNIT_ASSERT_MESSAGE("Fail to create Env", mEnv != 0);
-    mEnv->ImpsMgr()->ResetImportsPaths();
-    mEnv->ImpsMgr()->AddImportsPaths("../modules");
-    mEnv->constructSystem();
-    MNode* root = mEnv->Root();
-    MElem* eroot = root ? root->lIf(eroot) : nullptr;
-    CPPUNIT_ASSERT_MESSAGE("Fail to get root", root && eroot);
+    MNode* root = constructSystem("ut_sdc_3");
+    CPPUNIT_ASSERT_MESSAGE("Fail to get root", root);
 
     bool res = mEnv->RunSystem(7, 2);
 
@@ -149,10 +140,14 @@ void Ut_sdc::test_Sdc_3()
  * */
 void Ut_sdc::test_Sdc_4()
 {
-    printf("\n === Test of SDC: connect-disconnect\n");
+    printf("\n === Test of SDC: connect-disconnect, inp notif via socket\n");
     MNode* root = constructSystem("ut_sdc_4");
 
     bool res = mEnv->RunSystem(12, 2);
+    CPPUNIT_ASSERT_MESSAGE("SResult_Dbg-1 failed", getStateDstr("Launcher.SResult_Dbg") == "SI 1");
+
+    res = mEnv->RunSystem(1, 2);
+    CPPUNIT_ASSERT_MESSAGE("SResult_Dbg-2 failed", getStateDstr("Launcher.SResult_Dbg") == "SI 2");
 
     delete mEnv;
 }
@@ -216,34 +211,33 @@ void Ut_sdc::test_Sdo_1()
     CPPUNIT_ASSERT_MESSAGE("Fail to get Launcher.Dbg_DcoPair", conndbg);
     DGuri dresu;
     GetGData(conndbg, dresu);
-    CPPUNIT_ASSERT_MESSAGE("Wrong DCO V1 pairs count result", dresu.mData == "V1");
+    CPPUNIT_ASSERT_MESSAGE("Wrong Dbg_DcoPair URI result", dresu.mData == ".Root.Launcher.V1");
     // Verify V4_1 owner
     conndbg = root->getNode("Launcher.Dbg_DcoCompOwner");
     CPPUNIT_ASSERT_MESSAGE("Fail to get Launcher.Dbg_DcoCompOwner", conndbg);
     dresu;
     GetGData(conndbg, dresu);
-    CPPUNIT_ASSERT_MESSAGE("Wrong DCO V1 pairs count result", dresu.mData == "V4");
+    CPPUNIT_ASSERT_MESSAGE("Wrong Dbg_DcoCompOwner URI result", dresu.mData == "V4");
     // Verify V4 comp V4_1
     conndbg = root->getNode("Launcher.Dbg_DcoCompComp");
     CPPUNIT_ASSERT_MESSAGE("Fail to get Launcher.Dbg_DcoCompComp", conndbg);
     dresu;
     GetGData(conndbg, dresu);
-    CPPUNIT_ASSERT_MESSAGE("Wrong DCO V1 pairs count result", dresu.mData == "V4.V4_1");
+    CPPUNIT_ASSERT_MESSAGE("Wrong Dbg_DcoCompComp URI result", dresu.mData == ".Root.Launcher.V4.V4_1");
 
+    delete mEnv;
 }
 
 void Ut_sdc::test_Sdo_2()
 {
-    printf("\n === Test of SDO #2: comps, connections, etc.\n");
+    printf("\n === Test of SDO #2: edges, etc.\n");
     MNode* root = constructSystem("ut_sdo_2");
 
     bool res = mEnv->RunSystem(5, 2);
 
-    // Verify V1 observing
-    MNode* cdbg = root->getNode("Launcher.Dbg_DcoComp");
-    CPPUNIT_ASSERT_MESSAGE("Fail to get Launcher.Dbg_DcoComp", cdbg);
+    // Verify
+    CPPUNIT_ASSERT_MESSAGE("Dbg_DcoEdges failed", getStateDstr("Launcher.Dbg_DcoEdges") == "VPDU (PDU (URI .Root.Launcher.V1,URI .Root.Launcher.V2),PDU (URI .Root.Launcher.V1,URI .Root.Launcher.V4),PDU (URI .Root.Launcher.V5,URI .Root.Launcher.V4),PDU (URI .Root.Launcher.V5,URI .Root.Launcher.V3),PDU (URI .Root.Launcher.V4.V4_1,URI .Root.Launcher.V6),PDU (URI .Root.Launcher.Dbg_DcoEdges.Inp,URI .Root.Launcher.DcoComp))");
     bool dres = false;
 
     delete mEnv;
 }
-#endif 

@@ -423,6 +423,17 @@
 		    </programlisting>
 		</simpara>
 	    </sect3>
+	    <sect3 id="ds_naom_rq_03"><title>RQ_03 Oblservable provides events subscribtion with parameter(s)</title>
+		<simpara>
+		    In many cases observer request needs to include some parameters also.
+		    The example is ASdc::NodeCreationObserver that aims to detect the given node has been created.
+		</simpara>
+		<simpara>
+		    The implementation of this requirement seems too complex. Also it can be substituted by observer specific
+		    procedures, like in ASdc::NodeCreationObserver ASdc::NodeCreationObserver.
+		</simpara>
+	    </sect3>
+
 	</sect2>
 	<sect2 id="ds_naom_opt_1"><title>Option_1. Use events implementing MIface</title>
 	    <sect3><title>Intro</title>
@@ -431,8 +442,16 @@
 		    by its ID the observation mechanism is extandable. I.e. some new agents can provide its specific
 		    event.
 		</simpara>
+		<simpara>
+		    There is suboption here - to "bind" events to ifaces - for instance the current events "Owner attached",
+		    "Owned attached/detached" etc can be bound to MNode. Look at
+		    <xref linkend="ds_naom_opt_3"/>. With this subopt we don't need to have specifc hash ID for event - it can
+			be identified with hash id of binded iface plus simple enum.
+		</simpara>
 	    </sect3>
 	    <sect3><title>Pros</title>
+		<sect4><title>Just one observer iface.</title>
+		</sect4>
 		<sect4><title>Event as the iface allows to pass events extra info to observer.</title>
 		    <simpara>
 			Example is the current MObservable method
@@ -454,6 +473,30 @@
 		<simpara>
 		    New agent "base" MObserver needs to expose MNewAgentObserver via local iface resolution.
 		</simpara>
+	    </sect3>
+	</sect2>
+	<sect2 id="ds_naom_opt_3"><title>Option_3. Observer of ifaces</title>
+	    <sect3><title>Intro</title>
+		<simpara>
+		    We introduce particular observers for given ifaces. In that case we don't need to have unique ID for
+		    the event, it is enough to identify events with simple enumeration IDs defined in the scope of the iface
+		    (iface has unique ID so events will be identified uniquely).
+		    However we need to have specific observer ifaces - MNode observer etc. They need to have ID. So this solution
+		    doesn't actually reduce uniquie IDs number.
+		</simpara>
+		<simpara>
+		    The given iface observer has it's owns set of methods. The methods can pass extra parameters, so we
+			don't need to have observers method passing iface based event like in 
+		    <xref linkend="ds_naom_opt_1"/>
+		</simpara>
+		<simpara>
+		    As for observer ifaces, this opt is similar to
+		    <xref linkend="ds_naom_opt_2"/>
+		</simpara>
+	    </sect3>
+	    <sect3><title>Pros</title>
+		<sect4><title>Observer iface can include notif method with extra parameters.</title>
+		</sect4>
 	    </sect3>
 	</sect2>
     </sect1>

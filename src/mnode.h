@@ -33,6 +33,48 @@ class MutCtx
 };
 
 
+struct TNodeEventOwnerAttached : public MEvent
+{
+    static std::string_view idStr() { return "TNodeEventOwnerAttached"sv;}
+    static constexpr MIface::TIdHash idHash = 0x1454003d3331b595;
+    TNodeEventOwnerAttached(): MEvent(idHash) {}
+};
+
+// TODO Do we really need aOwned as ptr here, consider event with Guri instead
+struct TNodeEventOwnedAttached : public MEvent
+{
+    static std::string_view idStr() { return "TNodeEventOwnedAttached"sv;}
+    static constexpr MIface::TIdHash idHash = 0xb0ed3284325af49;
+    TNodeEventOwnedAttached(const MOwned* aOwned): MEvent(idHash), mOwned(aOwned) {}
+    const MOwned* mOwned;
+};
+
+struct TNodeEventOwnedDetached : public MEvent
+{
+    static std::string_view idStr() { return "TNodeEventOwnedDetached"sv;}
+    static constexpr MIface::TIdHash idHash = 0x2559a814ded159b;
+    TNodeEventOwnedDetached(const MOwned* aOwned): MEvent(idHash), mOwned(aOwned) {}
+    const MOwned* mOwned;
+};
+
+struct TNodeEventContentChanged : public MEvent
+{
+    static std::string_view idStr() { return "TNodeEventContentChanged"sv;}
+    static constexpr MIface::TIdHash idHash = 0xf3f1cbc5ffc9b3de;
+    TNodeEventContentChanged(const string& aId): MEvent(idHash), mId(aId) {}
+    string mId;
+};
+
+/** @brief Any changes other than above
+ * */
+struct TNodeEventChanged : public MEvent
+{
+    static std::string_view idStr() { return "TNodeEventChanged"sv;}
+    static constexpr MIface::TIdHash idHash = 0x4f51bd9654227072;
+    TNodeEventChanged(): MEvent(idHash) {}
+};
+
+
 /** @brief Native heirarchy node interface. It is iface-aggregator, i.e represent
  * convenient access to set of the base ifaces (owner-owned etc.)
  * */

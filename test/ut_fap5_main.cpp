@@ -9,7 +9,7 @@
  *
  * Creates all registered test suits automaticaly.
  * Refer to CPPUnit documentation for details
- * To run particular test suite: ./ut-fap3-lib [test_suite_name]
+ * To run particular test suite: ./ut-fap5-lib [test_suite_name]
  * test_suite_name is stated by named registration macro:
  * CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(Ut_uri, "Ut_uri");
  */

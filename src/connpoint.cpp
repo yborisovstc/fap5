@@ -4,14 +4,14 @@
 
 //// Socket
 
-Socket::Socket(const string &aType, const string& aName, MEnv* aEnv): Vert(aType, aName, aEnv) {}
+Socket::Socket(const string &aType, const string& aName, MEnv* aEnv): Verte(aType, aName, aEnv) {}
 
 MIface* Socket::MNode_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
     if (res = checkLif2(aId, mMVert));
     else if (res = checkLif2(aId, mMSocket));
-    else res = Vert::MNode_getLif(aId);
+    else res = Verte::MNode_getLif(aId);
     return res;
 }
 
@@ -20,7 +20,7 @@ MIface* Socket::MVert_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
     if (res = checkLif2(aId, mMSocket));
-    else res = Vert::MVert_getLif(aId);
+    else res = Verte::MVert_getLif(aId);
     return res;
 }
 

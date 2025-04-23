@@ -24,11 +24,13 @@ class MObserver: public MIface
 	MIface* getLif(TIdHash aId) override { return MObserver_getLif(aId);}
 	virtual MIface* MObserver_getLif(TIdHash aId) = 0;
 	// Local
+	virtual TCp* observerCp() = 0;
 	virtual void onObsOwnerAttached(MObservable* aObl) = 0;
 	virtual void onObsOwnedAttached(MObservable* aObl, MOwned* aOwned) = 0;
 	virtual void onObsOwnedDetached(MObservable* aObl, MOwned* aOwned) = 0;
 	virtual void onObsContentChanged(MObservable* aObl, const string& aId) = 0;
 	virtual void onObsChanged(MObservable* aObl) = 0;
+	virtual void onObsEvent(MObservable* aObl, const MEvent* aEvent) {}
 };
 
 /** @brief Observable interface
@@ -50,6 +52,8 @@ class MObservable: public MIface
 	// Local
 	virtual bool addObserver(MObserver::TCp* aObs) = 0;
 	virtual bool rmObserver(MObserver::TCp* aObs) = 0;
+	virtual bool addObserver(MObserver* aObs, TIdHash aEventId) = 0;
+	virtual bool rmObserver(MObserver* aObs, TIdHash aEventId) = 0;
 };
 
 

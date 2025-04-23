@@ -71,7 +71,7 @@ const PindCluster<PindDurStat>::Idata KPindDurStatIdata = {
 
 ///// ImportsMgr
 
-const string ImportsMgr::KDefImportPath = "/usr/share/fap3/modules";
+const string ImportsMgr::KDefImportPath = "/usr/share/fap5/modules";
 const string ImportsMgr::KImportsContainerUri = "Modules";
 
 ImportsMgr::ImportsMgr(Env& aHost): mHost(aHost)
@@ -280,7 +280,7 @@ void Env::constructSystem()
 	    MNode* parent = mProvider->provGetNode(sparent);
 	    mRoot = mProvider->createNode(sparent, root.Attr(ENa_Id), this);
 	    if (mRoot != nullptr) {
-                LOGENV(EInfo, "Started of creating system, spec [" + mSpecFile + "], loaded" + PROF_FIELD(mProf, PROF_DUR, PEvents::EDur_EnvSetChromo, PIndFId::EInd_VAL));
+                LOGENV(EInfo, "Started of creating system, spec [" + mSpecFile + "], loaded: " + PROF_FIELD(mProf, PROF_DUR, PEvents::EDur_EnvSetChromo, PIndFId::EInd_VAL));
 		PROF_DUR_START(mProf, PROF_DUR, PEvents::EDur_Construct);
 		MutCtx mc(mRoot);
 		// Adding Modules node for imports

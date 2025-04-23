@@ -33,6 +33,8 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	using TOwtNode = NOwningNode;                    /*!< Ownership tree node */ 
 	using TObsCp = NCpOmnp<MObservable, MObserver>;  /*!< Observable connpoint */
 	using TContents = map<string, string>;
+	using TObsReg = multimap<MIface::TIdHash, MObserver*>; /*!< Observers registry */
+	using TObsRegItem = pair<MIface::TIdHash, MObserver*>; /*!< Observers registry item */
 
     public:
 	Node(const string &aType, const string &aName, MEnv* aEnv);
@@ -82,9 +84,11 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	// From MObservable
 	string MObservable_Uid() const override { return getUid<MObservable>();}
 	MIface* MObservable_getLif(TIdHash aId) override {return nullptr;}
-	void MObservable_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
+	void MObservable_doDump(int aLevel, int aIdt, ostream& aOs) const override;
 	bool addObserver(MObserver::TCp* aObs) override;
 	bool rmObserver(MObserver::TCp* aObs) override;
+	bool addObserver(MObserver* aObs, TIdHash aEventId) override;
+	bool rmObserver(MObserver* aObs, TIdHash aEventId) override;
 	// From MParent
 	string MParent_Uid() const override {return getUid<MParent>();}
 	MIface* MParent_getLif(TIdHash aId) override { return nullptr;}
@@ -114,6 +118,8 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	void onContentChanged(const string& aId) override;
 
     protected:
+	void notifyChanged();
+	void notifyObservers(const MEvent* aEvent);
 	MNode* addComp(const string_view& aId, const string& aName);
 	const MNode* getComp(const string& aId) const;
 	MNode* getComp(const string& aId) { return const_cast<MNode*>(const_cast<const Node*>(this)->getComp(aId));}
@@ -152,6 +158,7 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	bool mExplorable;                /*!< Exploring is enabled, ref ds_dcs_aes_acp */
 	bool mControllable;             /*!< Control is enabled, ref ds_dcs_aes_acp */
 	string mAbout;                  /*!< Content About */
+	TObsReg mObservers;
 	MNode* mMNode = nullptr;
 	MContentOwner* mMContentOwner = nullptr;
 	MOwner* mMOwner = nullptr;
@@ -159,6 +166,7 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	MObservable* mMObservable = nullptr;
 	MParent* mMParent = nullptr;
 	MChild* mMChild = nullptr;
+	//static MNodeEventOwnedAttached sEventOwnedAttached;
 
 };
 

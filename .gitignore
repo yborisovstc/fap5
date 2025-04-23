@@ -65,7 +65,7 @@ lcov_report
 *.info
 *-trunk
 install-root
-test/ut-fap3-lib
+test/ut-fap5-lib
 *.xml_
 *saved.xml
 *saved.chs
@@ -77,4 +77,4 @@ Makefile
 !doc/requirements/Makefile
 .*.chs
 *.out
-clm/fapm
+clm/fapm5

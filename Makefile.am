@@ -1,8 +1,7 @@
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libfap5.pc
 
-#SUBDIRS = src test clm
-SUBDIRS = src test
+SUBDIRS = src test clm
 
 sconfdir = $(pkgdatadir)/conf
 #dist_sconf_DATA = \

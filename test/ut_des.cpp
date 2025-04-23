@@ -37,6 +37,7 @@ class Ut_des : public Ut_fixture
     /** @brief Helper. Get state data string 
      * */
     string getStateDstr(const string& aUri);
+    static string getStateDstr(MEnv* aEnv, const string& aUri);
     private:
     void test_des_1();
     void test_des_inval_1();
@@ -63,6 +64,15 @@ string Ut_des::getStateDstr(const string& aUri)
     const DtBase* data = stg ? stg->VDtGet(string()) : nullptr;
     return data ? data->ToString(true) : string();
 }
+
+string Ut_des::getStateDstr(MEnv* aEnv, const string& aUri)
+{
+    MNode* st = aEnv->Root()->getNode(aUri);
+    MDVarGet* stg = st ? st->lIf(stg) : nullptr;
+    const DtBase* data = stg ? stg->VDtGet(string()) : nullptr;
+    return data ? data->ToString(true) : string();
+}
+
 
 
 

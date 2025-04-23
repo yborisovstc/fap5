@@ -113,8 +113,9 @@ MVert* ConnPoint<Provided, Required>::getExtd()
 
 
 /** @brief Socket, monolitic.
+ * Note that socket pins shall be bindable, e.g. CpStateInpPin (not CpStateInp)
 */
-class Socket: public Vert, public MSocket
+class Socket: public Verte, public MSocket
 {
     public:
         inline static constexpr std::string_view idStr() { return "Socket"sv;}

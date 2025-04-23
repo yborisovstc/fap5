@@ -116,9 +116,10 @@ MNode* Syst::getMag()
 
 void Syst::onOwnedAttached(MOwned* aOwned)
 {
+    Elem::onOwnedAttached(aOwned);
     auto expl = aOwned->lIft<MSystExploring>();
     if (expl) {
-	// Connect owned as explorinbg
+	// Connect owned as exploring/controlling
 	bool res = mExplorableCp.connect(expl->getCp());
 	assert(res);
     }

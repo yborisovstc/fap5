@@ -8,6 +8,9 @@ static const string KContentAbout = "About";
 
 static const vector<string> KContentIds = { KContentAbout, KContentLogLevel };
 
+
+//MNodeEventOwnedAttached Node::sEventOwnedAttached;
+
 static const map<string, int> KLogLevels = {
     { "Err", EErr},
     { "Warn", EWarn},
@@ -419,6 +422,34 @@ bool Node::rmObserver(MObserver::TCp* aObs)
     return res;
 }
 
+bool Node::addObserver(MObserver* aObs, TIdHash aEventId)
+{
+    bool res = true;
+    if (!mOcp.isConnected(aObs->observerCp())) {
+	res = mOcp.connect(aObs->observerCp());
+    }
+    if (res) {
+	TObsRegItem item(aEventId, aObs);
+	auto range = mObservers.equal_range(aEventId);
+	for (auto it = range.first; it != range.second; it++) {
+	    if (it->second == aObs) {
+		// Already registered, considering as error
+		res = false; break;
+	    }
+	}
+	if (res) {
+	    mObservers.insert(item);
+	}
+    }
+    return res;
+}
+
+bool Node::rmObserver(MObserver* aObs, TIdHash aEventId)
+{
+    bool res = false;
+    return res;
+}
+
 MNode* Node::createHeir(const string& aName)
 {
     MNode* uheir = nullptr;
@@ -656,24 +687,22 @@ void Node::mutSegment(const ChromoNode& aMut, bool aUpdOnly, const MutCtx& aCtx)
 void Node::onOwnedAttached(MOwned* aOwned)
 {
     // Notify the observers
-    // Cache observers first to avoid iterating broked due to observers change
-    list<MObserver*> cache;
-    for (auto it = mOcp.pairsBegin(); it != mOcp.pairsEnd(); it++) {
-	auto* pair = *it;
-        cache.push_back(pair->provided());
-    }
-    for (auto obs : cache) {
-        obs->onObsOwnedAttached(this, aOwned);
-    }
+    TNodeEventOwnedAttached event(aOwned);
+    notifyObservers(&event);
 }
 
 void Node::onOwnedDetached(MOwned* aOwned)
 {
+    /*
     for (auto it = mOcp.pairsBegin(); it != mOcp.pairsEnd(); it++) {
         (*it)->provided()->onObsOwnedDetached(this, aOwned);
     }
+    */
+    TNodeEventOwnedDetached event(aOwned);
+    notifyObservers(&event);
 }
 
+/*
 void Node::onOwnerAttached()
 {
     // Notify the observers
@@ -686,6 +715,13 @@ void Node::onOwnerAttached()
     for (auto obs : cache) {
         obs->onObsOwnerAttached(this);
     }
+}
+*/
+
+void Node::onOwnerAttached()
+{
+    TNodeEventOwnerAttached event;
+    notifyObservers(&event);
 }
 
 bool Node::isOwned(const MOwned* aOwned) const
@@ -717,3 +753,68 @@ const MParent* Node::parent() const
     MNode* prntNode = Provider()->provGetNode(string(idStr()));
     return prntNode->lIft<MParent>();
 }
+
+
+/// Observable
+
+#if 0
+void Node::notifyObservers(const MEvent* aEvent)
+{
+    auto range = mObservers.equal_range(aEvent->id());
+    // Cache observers first to avoid iterating broked due to observers change
+    list<MObserver*> cache;
+    for (auto it = range.first; it != range.second; it++) {
+        cache.push_back(it->second);
+    }
+    for (auto obs : cache) {
+        obs->onObsEvent(this, aEvent);
+    }
+}
+#endif
+
+void Node::notifyObservers(const MEvent* aEvent)
+{
+    auto range = mObservers.equal_range(aEvent->mId);
+    // Cache observers first to avoid iterating broked due to observers change
+    list<MObserver*> cache;
+    for (auto it = range.first; it != range.second; it++) {
+        cache.push_back(it->second);
+    }
+    for (auto obs : cache) {
+        obs->onObsEvent(this, aEvent);
+    }
+}
+
+void Node::notifyChanged()
+{
+    TNodeEventChanged event;
+    notifyObservers(&event);
+}
+
+#if 0
+void Node::MObservable_doDump(int aLevel, int aIdt, ostream& aOs) const
+{
+    Ifu::offset(aIdt, aOs); aOs << "Uid: " << MObservable_Uid() << endl << endl;
+    for (auto it = mObservers.begin(); it != mObservers.end(); it++) {
+	string eventIdStr;
+	if (it->first == MNodeEventOwnedAttached::idHash()) eventIdStr = MNodeEventOwnedAttached::idStr();
+	else eventIdStr = "unknown";
+	aOs << eventIdStr << " => " << it->second->Uid() << endl;
+    }
+}
+#endif
+void Node::MObservable_doDump(int aLevel, int aIdt, ostream& aOs) const
+{
+    Ifu::offset(aIdt, aOs); aOs << "Uid: " << MObservable_Uid() << endl << endl;
+    for (auto it = mObservers.begin(); it != mObservers.end(); it++) {
+	string eventIdStr;
+	if (it->first == TNodeEventOwnedAttached::idHash) eventIdStr = string(TNodeEventOwnedAttached::idStr());
+	else if (it->first == TNodeEventOwnedDetached::idHash) eventIdStr = string(TNodeEventOwnedDetached::idStr());
+	else if (it->first == TNodeEventOwnerAttached::idHash) eventIdStr = string(TNodeEventOwnerAttached::idStr());
+	else if (it->first == TNodeEventContentChanged::idHash) eventIdStr = string(TNodeEventContentChanged::idStr());
+	else if (it->first == TNodeEventChanged::idHash) eventIdStr = string(TNodeEventChanged::idStr());
+	else eventIdStr = "unknown";
+	aOs << eventIdStr << " => " << it->second->Uid() << endl;
+    }
+}
+

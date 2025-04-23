@@ -52,17 +52,28 @@ class SdoBase : public CpStateOutp, public MDVarGet, public MObserver, public MD
 		MIface* MObserver_getLif(TIdHash aId) override { return nullptr;}
 		void onObsOwnerAttached(MObservable* aObl) override {}
 		void onObsOwnedAttached(MObservable* aObl, MOwned* aOwned) override {
-		    mHost->onEagOwnedAttached(aOwned);
+		    //mHost->onEagOwnedAttached(aOwned);
 		}
 		void onObsOwnedDetached(MObservable* aObl, MOwned* aOwned) override {
-		    mHost->onEagOwnedDetached(aOwned);
+		    //mHost->onEagOwnedDetached(aOwned);
 		}
 		void onObsContentChanged(MObservable* aObl, const string& aId) override {
-		    mHost->onEagContentChanged(aId);
+		    //mHost->onEagContentChanged(aId);
 		}
 		void onObsChanged(MObservable* aObl) override {
 		    mHost->onEagChanged();
 		}
+		void onObsEvent(MObservable* aObl, const MEvent* aEvent) override {
+		    //if (aEvent->id() == MNodeEventOwnedAttached::idHash()) {
+		    if (aEvent->mId == TNodeEventOwnedAttached::idHash) {
+			auto event = reinterpret_cast<const TNodeEventOwnedAttached*>(aEvent);
+			mHost->onEagOwnedAttached(event->mOwned);
+		    } else if (aEvent->mId == TNodeEventOwnedDetached::idHash) {
+			auto event = reinterpret_cast<const TNodeEventOwnedDetached*>(aEvent);
+			mHost->onEagOwnedDetached(event->mOwned);
+		    }
+		}
+		TCp* observerCp() override { return &mOcp;}
 	    public:
 		TObserverCp mOcp;               /*!< Observer connpoint */
 	    private:
@@ -90,6 +101,8 @@ class SdoBase : public CpStateOutp, public MDVarGet, public MObserver, public MD
 	void onObsOwnedDetached(MObservable* aObl, MOwned* aOwned) override;
 	void onObsContentChanged(MObservable* aObl, const string& aId) override;
 	void onObsChanged(MObservable* aObl) override;
+	void onObsEvent(MObservable* aObl, const MEvent* aEvent) override;
+	MObserver::TCp* observerCp() override { return &mObrCp;}
 	// From MDesInpObserver
 	string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
 	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
@@ -104,9 +117,9 @@ class SdoBase : public CpStateOutp, public MDVarGet, public MObserver, public MD
 	void NotifyInpsUpdated();
 	MSystExplorable* getExplorable();
 	// Local
-	virtual void onEagOwnedAttached(MOwned* aOwned) {}
-	virtual void onEagOwnedDetached(MOwned* aOwned) {}
-	virtual void onEagContentChanged(const string& aId) {}
+	virtual void onEagOwnedAttached(const MOwned* aOwned) {}
+	virtual void onEagOwnedDetached(const MOwned* aOwned) {}
+	//virtual void onEagContentChanged(const string& aId) {}
 	virtual void onEagChanged() {}
     protected:
 	TObserverCp mObrCp;               /*!< Observer connpoint */
@@ -232,8 +245,8 @@ class SdoCompsCount : public Sdog<Sdata<int>>
 	inline static constexpr std::string_view idStr() { return "SdoCompsCount"sv;}
 	SdoCompsCount(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
-	virtual void onEagOwnedAttached(MOwned* aOwned) override;
-	virtual void onEagOwnedDetached(MOwned* aOwned) override;
+	virtual void onEagOwnedAttached(const MOwned* aOwned) override;
+	virtual void onEagOwnedDetached(const MOwned* aOwned) override;
 };
 
 
@@ -247,8 +260,8 @@ class SdoCompsNames : public Sdog<Vector<string>>
 	inline static constexpr std::string_view idStr() { return "SdoCompsNames"sv;}
 	SdoCompsNames(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
-	virtual void onEagOwnedAttached(MOwned* aOwned) override;
-	virtual void onEagOwnedDetached(MOwned* aOwned) override;
+	virtual void onEagOwnedAttached(const MOwned* aOwned) override;
+	virtual void onEagOwnedDetached(const MOwned* aOwned) override;
 };
 
 /** @brief SDO "Components URIs"
@@ -259,14 +272,17 @@ class SdoCompsUri : public Sdog<Vector<DGuri>>
 	inline static constexpr std::string_view idStr() { return "SdoCompsUri"sv;}
 	SdoCompsUri(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
-	virtual void onEagOwnedAttached(MOwned* aOwned) override;
-	virtual void onEagOwnedDetached(MOwned* aOwned) override;
+	virtual void onEagOwnedAttached(const MOwned* aOwned) override;
+	virtual void onEagOwnedDetached(const MOwned* aOwned) override;
 };
 
 
 
 
 /** @brief SDO "Vertexes are connected"
+ * Note that SdoConn doesn't monitor of vertexes creation
+ * (like it NodeCreationObserver does). So SdoConn cannot be used for getting  "future" connection
+ * status.
  * */
 class SdoConn : public Sdog<Sdata<bool>>
 {
@@ -274,7 +290,8 @@ class SdoConn : public Sdog<Sdata<bool>>
 	inline static constexpr std::string_view idStr() { return "SdoConn"sv;}
 	SdoConn(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual const DtBase* VDtGet(const string& aType) override;
-	virtual void onObsChanged(MObservable* aObl) override;
+	//virtual void onObsChanged(MObservable* aObl) override;
+	void onObsEvent(MObservable* aObl, const MEvent* aEvent) override;
     protected:
 	void Construct() override;
     protected:
@@ -294,6 +311,7 @@ class SdoPairsCount : public Sdog<Sdata<int>>
 	virtual const DtBase* VDtGet(const string& aType) override;
 	virtual void onObsChanged(MObservable* aObl) override;
 	virtual void onObsOwnedAttached(MObservable* aObl, MOwned* aOwned) override;
+	void onObsEvent(MObservable* aObl, const MEvent* aEvent) override;
     protected:
 	void Construct() override;
 	void observingVertUeExst();
@@ -341,6 +359,7 @@ class SdoTcPair : public Sdog<DGuri>
 
 /** @brief SDO "Pairs"
  * */
+// TODO This SDO isn't usable now sinse Vert is not Explorable/Controllable now
 class SdoPairs : public Sdog<Vector<DGuri>>
 {
     public:

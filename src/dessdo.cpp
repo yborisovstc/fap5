@@ -50,7 +50,8 @@ void SdoBase::onOwnerAttached()
     bool res = false;
     MObservable* obl = owner()->lIf(obl);
     if (obl) {
-	res = obl->addObserver(&mObrCp);
+	//res = obl->addObserver(&mObrCp);
+	res = obl->addObserver(this, TNodeEventChanged::idHash);
     }
     if (!res || !obl) {
 	LOGN(EErr, "Cannot attach to observer");
@@ -89,7 +90,9 @@ void SdoBase::UpdateMag()
             // Set observing both local and agent obervable
             MObservable* obl = mSue->lIf(obl);
             if (obl) {
-                obl->addObserver(&mEagObs.mOcp);
+                //obl->addObserver(&mEagObs.mOcp);
+                obl->addObserver(&mEagObs, TNodeEventOwnedAttached::idHash);
+                obl->addObserver(&mEagObs, TNodeEventChanged::idHash);
             }
             // We need to observe also agents observable but ifr cannot get it because of stopping on getting local iface
             // So, we need to use the trick: first get agents and then use ifr for getting observable
@@ -131,11 +134,19 @@ void SdoBase::onObsChanged(MObservable* aObl)
     UpdateMag();
 }
 
+void SdoBase::onObsEvent(MObservable* aObl, const MEvent* aEvent)
+{
+    if (aEvent->mId == TNodeEventChanged::idHash) {
+	mCInv = true;
+	UpdateMag();
+    }
+}
+
 void SdoBase::NotifyInpsUpdated()
 {
     mCInv = true;
     for (auto pair : mPairs) {
-        auto* obs = pair->lIft<MDesInpObserver>();
+	auto* obs = pair->lIft<MDesInpObserver>();
 	if (obs) {
             obs->onInpUpdated();
 	}
@@ -315,13 +326,15 @@ const DtBase* SdoCompsCount::VDtGet(const string& aType)
     return &mRes;
 }
 
-void SdoCompsCount::onEagOwnedAttached(MOwned* aOwned)
+void SdoCompsCount::onEagOwnedAttached(const MOwned* aOwned)
 {
+    //LOGN(EErr, "SdoCompsCount, Event Owned attached: " + aOwned->Uid());
     NotifyInpsUpdated();
 }
 
-void SdoCompsCount::onEagOwnedDetached(MOwned* aOwned)
+void SdoCompsCount::onEagOwnedDetached(const MOwned* aOwned)
 {
+    LOGN(EErr, "SdoCompsCount, Event OwnedDetached: " + aOwned->Uid());
     NotifyInpsUpdated();
 }
 
@@ -352,12 +365,12 @@ const DtBase* SdoCompsNames::VDtGet(const string& aType)
     return &mRes;
 }
 
-void SdoCompsNames::onEagOwnedAttached(MOwned* aOwned)
+void SdoCompsNames::onEagOwnedAttached(const MOwned* aOwned)
 {
     NotifyInpsUpdated();
 }
 
-void SdoCompsNames::onEagOwnedDetached(MOwned* aOwned)
+void SdoCompsNames::onEagOwnedDetached(const MOwned* aOwned)
 {
     NotifyInpsUpdated();
 }
@@ -389,12 +402,12 @@ const DtBase* SdoCompsUri::VDtGet(const string& aType)
     return &mRes;
 }
 
-void SdoCompsUri::onEagOwnedAttached(MOwned* aOwned)
+void SdoCompsUri::onEagOwnedAttached(const MOwned* aOwned)
 {
     NotifyInpsUpdated();
 }
 
-void SdoCompsUri::onEagOwnedDetached(MOwned* aOwned)
+void SdoCompsUri::onEagOwnedDetached(const MOwned* aOwned)
 {
     NotifyInpsUpdated();
 }
@@ -532,7 +545,8 @@ const DtBase* SdoConn::VDtGet(const string& aType)
                     mVpUe = vpn;
                     MObservable* obl = mVpUe->lIf(obl);
                     if (obl) {
-                        res = obl->addObserver(&mObrCp);
+                        //res = obl->addObserver(&mObrCp);
+                        res = obl->addObserver(this, TNodeEventChanged::idHash);
                     }
                     if (!res || !obl) {
                         LOGN(EErr, "Cannot attach VertUe to observer");
@@ -542,7 +556,8 @@ const DtBase* SdoConn::VDtGet(const string& aType)
                     mVqUe = vqn;
                     MObservable* obl = mVqUe->lIf(obl);
                     if (obl) {
-                        res = obl->addObserver(&mObrCp);
+                        //res = obl->addObserver(&mObrCp);
+                        res = obl->addObserver(this, TNodeEventChanged::idHash);
                     }
                     if (!res || !obl) {
                         LOGN(EErr, "Cannot attach VertUe to observer");
@@ -561,6 +576,7 @@ const DtBase* SdoConn::VDtGet(const string& aType)
     return &mRes;
 }
 
+/*
 void SdoConn::onObsChanged(MObservable* aObl)
 {
     MObservable* op = mVpUe->lIf(op);
@@ -570,6 +586,19 @@ void SdoConn::onObsChanged(MObservable* aObl)
     } else {
         SdoBase::onObsChanged(aObl);
     }
+}
+*/
+
+void SdoConn::onObsEvent(MObservable* aObl, const MEvent* aEvent) {
+    //if (aEvent->id() == MNodeEventOwnedAttached::idHash()) {
+    if (aEvent->mId == TNodeEventChanged::idHash) {
+	MObservable* op = mVpUe ? mVpUe->lIf(op) : nullptr;
+	MObservable* oq = mVqUe ? mVqUe->lIf(oq) : nullptr;
+	if (aObl == op || aObl == oq) {
+	    NotifyInpsUpdated();
+	}
+    }
+    SdoBase::onObsEvent(aObl, aEvent);
 }
 
 
@@ -603,7 +632,9 @@ const DtBase* SdoPairsCount::VDtGet(const string& aType)
                     // Start observing vertex under exploring
                     MObservable* obl = mVertUe->lIf(obl);
                     if (obl) {
-                        res = obl->addObserver(&mObrCp);
+                        //res = obl->addObserver(&mObrCp);
+                        res = obl->addObserver(this, TNodeEventOwnedAttached::idHash);
+                        res = obl->addObserver(this, TNodeEventChanged::idHash);
                     }
                     if (!res || !obl) {
                         LOGN(EErr, "Cannot attach VertUe to observer");
@@ -648,14 +679,16 @@ void SdoPairsCount::observingVertUeExst()
         LOGN(EDbg, "VertUE owner [" + vertUeOwrUri.toString() + "] to be observing, level: " + to_string(mVertUeOwrLevel));
         if (mVertUeOwr) {
             MObservable* obl = mVertUeOwr->lIf(obl);
-            bool res = obl->rmObserver(&mObrCp);
+	    //bool res = obl->rmObserver(&mObrCp);
+	    bool res = obl->rmObserver(this, TNodeEventChanged::idHash);
             if (!res || !obl) {
                 LOGN(EErr, "Failed deattaching VertUeOwr from observable");
             }
         }
         mVertUeOwr = owner;
         MObservable* obl = mVertUeOwr->lIf(obl);
-        bool res = obl ? obl->addObserver(&mObrCp) : false;
+        //bool res = obl ? obl->addObserver(&mObrCp) : false;
+        bool res = obl ? obl->addObserver(this, TNodeEventChanged::idHash) : false;
         if (!res || !obl) {
             LOGN(EErr, "Cannot attach VertUeOwr to observer");
         } else {
@@ -703,6 +736,39 @@ void SdoPairsCount::onObsOwnedAttached(MObservable* aObl, MOwned* aOwned)
     } else {
         SdoBase::onObsOwnedAttached(aObl, aOwned);
     }
+}
+
+void SdoPairsCount::onObsEvent(MObservable* aObl, const MEvent* aEvent)
+{
+    if (aEvent->mId == TNodeEventOwnedAttached::idHash) {
+	auto event = reinterpret_cast<const TNodeEventOwnedAttached*>(aEvent);
+	auto aOwned = event->mOwned;
+	MObservable* obl = mVertUeOwr ? mVertUeOwr->lIf(obl) : nullptr;
+	if (obl && aObl == obl) {
+	    // VeruUE owner observable
+	    LOGN(EDbg, "onObsOwnedAttached, owned: " + aOwned->Uid());
+	    DGuri verts;
+	    mInpVert.getData(verts);
+	    GUri sueUri(verts.mData);
+	    GUri owdUri = sueUri.head(mVertUeOwrLevel + 1);
+	    auto* vertUeOwrOwd = mSue->getNode(owdUri);
+	    MOwned* vueOwd = vertUeOwrOwd ? vertUeOwrOwd->lIf(vueOwd) : nullptr;
+	    if (vueOwd && aOwned == vueOwd) {
+		LOGN(EDbg, "[" + mVertUeOwr->getUriS(mSue) + "] owned [" + vertUeOwrOwd->getUriS(mSue) + "] attached");
+		// Checking if VertUe got attached
+		MNode* vertUe = mSue->getNode(verts.mData);
+		if (vertUe) {
+		    // Yes, attached. Stop observing the attaching
+		    LOGN(EDbg, "VertUe [" + vertUe->getUriS(mSue) + "] got attached");
+		    NotifyInpsUpdated();
+		} else {
+		    // Not attached yet, proceed
+		    observingVertUeExst();
+		}
+	    }
+	}
+    }
+    SdoBase::onObsEvent(aObl, aEvent);
 }
 
 

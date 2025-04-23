@@ -13,8 +13,8 @@
 #include "connpoint.h"
 
 
-/** @brief Connection point - input of combined chain state AStatec
- * Just ConnPointMcu with pre-configured prepared/required
+/** @brief Lightweight connection point - state input
+ * Needs to be bound to state to attach state as Provided proxy
  * */
 class CpStateInp: public ConnPoint<MDesInpObserver, MDVarGet>
 {

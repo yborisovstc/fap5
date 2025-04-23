@@ -30,7 +30,8 @@ void ASdc::NodeCreationObserver::startObserving(const GUri& aTargUri)
 	}
 	mTargOwr = owner;
 	MObservable* obl = mTargOwr->lIf(obl);
-	bool res = obl ? obl->addObserver(&mOcp) : false;
+	//bool res = obl ? obl->addObserver(&mOcp) : false;
+	bool res = obl ? obl->addObserver(this, TNodeEventOwnedAttached::idHash) : false;
 	if (!res || !obl) {
             LOGNN(mHost, EErr, "Cannot attach VertUeOwr to observer");
 	} else {
@@ -60,6 +61,33 @@ void ASdc::NodeCreationObserver::onObsOwnedAttached(MObservable* aObl, MOwned* a
         }
     }
 }
+
+void ASdc::NodeCreationObserver::onObsEvent(MObservable* aObl, const MEvent* aEvent)
+{
+    if (aEvent->mId == TNodeEventOwnedAttached::idHash) {
+	auto* event = reinterpret_cast<const TNodeEventOwnedAttached*>(aEvent);
+	auto* owned = event->mOwned;
+	LOGNN(mHost, EDbg, "EventOwnedAttached, owned: " + owned->Uid());
+	GUri owdUri = mTargUri.head(mTargOwrLevel + 1);
+	auto* targOwrOwd = mHost->mMag->getNode(owdUri);
+	MOwned* targOwd = targOwrOwd ? targOwrOwd->lIf(targOwd) : nullptr;
+	if (targOwd && owned == targOwd) {
+	    LOGNN(mHost, EDbg, "[" + mTargOwr->getUriS(mHost->mMag) + "] owned [" + targOwrOwd->getUriS(mHost->mMag) + "] attached");
+	    LOGNN(mHost, EDbg, "Targ URI: " + mTargUri.toString());
+	    // Checking if target got attached
+	    MNode* targ = mHost->mMag->getNode(mTargUri);
+	    if (targ) {
+		// Yes, attached. Stop observing the attaching
+		LOGNN(mHost, EDbg, "Target [" + targ->getUriS(mHost->mMag) + "] got attached");
+		mHost->setActivated();
+	    } else {
+		// Not attached yet, proceed
+		startObserving(mTargUri);
+	    }
+	}
+    }
+}
+
 
 
 
@@ -192,7 +220,7 @@ bool ASdc::SdcIapEnb::updateData()
 ASdc::ASdc(const string &aType, const string& aName, MEnv* aEnv): Node(aType, aName, aEnv),
     mIaps(), mMag(NULL), mUpdNotified(false), mActNotified(false), mObrCp(this), mSyncCp(this), mExploringCp(this),
     mIapEnb("Enb", this, K_CpUri_Enable), mOapOut("Outp", this, K_CpUri_Outp, [this](Sdata<bool>& aData) {getOut(aData);}),
-    mMagObs(this), mCdone(false)
+    /*mMagObs(this), */mCdone(false)
 {
     mIapEnb.mCdt = false;
 }
@@ -287,6 +315,9 @@ void ASdc::confirm()
         PFL_DUR_STAT_START(PEvents::EDurStat_ASdcConfState);
         bool state = getState(true);
         PFL_DUR_STAT_REC(PEvents::EDurStat_ASdcConfState);
+	// TODO This usage of state is not consistent. Potentially state can be not true(i.e. Done), false(i.e NotDone) but
+	// also Uncertain. Example is ASdcConn. If P,Q vertexes are not exist yet, currently state is false and doCtl starts
+	// but actually the state is Uncertain and we don't need running doCtl. To fix.
         if (!state) { // Ref ds_dcs_sdc_dsgn_cc Solution#2
             bool res = doCtl();
             if (!res) {
@@ -370,6 +401,12 @@ void ASdc::onObsChanged(MObservable* aObl)
     UpdateMag();
 }
 
+void ASdc::onObsEvent(MObservable* aObl, const MEvent* aEvent) {
+    if (aEvent->mId == TNodeEventChanged::idHash) {
+	UpdateMag();
+    }
+}
+
 MIface* ASdc::MObserver_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
@@ -392,7 +429,8 @@ void ASdc::onOwnerAttached()
     bool res = false;
     MObservable* obl = owner()->lIf(obl);
     if (obl) {
-	res = obl->addObserver(&mObrCp);
+	//res = obl->addObserver(&mObrCp);
+	res = obl->addObserver(this, TNodeEventChanged::idHash);
     }
     if (!res || !obl) {
 	Logger()->Write(EErr, this, "Cannot attach to observer");
@@ -594,6 +632,15 @@ ASdcCompT::ASdcCompT(const string &aType, const string& aName, MEnv* aEnv): ASdc
     mIapName("Name", this, K_CpUri_Name), mIapParent("Parent", this, K_CpUri_Parent),
     mIapTarg("Target", this, K_CpUri_Target)
 { }
+
+void ASdcCompT::Construct()
+{
+    ASdc::Construct();
+    mIapName.Construct();
+    mIapParent.Construct();
+    mIapTarg.Construct();
+}
+
 
 bool ASdcCompT::getState(bool aConf)
 {
@@ -879,6 +926,13 @@ bool ASdcConnT::doCtl()
 ASdcDisconn::ASdcDisconn(const string &aType, const string& aName, MEnv* aEnv): ASdc(aType, aName, aEnv),
     mIapV1("V1", this, K_CpUri_V1), mIapV2("V2", this, K_CpUri_V2)
 { }
+
+void ASdcDisconn::Construct()
+{
+    ASdc::Construct();
+    mIapV1.Construct();
+    mIapV2.Construct();
+}
 
 bool ASdcDisconn::getState(bool aConf)
 {

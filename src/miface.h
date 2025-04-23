@@ -31,4 +31,23 @@ class MIface
 	virtual void doDump(int aLevel, int aIdt, std::ostream& aOs) const {}
 };
 
+#if 0
+class MEvent : public MIface
+{
+    public:
+	string Uid() const override { return string();}
+	/** @brief Gets local interface of type aType */
+	MIface* getLif(TIdHash aTid) override { return nullptr;}
+	void doDump(int aLevel, int aIdt, std::ostream& aOs) const override {}
+};
+#endif
+
+struct MEvent
+{
+    //TEvent(MIface::TIdHash aId): mId(aId) {}
+    MEvent(MIface::TIdHash aId): mId(aId) {}
+    MIface::TIdHash mId;
+};
+
+
 #endif
