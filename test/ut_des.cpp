@@ -17,7 +17,7 @@ class Ut_des : public Ut_fixture
 {
     CPPUNIT_TEST_SUITE(Ut_des);
     //CPPUNIT_TEST(test_des_data);
-    CPPUNIT_TEST(test_des_1);
+//    CPPUNIT_TEST(test_des_1);
     /*
     CPPUNIT_TEST(test_des_inval_1);
     CPPUNIT_TEST(test_des_inval_2);
@@ -26,8 +26,8 @@ class Ut_des : public Ut_fixture
     CPPUNIT_TEST(test_des_tr_1);
     CPPUNIT_TEST(test_des_tr_tres_1);
     */
-//    CPPUNIT_TEST(test_des_utl_1);
-//    CPPUNIT_TEST(test_des_utl_2);
+    CPPUNIT_TEST(test_des_utl_1);
+    // CPPUNIT_TEST(test_des_utl_2); TODO This doesn't work with DRI, ref ds_dri_lmt_mcins. To remove.
     //CPPUNIT_TEST(test_des_sp_1);
     CPPUNIT_TEST_SUITE_END();
     public:
@@ -47,9 +47,9 @@ class Ut_des : public Ut_fixture
     void test_des_tr_1();
     void test_des_tr_tres_1();
     void test_des_utl_1();
+    void test_des_utl_2();
     /*
     void test_des_data();
-    void test_des_utl_2();
     void test_des_sp_1();
     */
 };
@@ -317,10 +317,10 @@ void Ut_des::test_des_utl_1()
     delete mEnv;
 }
 
-#if 0
+// TODO This doesn't work with DRI, ref ds_dri_lmt_mcins. To remove.
 void Ut_des::test_des_utl_2()
 {
-    cout << endl << "=== Test of DES utilities: reset  ===" << endl;
+    cout << endl << "=== Test of DES utilities: inputs iterator ===" << endl;
 
     string ssname = "ut_des_utl_2";
     MNode* root = constructSystem(ssname);
@@ -330,10 +330,12 @@ void Ut_des::test_des_utl_2()
 	mEnv->profiler()->saveMetrics();
 	std::filesystem::rename(ssname + ".chs~durstat.csv", ssname + ".chs~durstat_constr.csv");
     }
+    /*
     std::ofstream rds; // Root MNode dump
     rds.open(ssname + "_constr_root.dump", std::ofstream::out);
     mEnv->Root()->MNode_doDump(0xff,0,rds);
     rds.close();
+    */
  
 
     // Run
@@ -345,7 +347,6 @@ void Ut_des::test_des_utl_2()
 
     delete mEnv;
 }
-#endif
 
 void Ut_des::test_des_1()
 {

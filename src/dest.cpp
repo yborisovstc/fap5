@@ -216,6 +216,7 @@ void TrAddVar::Init(const string& aIfaceName)
     if ((mFunc = FAddDt<Sdata<int>>::Create(this, aIfaceName)) != NULL);
     else {
 	LOGN(EWarn, "Failed init, outp [" + aIfaceName + "]");
+        mFunc = FAddDt<Sdata<int>>::Create(this, aIfaceName);
     }
 }
 
@@ -454,6 +455,8 @@ void TrCmpVar::Init(const string& aIfaceName)
 	else if (mFunc = FCmp<DGuri>::Create(this, t1, t2, ftype));
 	else {
 	    LOGN(EWarn, "Failed init, inputs [" + t1 + "], [" + t2 + "]");
+            t1 = inp1->VarGetIfid();
+            t2 = inp2->VarGetIfid();
 	}
     }
 }
@@ -1373,7 +1376,9 @@ string TrInpSel::VarGetIfid() const
 {
     string res;
     MDVarGet* inp = const_cast<TrInpSel*>(this)->GetInp();
-    res = inp->VarGetIfid();
+    if (inp) {
+        res = inp->VarGetIfid();
+    }
     return res;
 }
 

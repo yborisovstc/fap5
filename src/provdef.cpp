@@ -73,6 +73,8 @@ const ProvDef::TFReg ProvDef::mReg ( {
 	Item<ASdcInsert2>(), Item<ASdcExtract>(), 
 	/* DES IO */
 	Item<Sout>(), 
+	/* SDCs */
+        Item<ASdcMut>(), 
 
 #if 0
         Item<Link>(),
@@ -81,7 +83,7 @@ const ProvDef::TFReg ProvDef::mReg ( {
         /* Des adapters */
         Item<AMntp>(),
 	/* SDCs */
-        Item<ASdcMut>(), Item<ASdcInsertN>(),
+        Item<ASdcInsertN>(),
         Item<ASdcPause>(), Item<ASdcResume>(), Item<ASdcConnT>(), 
         /* DES context */
         Item<DesCtxSpl>(), Item<DesCtxCsm>(), 

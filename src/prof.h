@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <cmath>
+#include <cassert>
 
 #include "mprof.h"
 #include "prof_ids.h"
@@ -387,7 +388,7 @@ protected:
 // Profiler's routines
 #ifdef PROFILING_ENABLED
 #define PROF_SAVE(PFL) if (PFL) PFL->saveMetrics()
-#define PROF_DUR_START(PFL, TYPE, ID) if (PFL) PFL->getPindItem<PindCluster, TYPE>(ID)->Start()
+#define PROF_DUR_START(PFL, TYPE, ID) if (PFL) { auto pi = PFL->getPindItem<PindCluster, TYPE>(ID); assert(("PIND item not found", pi)); pi->Start();}
 #define PROF_DUR_REC(PFL, TYPE, ID) if (PFL) PFL->getPindItem<PindCluster, TYPE>(ID)->Rec(0)
 #define PROF_VALUE(PFL, TYPE, ID) ((PFL != nullptr) ? PFL->getPindItem<PindCluster, TYPE>(ID)->toString() : string())
 #define PROF_FIELD(PFL, TYPE, ID, FID) ((PFL != nullptr) ? PFL->getPindItem<PindCluster, TYPE>(ID)->fieldToString(FID) : string())

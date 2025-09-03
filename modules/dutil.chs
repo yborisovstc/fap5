@@ -144,6 +144,7 @@ DesUtils : Elem {
         )
     }
     InpItr : Des {
+        # "TODO This doesn't work with DRI, ref ds_dri_lmt_mcins. To remove."
         # "Inputs iterator"
         # "InpM - multiplexed input"
         # "InpDone - sign of selected input is handled"
@@ -193,14 +194,10 @@ DesUtils : Elem {
             Cmp_Neq.Inp2 ~ Hash
         )
     }
-    ListItemByPos : DesAs {
+    ListItemByPos : DesAs2 {
         # "DES active subsystem. Getting list node with given pos in the list"
         # "Input: node position in the list"
         InpPos : ExtdStateInp
-        # "Input: link to observed list"
-        InpMagLink : Link {
-            Outp : CpStateMnodeOutp
-        }
         # "Output: URI of list node with given pos"
         OutpNode : ExtdStateOutp
         LogLevel = "Err"
@@ -237,7 +234,7 @@ DesUtils : Elem {
                 )
             )
             Res : State {
-                = "URI _INV"
+                = "URI"
                 LogLevel = "Err"
             }
             PairOfPrev : SdoTcPair (
@@ -268,12 +265,16 @@ DesUtils : Elem {
                 Sel ~ Init
             )
         }
+        Res : State (
+            _@ < = "URI"
+            _@ < LogLevel = "Dbg"
+            Inp ~ Subsys.Res
+        )
         Subsys.InpPos ~ InpPos.Int
-        Subsys.InpMagBase ~ InpMagLink.Outp
         Subsys.InpMagUri ~ : State {
             = "URI _$"
         }
-        OutpNode.Int ~ Subsys.Res
+        OutpNode.Int ~ Res
         # "<<< DES active subsystem. Getting node with given pos of list"
     }
     # "TODO move to specific utils?"

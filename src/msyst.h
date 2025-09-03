@@ -23,8 +23,10 @@ class MSyst: public MIface
 	// From MIface
 	TIdHash id() const override { return idHash();}
 	string Uid() const override { return MSyst_Uid();}
+	MIface* getLif(TIdHash aId) override { return MSyst_getLif(aId);}
 	virtual string MSyst_Uid() const = 0;
 	// Local
+	virtual MIface* MSyst_getLif(TIdHash aId) = 0;
 	/** @brief Get connections
 	 * */
 	virtual const TEdges& connections() const = 0;
@@ -49,6 +51,7 @@ class MAgent: public MIface
 	// Local
 	virtual string MAgent_Uid() const = 0;
 	virtual MIface* MAgent_getLif(TIdHash aId) = 0;
+        virtual TCp* getMAgentCp() = 0;
 };
 
 

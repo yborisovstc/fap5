@@ -20,6 +20,16 @@ MIface* Vert::MVert_getLif(TIdHash aId)
 
 void Vert::MVert_doDump(int aLevel, int aIdt, ostream& aOs) const
 {
+    if (aLevel & Ifu::EDM_Base) {
+	Ifu::offset(aIdt, aOs); aOs << "UID: " << MVert_Uid() << endl;
+    }
+    if (aLevel & Ifu::EDM_Comps) {
+	Ifu::offset(aIdt, aOs); aOs << "Pairs: " << endl;
+	for (int i = 0; i < pairsCount(); i++) {
+	    const MVert* pair = getPair(i);
+	    Ifu::offset(aIdt, aOs); aOs << "- "  << pair->Uid() << endl;
+	}
+    }
 }
 
 bool Vert::isCompatible(const MVert* aPair, bool aExt) const
@@ -126,6 +136,16 @@ MIface* Verte::MVert_getLif(TIdHash aId)
 
 void Verte::MVert_doDump(int aLevel, int aIdt, ostream& aOs) const
 {
+    if (aLevel & Ifu::EDM_Base) {
+	Ifu::offset(aIdt, aOs); aOs << "UID: " << MVert_Uid() << endl;
+    }
+    if (aLevel & Ifu::EDM_Comps) {
+	Ifu::offset(aIdt, aOs); aOs << "Pairs: " << endl;
+	for (int i = 0; i < pairsCount(); i++) {
+	    const MVert* pair = getPair(i);
+	    Ifu::offset(aIdt, aOs); aOs << "- "  << pair->Uid() << endl;
+	}
+    }
 }
 
 bool Verte::isCompatible(const MVert* aPair, bool aExt) const

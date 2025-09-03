@@ -77,6 +77,7 @@ class MDesSyncable: public MIface
 	virtual void update() = 0;
 	virtual void confirm() = 0;
 	virtual void setUpdated() = 0; // TODO not used with ds_mdc_sw
+        // TODO This is not called by MDesObserver pair so why is in in iface?
 	virtual void setActivated() = 0;
 	/** @brief Returns sign of system being active
 	 * */
@@ -86,7 +87,6 @@ class MDesSyncable: public MIface
         virtual TDesSyncableCp* desSyncableCp() = 0;
 };
 
-#if 0
 class MDesCtxCsm;
 class MVert;
 
@@ -96,9 +96,10 @@ class MVert;
 class MDesCtxSpl : public MIface
 {
     public:
-	using TCp = MNcpp<MDesCtxSpl, MDesCtxCsm>;
+	using TCp = MNcp<MDesCtxSpl, MDesCtxCsm>;
     public:
-	static const char* Type() { return "MDesCtxSpl";};
+	inline static constexpr std::string_view idStr() { return "MDesCtxSpl"sv;}
+	inline static constexpr TIdHash idHash() { return 0xb46422c03e7249cf;}
 	// From MIface
 	virtual string Uid() const override { return MDesCtxSpl_Uid();}
 	virtual void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDesCtxSpl_doDump(aLevel, aIdt, std::cout);}
@@ -111,7 +112,7 @@ class MDesCtxSpl : public MIface
 	/* @brief Gets head of suppliers stack, ref ds_dctx_dic_cs
 	 * */
 	virtual MDesCtxSpl* getSplsHead() = 0;
-	virtual bool registerCsm(MNcpp<MDesCtxCsm, MDesCtxSpl>* aCsm) = 0;
+	virtual bool registerCsm(MNcp<MDesCtxCsm, MDesCtxSpl>* aCsm) = 0;
 	/* @brief binds context with given ID
 	 * @param aCtxId  ID of the context
 	 * @param aCtx    the context
@@ -126,9 +127,10 @@ class MDesCtxSpl : public MIface
 class MDesCtxCsm : public MIface
 {
     public:
-	using TCp = MNcpp<MDesCtxCsm, MDesCtxSpl>;
+	using TCp = MNcp<MDesCtxCsm, MDesCtxSpl>;
     public:
-	static const char* Type() { return "MDesCtxCsm";};
+	inline static constexpr std::string_view idStr() { return "MDesCtxCsm"sv;}
+	inline static constexpr TIdHash idHash() { return 0x68950a80697af250;}
 	// From MIface
 	virtual string Uid() const override { return MDesCtxCsm_Uid();}
 	virtual void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDesCtxCsm_doDump(aLevel, aIdt, std::cout);}
@@ -142,6 +144,22 @@ class MDesCtxCsm : public MIface
 	virtual void onCtxRemoved(const string& aCtxId) = 0;
 };
 
+/* @brief DES context binder
+ * */
+class MDesCtxBinder : public MIface
+{
+    public:
+	inline static constexpr std::string_view idStr() { return "MDesCtxBinder"sv;}
+	inline static constexpr TIdHash idHash() { return 0xece4117fa87bad2;}
+	// From MIface
+	virtual string Uid() const override { return MDesCtxBinder_Uid();}
+	virtual string MDesCtxBinder_Uid() const = 0;
+	// Local
+        virtual void bindDesCtx(MIface* aCtx) = 0;
+};
+
+
+#if 0
 
 /** @brief DES Service point client
  * */

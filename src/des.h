@@ -138,7 +138,7 @@ class ExtdStateInp : public CpStateInp, public MDVarGet, public MDesInpObserver
 	string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
 	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
 	void onInpUpdated() override;
-    protected:
+    public:
         CpStateOutp* mInt = nullptr;
     protected:
         static string KIntName;
@@ -171,11 +171,33 @@ class ExtdStateOutp : public CpStateOutp, public MDVarGet, public MDesInpObserve
                 if (inpObs) inpObs->onInpUpdated();
             }
         }
-    protected:
+    public:
         CpStateInp* mInt = nullptr;
     protected:
         static string KIntName;
 };
+#if 0
+/** @brief DES State input with data latched on update phase
+ * Follows DFI approach but inverse, ref ds_dfi
+ * Can be use in inverse DFI DES that change state on confirm phase
+ * Needs to be bound to state to attach state as Provided proxy
+ * */
+class CpStateInpLu: public ConnPoint<MDesInpObserver, MDVarGet>, public MDesSyncable
+{
+    public:
+	inline static constexpr std::string_view idStr() { return "CpStateInpLu"sv;}
+        CpStateInpLu(const string &aType, const string& aName, MEnv* aEnv):
+            ConnPoint<MDesInpObserver, MDVarGet> (aType, aName, aEnv) {}
+        virtual ~CpStateInp() {}
+    protected:
+        // From ConnPoint
+	void onConnected() override;
+	void onDisconnected() override;
+	void onBound() override;
+	void onUnbound() override;
+};
+#endif
+
 
 #if 0
 /** @brief CpStateInp direct extender (extd as inp)
@@ -466,6 +488,7 @@ class DesLauncher: public Des, public MLauncher
 
 /** @brief Active subsystem of DES
  * Runs on master DES confirm, ds_desas_nio_ric
+ * !! Blocked atm because design is wrong, ref ds_desas_nio_ric_swr
  * */
 class DesAs: public DesLauncher
 {
@@ -504,6 +527,7 @@ class DesAs2: public DesLauncher
 	virtual void setActivated() override;
     protected:
 	bool mRunning;
+        MDesSyncable* mSubsys = nullptr;
 	static const GUri K_OutpUri;
 	static const GUri K_SsysUri;
 	static const GUri K_SsysInitUri;
@@ -653,6 +677,7 @@ class IDesEmbHost
  *
  * @parem Th  type of host
  * */
+// TODO seems not used anymore. Remove?
 class DesEIbb: public MDesInpObserver, public MDesSyncable
 {
     public:
@@ -871,6 +896,49 @@ void DesEOst<T>::updateInvalid()
 }
 
 
+/** @brief Input access point base
+ * */
+class DesIapb : public MDesInpObserver
+{
+    public:
+        DesIapb(const string& aName): mName(aName) {}
+        void Construct(CpStateInp* aInp);
+        virtual bool updateData() = 0;
+	// From MDesInpObserver
+	string MDesInpObserver_Uid() const override {return mName + Ifu::KUidSep + string(MDesInpObserver::idStr());}
+	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
+    public:
+        string mName;    /*!< Iap name */
+        //bool mUpdated = false;
+        Vert* mInp = nullptr;
+};
+
+/** @brief Input access point operating with DtBase
+ * @param  T  data type 
+ * */
+template <class T>
+class DesIap: public DesIapb {
+    public:
+        DesIap(const string& aName): DesIapb(aName) {}
+        // Local
+        virtual bool updateData() override;
+	void onInpUpdated() override {
+            auto vget = mInp->mPairs.empty() ? nullptr : mInp->mPairs.at(0)->lIft<MDVarGet>();
+            if (vget) {
+                const DtBase* pdata = vget->VDtGet(T::TypeSig());
+                if (pdata) {
+                    //mUpdated = mData != *pdata;
+                    mData = *pdata;
+                }
+            }
+        }
+    public:
+        T mData;
+};
+
+
+
+
 
 #if 0
 
@@ -879,31 +947,31 @@ void DesEOst<T>::updateInvalid()
 class DesEParb
 {
     public:
-	DesEParb(MNode* aHost, const string& aUri): mHost(aHost), mUri(aUri) { eHost()->registerPar(this);}
+        DesEParb(MNode* aHost, const string& aUri): mHost(aHost), mUri(aUri) { eHost()->registerPar(this);}
     protected:
-	IDesEmbHost* eHost() { return dynamic_cast<IDesEmbHost*>(mHost);}
+        IDesEmbHost* eHost() { return dynamic_cast<IDesEmbHost*>(mHost);}
 	void updatePar(const MContent* aCont);
     protected:
 	MNode* mHost;
 	const string mUri;  //!< Paremeter's URI
 };
 
+#endif
+
 
 /* @brief DES context supplier
  * */
-class DesCtxSpl : public Des, public MDesCtxSpl
+class DesCtxSpl : public Syst, public MDesCtxSpl
 {
     public:
 	using TSplCp = NCpOmnp<MDesCtxSpl, MDesCtxCsm>;  /*!< Supplier connpoint */
     public:
-	static const char* Type() { return "DesCtxSpl";};
+	inline static constexpr std::string_view idStr() { return "DesCtxSpl"sv;}
 	DesCtxSpl(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	// From Node.MIface
-	virtual MIface* MNode_getLif(const char *aType) override;
+	virtual MIface* MNode_getLif(TIdHash aId) override;
 	// From MNode.MOwned
-	virtual MIface* MOwned_getLif(const char *aType) override;
-	// From Unit.MIfProvOwner
-	virtual void resolveIfc(const string& aName, MIfReq::TIfReqCp* aReq) override;
+	virtual MIface* MOwned_getLif(TIdHash aId) override;
 	// From MDesCtxSpl
 	virtual string MDesCtxSpl_Uid() const override {return getUid<MDesCtxSpl>();}
 	virtual void MDesCtxSpl_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
@@ -924,19 +992,15 @@ class DesCtxSpl : public Des, public MDesCtxSpl
 /** @brief DES context consumer
  * */
 // TODO is DES inheritance reasonable?
-class DesCtxCsm : public Des, public MDesCtxCsm
+class DesCtxCsm : public Syst, public MDesCtxCsm
 {
     public:
 	using TCsmCp = NCpOnp<MDesCtxCsm, MDesCtxSpl>;
     public:
-	static const char* Type() { return "DesCtxCsm";};
+	inline static constexpr std::string_view idStr() { return "DesCtxCsm"sv;}
 	DesCtxCsm(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	// From Node.MIface
-	virtual MIface* MNode_getLif(const char *aType) override;
-#ifdef SELF_IFR
-	// From Unit.MIfProvOwner
-	virtual void resolveIfc(const string& aName, MIfReq::TIfReqCp* aReq) override;
-#endif
+	virtual MIface* MNode_getLif(TIdHash aId) override;
 	// From MDesCtxCsm
 	virtual string MDesCtxCsm_Uid() const override {return getUid<MDesCtxCsm>();}
 	virtual void MDesCtxCsm_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
@@ -944,10 +1008,10 @@ class DesCtxCsm : public Des, public MDesCtxCsm
 	virtual void onCtxAdded(const string& aCtxId) override;
 	virtual void onCtxRemoved(const string& aCtxId) override;
 	// From MDesSyncable
-	virtual void update() override;
-	virtual void confirm() override;
+	//virtual void update() override;
+	//virtual void confirm() override;
     protected:
-	bool init();
+	//bool init();
 	// TODO not used, to delete?
 	bool registerSpl(MDesCtxSpl::TCp* aSpl);
 	bool bindCtxs();
@@ -957,6 +1021,8 @@ class DesCtxCsm : public Des, public MDesCtxCsm
 	TCsmCp mCsmCp;  /*!< Consumer Cp */
 	MDesCtxCsm* mMDesCtxCsmPtr = nullptr;
 };
+
+#if 0
 
 /** @brief DES Input demultiplexor, ref ds_des_idmux
  * */

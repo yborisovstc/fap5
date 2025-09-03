@@ -25,10 +25,12 @@ bool PindBase::GetClock(MPind::TClock &aRes) {
     bool res = false;
 //    clockid_t cid = CLOCK_REALTIME;
 //    clockid_t cid = CLOCK_MONOTONIC;
+    clockid_t cid = CLOCK_PROCESS_CPUTIME_ID;
+//    clockid_t cid = CLOCK_THREAD_CPUTIME_ID;
     int s = 0;
     // TODO YB to consider configurable option to keep clockid from the first call
     // It will not work if the func measured called from different context
-
+    /*
     clockid_t cid = -1;
     s = pthread_getcpuclockid(pthread_self(), &cid);
     if (s == 0) {
@@ -38,6 +40,7 @@ bool PindBase::GetClock(MPind::TClock &aRes) {
         //LOG(LogLevel::Error) << "getpuclockid failed: " << s;
 	//cout << "getpuclockid failed" << endl;
     }
+    */
     if (s == 0 && cid != -1) {
         s = clock_gettime(cid, &aRes);
         if (s == 0) {

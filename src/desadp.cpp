@@ -275,14 +275,14 @@ MNode* DAdp::getMagBase()
 void DAdp::updateMag()
 {
     DGuri magUri;
-    GetGData(mStMagUri, magUri);
-    if (mMagBase && magUri.IsValid()) {
-	MNode* magn = mMagBase->getNode(magUri.mData);
-	if (magn && magn != mMag) {
-	    mMag = magn;
-	    notifyMagChanged();
-	    LOGN(EInfo, "Managed agent attached [" + mMag->Uid() + "]");
-	}
+    if (mMagBase) {
+        GetGData(mStMagUri, magUri);
+        MNode* magn = magUri.IsValid() ? mMagBase->getNode(magUri.mData) : mMagBase;
+        if (magn && magn != mMag) {
+            mMag = magn;
+            notifyMagChanged();
+            LOGN(EInfo, "Managed agent attached [" + mMag->Uid() + "]");
+        }
     }
 }
 
@@ -290,9 +290,9 @@ void DAdp::onMagChanged()
 {
     auto magBase = getMagBase();
     if (magBase != mMagBase) {
-	mMagBase = magBase;
-	updateMag();
-	notifyMagChanged();
+        mMagBase = magBase;
+        updateMag();
+        notifyMagChanged();
     }
 }
 

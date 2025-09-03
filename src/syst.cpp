@@ -9,7 +9,6 @@ MIface* CpSystExplorable::MOwned_getLif(TIdHash aId)
     if (res = checkLif2(aId, mMSystExploring));
     else res = TBase::MOwned_getLif(aId);
     return res;
-
 }
 
 MIface* CpSystExplorable::MSystExplorable_getLif(TIdHash aId)
@@ -78,7 +77,7 @@ void CpSystExploring::onUnbound()
 // System
 
 Syst::Syst(const string &aType, const string &aName, MEnv* aEnv): Elem(aType, aName, aEnv),
-    mExplorableCp(this)
+    mAgtCp(this), mExplorableCp(this)
 {
 }
 
@@ -93,6 +92,36 @@ MIface* Syst::MNode_getLif(TIdHash aId)
     else res = Elem::MNode_getLif(aId);
     return res;
 }
+
+MIface* Syst::MOwned_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMSyst));
+    else if (res = TBase::MOwned_getLif(aId));
+    else res = MSyst_getLif(aId);
+    return res;
+}
+
+MIface* Syst::MSyst_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMSyst));
+    else {
+        // Redirect to agents. Keep policy "no same iface in agents"
+        for (auto it = mAgtCp.pairsBegin(); it != mAgtCp.pairsEnd(); it++) {
+            auto* agt = (*it)->provided();
+            MIface* ares = agt->MAgent_getLif(aId);
+            if (ares && res) {
+                LOGN(EErr, "Duplicated iface [" + ares->Uid() + "] in syst agent " + agt->Uid());
+                break;
+            } else {
+                res = ares;
+            }
+        }
+    }
+    return res;
+}
+
 
 MIface* Syst::MAhost_getLif(TIdHash aId)
 {
@@ -121,6 +150,11 @@ void Syst::onOwnedAttached(MOwned* aOwned)
     if (expl) {
 	// Connect owned as exploring/controlling
 	bool res = mExplorableCp.connect(expl->getCp());
+	assert(res);
+    }
+    auto agent = aOwned->lIft<MAgent>();
+    if (agent) {
+	bool res = mAgtCp.connect(agent->getMAgentCp());
 	assert(res);
     }
 }
@@ -226,4 +260,31 @@ void Syst::mutDisconnect(const ChromoNode& aMut, bool aUpdOnly, const MutCtx& aC
     if (!aUpdOnly) {
 	//notifyNodeMutated(aMut, aCtx);
     }
+}
+
+
+
+
+AgtBase::AgtBase(const string &aType, const string& aName, MEnv* aEnv): Node(aType, aName, aEnv), mAgtCp(this)
+{
+}
+
+AgtBase::~AgtBase()
+{
+}
+
+
+MNode* AgtBase::ahostNode()
+{
+    auto* pair = *mAgtCp.pairsBegin();
+    MAhost* ahost = pair ? pair->provided() : nullptr;
+    MNode* hostn = ahost ? ahost->lIf(hostn) : nullptr;
+    return hostn;
+}
+
+MIface* AgtBase::MAgent_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMAgentPtr));
+    return res;
 }

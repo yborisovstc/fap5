@@ -539,6 +539,14 @@ ASdcMut::ASdcMut(const string &aType, const string& aName, MEnv* aEnv): ASdc(aTy
 {
 }
 
+void ASdcMut::Construct()
+{
+    ASdc::Construct();
+    mIapTarg.Construct();
+    mIapMut.Construct();
+}
+
+
 bool ASdcMut::getState(bool aConf)
 {
     return mMutApplied;
@@ -583,6 +591,32 @@ void ASdcComp::Construct()
     mIapParent.Construct();
 }
 
+void ASdcComp::onOwnerAttached()
+{
+    ASdc::onOwnerAttached();
+    MObservable* obl = owner()->lIf(obl);
+    bool res = false;
+    if (obl) {
+	res = obl->addObserver(this, TNodeEventOwnedDetached::idHash);
+    }
+    if (!res) {
+	Logger()->Write(EErr, this, "Cannot add observer to MAG");
+    }
+}
+
+void ASdcComp::onObsEvent(MObservable* aObl, const MEvent* aEvent)
+{
+    if (aEvent->mId == TNodeEventOwnedDetached::idHash) {
+	auto* event = reinterpret_cast<const TNodeEventOwnedDetached*>(aEvent);
+	auto* owned = event->mOwned;
+	Sdata<string>& name = mIapName.data(true);
+        if (owned->ownedId() == name.mData) {
+            LOGN(EDbg, "EventOwnedDetached, owned: " + owned->Uid());
+            notifyOutp();
+        }
+    }
+}
+
 bool ASdcComp::getState(bool aConf)
 {
     bool res = false;
@@ -616,12 +650,14 @@ bool ASdcComp::doCtl()
 
 void ASdcComp::onObsOwnedAttached(MObservable* aObl, MOwned* aOwned)
 {
-    mOapOut.NotifyInpsUpdated();
+    //mOapOut.NotifyInpsUpdated();
+    notifyOutp();
 }
 
 void ASdcComp::onObsOwnedDetached(MObservable* aObl, MOwned* aOwned)
 {
-    mOapOut.NotifyInpsUpdated();
+    notifyOutp();
+    //mOapOut.NotifyInpsUpdated();
 }
 
 /* SDC agent "Adding Component into target" */
@@ -681,12 +717,14 @@ bool ASdcCompT::doCtl()
 
 void ASdcCompT::onObsOwnedAttached(MObservable* aObl, MOwned* aOwned)
 {
-    mOapOut.NotifyInpsUpdated();
+    //mOapOut.NotifyInpsUpdated();
+    notifyOutp();
 }
 
 void ASdcCompT::onObsOwnedDetached(MObservable* aObl, MOwned* aOwned)
 {
-    mOapOut.NotifyInpsUpdated();
+    //mOapOut.NotifyInpsUpdated();
+    notifyOutp();
 }
 
 
@@ -738,12 +776,14 @@ bool ASdcRm::doCtl()
 
 void ASdcRm::onObsOwnedAttached(MObservable* aObl, MOwned* aOwned)
 {
-    mOapOut.NotifyInpsUpdated();
+    //mOapOut.NotifyInpsUpdated();
+    notifyOutp();
 }
 
 void ASdcRm::onObsOwnedDetached(MObservable* aObl, MOwned* aOwned)
 {
-    mOapOut.NotifyInpsUpdated();
+    //mOapOut.NotifyInpsUpdated();
+    notifyOutp();
 }
 
 
@@ -1155,7 +1195,8 @@ bool ASdcInsert2::doCtl()
 void ASdcInsert2::onObsChanged(MObservable* aObl)
 {
     ASdc::onObsChanged(aObl);
-    mOapOut.NotifyInpsUpdated();
+    //mOapOut.NotifyInpsUpdated();
+    notifyOutp();
 }
 
 
@@ -1389,7 +1430,8 @@ bool ASdcInsertN::doCtl()
 void ASdcInsertN::onObsChanged(MObservable* aObl)
 {
     ASdc::onObsChanged(aObl);
-    mOapOut.NotifyInpsUpdated();
+    //mOapOut.NotifyInpsUpdated();
+    notifyOutp();
 }
 
 #endif

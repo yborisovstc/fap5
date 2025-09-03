@@ -130,7 +130,7 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	    return (aId == T::idHash()) ? aPtr : nullptr;
 	}
 	template<class T> string getUid() const {return getUriS() + Ifu::KUidSep + string(T::idStr());}
-	// TODO YB to avoid using it:w
+	// TODO YB to avoid using it
 	template<class T> string getUidC(const string& aCname) const {return getUriS() + Ifu::KUidSepIc + aCname + Ifu::KUidSep + string(T::idStr());}
 	MOwner* owner();
 	const MOwner* owner() const;

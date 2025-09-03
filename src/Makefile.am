@@ -80,10 +80,30 @@ libfap5_la_SOURCES = \
 		     mecont.h \
 		     mchromo.h \
 		     mowning.h \
+		     mvert.h \
 		     mnode.h \
 		     miface.h
 
 include_HEADERS = \
+		   chromo2.h \
+		   desadp.h \
+		   vert.h \
+		   connpoint.h \
+		   prof_ids.h \
+		   rmutdata.h \
+		   log.h \
+		   prof.h \
+		   dest.h \
+		   func.h \
+		   node.h \
+		   elem.h \
+		   syst.h \
+		   rdatauri.h \
+		   rdata.h \
+		   des.h \
+		   factr.h \
+		   env.h \
+		   prov.h \
 		   ifu.h \
 		   chromo.h \
 		   guri.h \
@@ -106,6 +126,7 @@ include_HEADERS = \
 		   mecont.h \
 		   mchromo.h \
 		   mowning.h \
+		   mvert.h \
 		   mnode.h \
 		   miface.h
 

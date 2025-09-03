@@ -332,9 +332,10 @@ void ASdc::SdcPapc<T>::updateData(const T& aData)
 class ASdcMut : public ASdc
 {
     public:
-        static const char* Type() { return "ASdcMut";};
+        inline static constexpr std::string_view idStr() { return "ASdcMut"sv;}
         ASdcMut(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
     protected:
+        void Construct() override;
         // From ASdc
         virtual bool getState(bool aConf = false) override;
         bool doCtl() override;
@@ -357,9 +358,11 @@ class ASdcComp : public ASdc
         // From ASdc
         virtual bool getState(bool aConf = false) override;
         bool doCtl() override;
+        void onOwnerAttached() override;
         // From MObserver
-        virtual void onObsOwnedAttached(MObservable* aObl, MOwned* aOwned) override;
-        virtual void onObsOwnedDetached(MObservable* aObl, MOwned* aOwned) override;
+        void onObsEvent(MObservable* aObl, const MEvent* aEvent) override;
+        void onObsOwnedAttached(MObservable* aObl, MOwned* aOwned) override;
+        void onObsOwnedDetached(MObservable* aObl, MOwned* aOwned) override;
     protected:
         ASdc::SdcIap<Sdata<string>> mIapName; /*!< "Name" input access point */
         ASdc::SdcIap<Sdata<string>> mIapParent; /*!< "Parent" input access point */

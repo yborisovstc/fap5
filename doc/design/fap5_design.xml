@@ -102,6 +102,14 @@
 		    <xref linkend="ds_dcs"/> for desing details </para></glossdef>
 	</glossentry>
 
+	<glossentry id="gls_dctx"><glossterm>DCTX</glossterm> <acronym>DCTX</acronym>
+	    <glossdef> <para>
+                DES context, the mechanism of propagating data between system and its subsystem. 
+                Widely used in complex systems to simplify the system structure.
+		    </para></glossdef>
+	</glossentry>
+
+
 
 	<glossentry id="gls_ssp"><glossterm>SSP</glossterm>
 	    <glossdef><para>
@@ -345,26 +353,54 @@
 	<sect2 id="ds_itr_sp"><title>The scope of the project</title>
 	    <simpara>
 		This project is focusing on re-desing of DES framework fap3, ref
-		<ulink url="../../../fap3/doc/design/index.html"/> to improve the performance rate.
+		<ulink url="../../../fap3/doc/design/index.html"/> to improve the performance rate and design.
 	    </simpara>
 	    <simpara>
-		The main idea of how to achieve this is to get rid of <xref linkend="gls_irm"/>. IRM itself being very
-		    powerful design approach causes performance degradation in case of system massive re-configuration. Ref
+                The main idea of how to achieve this is to get rid of <xref linkend="gls_irm"/> and instead apply <xref linkend="gls_dri"/> approach.
+                    IRM itself being very powerful design approach causes performance degradation in case of system massive re-configuration. Ref
 		<ulink url="../../../fap3/doc/design/index.html#ds_dri"/> for initial discussion.
 	    </simpara>
-	    <itemizedlist>
-		<listitem>
-			Avoid using <xref linkend="gls_irm"/>
-		</listitem>
-		<listitem>
-		    Apply local iface resolution basing on numeric type Id instead of string type Id.
-		</listitem>
-	    </itemizedlist>
-	</sect2>
-	<sect2 id="ds_itr_dp"><title>Dependent projects</title>
-	    <sect3 id="ds_itr_dp_fap3"><title>Predesessor, DES framework fap3, ref <ulink url="../../../fap3/doc/design/index.html"/></title>
-	    </sect3>
-	</sect2>
+            <itemizedlist>
+                <listitem>
+                    Getting rid of IRM 
+                    <xref linkend="ds_nuirm"/>
+                </listitem>
+                <listitem>
+                    Avoid using
+                    <xref linkend="gls_irm"/>
+                </listitem>
+                <listitem>
+                    Apply local iface resolution basing on numeric type Id instead of string type Id.
+                </listitem>
+            </itemizedlist>
+        </sect2>
+        <sect2 id="ds_itr_dp"><title>Dependent projects</title>
+            <sect3 id="ds_itr_dp_fap3"><title>Predesessor, DES framework fap3, ref <ulink url="../../../fap3/doc/design/index.html"/></title>
+            </sect3>
+        </sect2>
+    </sect1>
+
+    <sect1 id="ds_dri"><title>Iface resolution not using IRM - Direct resolution of iface (<xref linkend="gls_dri"/>).</title>
+        <sect2><title>Intro</title>
+            <simpara>
+                Getting rid of IRM means that that we need to replace the "connections" created by IRM (actually the iface resolved via IRM) is
+                kind of connection) with connections created via local iface resolution or via some other way. We can use native connections
+                representing such connections. Important point is that IRM establishes "connections" on demand. In contrary non-IRM mechanism shall
+                create the connections on system construction phase.
+            </simpara>
+        </sect2>
+        <sect2 id="ds_dri_lmt"><title><xref linkend="gls_dri"/> approach limitations</title>
+            <sect3 id="ds_dri_lmt_mcins"><title>Multiple-connection inputs aren't supported - just single iface can be resolved</title>
+                <simpara>
+                    Ref fap3 ut_des_utl_2.chs - multiple inputs are connected to extender Ext. But with
+                    <xref linkend="gls_dri"/> 
+                        they are not resolved from dutil.chs InpItr.Itr.InpCnt.
+                </simpara>
+                <simpara>
+                    This limitation is caused by the limitation of local resolution API - MIface::getLif() that returns just one iface.
+                </simpara>
+            </sect3>
+        </sect2>
     </sect1>
 
     <sect1 id="ds_hinv"><title>Handling of iface is not valid (proxy not set in proxied iface)</title>
@@ -579,6 +615,191 @@
 	</sect2>
     </sect1>
 
+    <sect1 id="ds_dfi"><title>Using "Data fixation in inputs" (DFI) approach</title>
+        <sect2><title>Intro</title>
+            <simpara>
+                With this approach data on update phase is freezed in inputs not in states. So, state contains just single data buffer, not double.
+                This data buffer is updated on update phase. On confirm phase the data from states latch in inputs.
+            </simpara>
+            <simpara>
+                This design already discussed in the context of SDC design, ref 
+                <ulink url="../../../fap3/doc/design/index.html#ds_dee_ssi"/>
+                    Note that "double buffering" is actually wrong design, we dont need "double" buffering, just single but on update phase to
+                    freeze the input. We prepared "double buffering" input with DesEIbt but it isn't used. SDC uses "sigle" buffering with SdcIap.
+            </simpara>
+            <simpara>
+                Data fixation in inputs approach is suitable for the cases where state is not a simple data. Example of this case is SDC where "state" is
+                the whole managed system. UOC state don't need to have coupled data for update/confirm, single data is enough.
+                Update on update phase (UOU) is suitable for the cases where state is simple data, this is the common condition for
+                many "tipical" DES. This approach allows to make DES more optimal for single state output can be used by more that one inputs.
+            </simpara>
+        </sect2>
+    </sect1>
+
+    <sect1 id="ds_samn"><title>System agent mechanism. Do we need it?</title>
+        <sect2><title>Intro</title>
+            <simpara>
+                This mechanism is activelly used in fap3. System can embed specific agent that implements MAgent iface. The agent has an access to 
+                "host" owneds. Also system routes IFR to agents so agents can "represent" system specific native behaviour i.e. support native
+                specialization. In fap5 there was initially idea to get rid of this mechanism to simplify systems and because fap5 doesn't support IRM.
+                But seems the mechanism is really usefull in some use-cases.
+            </simpara>
+            <simpara>
+                One use-case if fap5-vis widget system. On one hand there is Widget DES iface (mostly specified via single connpoint Cp : WidgetCp).
+                On another hand widget is specialized via native behaviour specified by MSceneElem iface.
+                In fap3-vis the solution of specialization was to use "base" Widget with Cp and states (allocation, font etc) and specialized
+                agent that specifically implement MSceneElem. What design can we have for Widget specialization with no usage agent approach?
+            </simpara>
+        </sect2>
+        <sect2><title>Option#1: keep agents</title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    We can keep agent mechanism to support convenient system customization with extra native behaviour.
+                    The problem here in case of fap5-vis widget is that widget agent needs to have access to widget states (allocation, font path etc.).
+                    How to get data from them? With agent mechanism it is not a problem because agent has an access to agent host system MNode iface.
+                    (this approach is used in fap3).
+                </simpara>
+                <simpara>
+                    Another option is to embed input+inp_observer for each state. Each Input observer will get data on notification of
+                    input changed and cache the data. Note the fap3-vis widget already uses this approach partially (ref mIbText as DesEIbs and mOstRqsW as
+                    DesEOsts).  This will optimize the process of preparing data for rendering - fap3-vis widget
+                    gets data each rendering even the data is not changed.
+                </simpara>
+                <simpara>
+                    This should work but another problem with such specialization design is that we need to connect widget agent inputs 
+                    to widget states. fap3-vis widget already does it via customizing widget conn mutations. Potentially we can use SDC for that. 
+                </simpara>
+            </sect3>
+        </sect2>
+        <sect2><title>Option#2: Just use native owned explicitly connected to base widget states.</title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    As discussed in option#1 we actually don't need to have direct access from native customizing node to widget states - we can
+                    use explicit connections instead. However the question still remains of how the node can expose MScelem iface? This can be
+                    done with native connection. For this approach base widget needs to be specific but not just DES. The specifics is that it
+                    shall implement both MScelem and MScelemOwner and have native connpoint to establish connection MScelemOwner-MScelem to the
+                    widget customizing node.
+                </simpara>
+
+            </sect3>
+        </sect2>
+        <sect2><title>Status</title>
+            <sect3><title>20250521 Keep system agents mechanism.</title>
+            </sect3>
+        </sect2>
+    </sect1>
+
+    <sect1 id="ds_usaid"><title>How to design update specific native agents internal data</title>
+        <sect2><title>Intro</title>
+            <simpara>
+                Sometimes we need to design and use specific agents but not just base provided. The example is fap5-vis widgets.
+                Such agents posses some system resources (i.e. internal data). For widget it is font class instance for example.
+                This data often depends on system data (widget DES environment) data in our example. The question is how to desing
+                the update of internal data when it's dependentcies (inputs) changed.
+            </simpara>
+            <simpara>
+                Note that we need to have normal DES cycle implemented here: data needs to bu updated on DES update phase to be
+                consistent. The idea to update font direcly in MDesInpObserver::onInpUpdated() is wrong. This idea could lead to 
+                uncertanty, the relust will depends on order of change FontPath and FontSize. So anycase we need that widget be DES.
+            </simpara>
+            <simpara>There are some approache here:</simpara>
+        </sect2>
+        <sect2 id="ds_usaid_staid"><title>Approach#1: Specific transition with the access to internal data.</title>
+            <simpara>
+                Widget is DES. Widget includes state StFont, input InpFont and transition TrFont with connections InpFont - TrFont - StFont.
+                TrFont has an access to the widget's native font object and updates it on DES update phase.
+            </simpara>
+        </sect2>
+        <sect2 id="ds_usaid_sdpo"><title>Approach#2: State of specific data "Pointer to object" </title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    Widget is DES. Widget includes state StFont, input InpFont and transition TrFont with connections InpFont - TrFont - StFont. 
+                    StFont is of specific data "Pointer to FTPixmapFont font object".
+                    TrFont creates new proper FTPixmapFont on updata and gives it to StFont. StFont gets new data from TrFont and sets update data.
+                    This specific data "Pointer to object" deletes current object if any and sets new pointer as mData.
+                </simpara>
+            </sect3>
+            <sect3><title>Problem: how to create pointer to specific object type?</title>
+                <simpara>
+                    For SomeType pointer we need to create std::unique_ptr&lt;SomeType&gt;. To do it we need pointer of object types factory that
+                    creates the data of given type. Also we need object type signature that will be a part of data signature, "SDO FTPIXMAPFONT" where
+                    SDO (Specific Data Object) is the signature main part of data and FTPIXMAPFONT is the sub-signature designating the object type.
+                </simpara>
+                <simpara>This complicates the solution.</simpara>
+            </sect3>
+        </sect2>
+    </sect1>
+
+    <sect1><title>Iface that exposes its own connpoint - is it ok?</title>
+        <sect2><title>Intro</title>
+            <simpara>
+                The local connections replace IRM according to fap4 design principle. Connection initiator gets connpoint from potential pair and
+                if cp is obtained then establishes the connection. To get connpont the initiator first gets proper iface from the potential pair and
+                then gets connpoint via this iface. For instance to establish owning-owner connection the onwer (initiator) gets first MOwning iface and
+                the CP using MOwning::ownedCp(), ref Node::attachOwned().
+                This procedure seems a bit overcomplicated. Wouldn't it be simpler to resolve CP directly?
+            </simpara>
+        </sect2>
+    </sect1>
+
+    <sect1 id="ds_sdc"><title>SDC improvement and bugfix</title>
+    </sect1>
+
+    <sect1 id="ds_prfm"><title>Performance measuring</title>
+        <sect2><title>Ut_cntr::testDCntr6</title>
+            <simpara>fap3</simpara>
+            <programlisting>
+                Main thread clock, sec: IFC_LNCH_RUN    3.472145
+                Monotonic clock,sec: 13.6
+                top %CPU : 20
+            </programlisting>
+            <simpara>fap5</simpara>
+            <programlisting>
+                Main thread clock, sec: IFC_LNCH_RUN    0.513847
+                Monotonic clock, sec: 0.87 
+                top %CPU : 100
+            </programlisting>
+            <simpara>Why CPU load differs significantly? </simpara>
+        </sect2>
+    </sect1>
+
+    <sect1 id="ds_desas"><title><xref linkend="gls_desas"/> improvement and bugfix</title>
+        <sect2><title>Deny Solution_2</title>
+            <simpara>
+                Ref comment
+                <ulink url="../../../fap3/doc/design/index.html#ds_desas_nio_ric_swr"/>
+            </simpara>
+        </sect2>
+        <sect2><title>History</title>
+            <sect3><title>20250723 In the scope of FAP5: Discarded Solution_2</title>
+                Discarded Solution_2 because of
+                <xref linkend="ds_desas_nio_ric_swr"/>
+                    Applied Solution 1 with some modifications.
+            </sect3>
+        </sect2>
+    </sect1>
+
+    <sect1 id="ds_dctx"><title>DES context (<xrefl linkend="gls_dctx"/>) improvement and bugfix</title>
+        <sect2><title>Intro</title>
+            <simpara>
+                Current DES Ctx implementation uses IFR so we need to re-implement it. Same time there are some design points and possible
+                improvements.
+            </simpara>
+        </sect2>
+        <sect2><title>Why ctx supplier and consumer are implemented as DES?</title>
+        </sect2>
+        <sect2><title> Do we need MDesCtxCsm::onCtxAdded(), MDesCtxCsm::onCtxRemoved() ? They aren't used atm.  </title>
+        </sect2>
+        <sect2><title> Why we apply context mechanism in DES only? The mechanism is universal to "bind" upper and lower layers of system hierarchy.d </title>
+        </sect2>
+        <sect2><title> Context is very similar to socket, can we apply socket design to context?  </title>
+            <simpara>
+                The similarity also seem in fact that context supplier and consumer gets "connected" via registration.
+            </simpara>
+            <simpara>But actualy the curent context scheme is more complicated that just connection: if current supplier doesn't have proper context item 
+                from consumer then supplier propagates binding request to the owner.</simpara>
+        </sect2>
+    </sect1>
 
 </article>
 
