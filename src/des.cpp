@@ -1185,6 +1185,20 @@ void Des::onOwnedAttached(MOwned* aOwned)
         mDesObsrCp.connect(os->desSyncableCp());
 	os->setActivated();
     }
+    if (MDesCtxCsm* csm = aOwned->lIf(csm)) {
+        MDesCtxBinder* owrdcb = owner() ? owner()->lIf(owrdcb) : nullptr;
+        if (owrdcb) {
+            owrdcb->bindDesCtx(csm);
+        }
+    } else if (MDesCtxSpl* spl = aOwned->lIf(spl)) {
+        for (auto pitr = ownerCp()->pairsBegin(); pitr != ownerCp()->pairsEnd(); pitr++) {
+            auto owdCp = *pitr;
+            MDesCtxBinder* bnd = owdCp->provided()->lIf(bnd);
+            if (bnd) {
+                bnd->bindDesCtx(spl);
+            }
+        }
+    }
 }
 
 void Des::onOwnedDetached(MOwned* aOwned)
@@ -1201,6 +1215,7 @@ MIface* Des::MOwned_getLif(TIdHash aId)
 {
     MIface* res = NULL;
     if (res = checkLif2(aId, mMDesSyncable));
+    else if (res = checkLif2(aId, mMDesCtxBinder));
     else res = Syst::MOwned_getLif(aId);
     return res;
 }
@@ -1209,6 +1224,7 @@ MIface* Des::MOwner_getLif(TIdHash aId)
 {
     MIface* res = NULL;
     if (res = checkLif2(aId, mMDesObserver)); // Notifying from owned 
+    else if (res = checkLif2(aId, mMDesCtxBinder));
     //else if (res = checkLif2(aId, mMDesAdapter));
     else res = Syst::MOwner_getLif(aId);
     return res;
@@ -1285,6 +1301,83 @@ MNode* Des::getMag()
 
 */
 
+
+bool Des::bindDesCtx(MIface* aCtx)
+{
+    bool res = false;
+    bool found = false;
+    if (MDesCtxCsm* csm = aCtx->lIf(csm)) {
+        if (MVert* csmv = csm->lIf(csmv)) {
+            for (auto pitr = ownerCp()->pairsBegin(); pitr != ownerCp()->pairsEnd(); pitr++) {
+                auto owdCp = *pitr;
+                MDesCtxSpl* spl = owdCp->provided()->lIf(spl);
+                if (spl && spl->getId() == csm->getId()) {
+                    MVert* splv = spl->lIf(csmv);
+                    if (splv) {
+                        res = MVert::connect(csmv, splv);
+                        if (!res) {
+                            LOGN(EErr, "Failed connecting csm to spl " + spl->getId());
+                        }
+                    } else {
+                        LOGN(EErr, "No Vert iface in DES supplier " + spl->getId());
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                // Propagate to owner
+                MDesCtxBinder* owrdcb = owner() ? owner()->lIf(owrdcb) : nullptr;
+                if (owrdcb) {
+                    res = owrdcb->bindDesCtx(csm);
+                }
+            }
+        } else {
+            LOGN(EErr, "No Vert iface in DES consumer");
+        }
+    } else if (MDesCtxSpl* spl = aCtx->lIf(spl)) {
+        if (MVert* splv = spl->lIf(splv)) {
+            for (auto pitr = ownerCp()->pairsBegin(); pitr != ownerCp()->pairsEnd(); pitr++) {
+                auto owdCp = *pitr;
+                MDesCtxCsm* owdcsm = owdCp->provided()->lIf(owdcsm);
+                if (spl && owdcsm->getId() == spl->getId()) {
+                    MVert* csmv = csm->lIf(csmv);
+                    if (csmv) {
+                        res = MVert::connect(csmv, splv);
+                        if (!res) {
+                            LOGN(EErr, "Failed connecting spl to csm " + spl->getId());
+                            break;
+                        }
+                    } else {
+                        LOGN(EErr, "No Vert iface in DES consumer " + csm->getId());
+                        break;
+                    }
+                    found = true;
+                }
+            }
+            if (!found) {
+                // Propagate to owned
+                MDesCtxBinder* owrdcb = owner() ? owner()->lIf(owrdcb) : nullptr;
+                if (owrdcb) {
+                    res = owrdcb->bindDesCtx(csm);
+                }
+                for (auto pitr = ownerCp()->pairsBegin(); pitr != ownerCp()->pairsEnd(); pitr++) {
+                    auto owdCp = *pitr;
+                    MDesCtxBinder* owdbnd = owdCp->provided()->lIf(owdbnd);
+                    if (owdbnd) {
+                        owdbnd->bindDesCtx(aCtx);
+                    }
+                }
+            }
+
+        } else {
+            LOGN(EErr, "No Vert iface in DES supplier");
+        }
+    }
+    return res;
+}
+
+
 //// DesLauncher
 
 
@@ -1294,8 +1387,8 @@ const string KUri_Counter = "Counter";
 
 
 DesLauncher::DesLauncher(const string &aType, const string& aName, MEnv* aEnv): Des(aType, aName, aEnv), mStop(false)
-{
-}
+        {
+        }
 
 
 bool DesLauncher::Run(int aCount, int aIdleCount)
@@ -1637,7 +1730,7 @@ void DesEParb::updatePar(const MContent* aCont)
 
 /// DES context supplier
 
-DesCtxSpl::DesCtxSpl(const string &aType, const string& aName, MEnv* aEnv): Syst(aType, aName, aEnv),
+DesCtxSpl::DesCtxSpl(const string &aType, const string& aName, MEnv* aEnv): Verte(aType, aName, aEnv),
     mSplCp(this)
 {}
 
@@ -1645,7 +1738,7 @@ MIface* DesCtxSpl::MNode_getLif(TIdHash aId)
 {
     MIface* res = NULL;
     if (res = checkLif2(aId, mMDesCtxSplPtr));
-    else res = Syst::MNode_getLif(aId);
+    else res = Verte::MNode_getLif(aId);
     return res;
 }
 
@@ -1653,56 +1746,57 @@ MIface* DesCtxSpl::MOwned_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
     if (res = checkLif2(aId, mMDesCtxSplPtr));
-    else res = Syst::MOwned_getLif(aId);
+    else res = Verte::MOwned_getLif(aId);
     return res;
 }
 
-MDesCtxSpl* DesCtxSpl::getSplsHead()
+MIface* DesCtxSpl::MDesCtxSpl_getLif(TIdHash aId)
 {
-    MDesCtxSpl* res = nullptr;
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMDesCtxSplPtr));
+    else res = Verte::MVert_getLif(aId);
     return res;
 }
 
-bool DesCtxSpl::registerCsm(MDesCtxCsm::TCp* aCsm)
+MIface* DesCtxSpl::MVert_getLif(TIdHash aId)
 {
-    bool res = mSplCp.connect(aCsm);
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMDesCtxSplPtr));
+    else res = Verte::MVert_getLif(aId);
     return res;
+}
+
+void DesCtxSpl::onOwnedAttached(MOwned* aOwned)
+{
+    MVert* owdv = aOwned->lIf(owdv);
+    if (owdv) {
+        MVert* pair = getPair(0); 
+        MDesCtxCsm* csm = pair ? pair->lIf(csm) : nullptr; 
+        if (csm) {
+            csm->bindCtx(aOwned->ownedId(), owdv);
+        }
+    }
+}
+
+void DesCtxSpl::onOwnedDetached(MOwned* aOwned)
+{
 }
 
 bool DesCtxSpl::bindCtx(const string& aCtxId, MVert* aCtx)
 {
     bool res = false;
-    MNode* ctxn =  getComp(aCtxId);
-    MVert* ctxv = ctxn ? ctxn->lIf(ctxv) : nullptr;
-    if (ctxv) {
-        res = MVert::connect(ctxv, aCtx);
-    } else {
-        // Redirect to next supplier in the stack
-        // To use dedicated iface provider instead of finding supplier here
-        /*
-        MUnit* ownu = Owner()->lIf(ownu);
-        if (ownu) {
-            auto ifaces = ownu->getIfs<MDesCtxSpl>();
-            // Find same id supplier
-            if (ifaces) for (auto ifc : *ifaces) {
-                MDesCtxSpl* spl = reinterpret_cast<MDesCtxSpl*>(ifc);
-                if (spl->getSplId() == getSplId()) {
-                    res = spl->bindCtx(aCtxId, aCtx);
-                }
-            }
+    // TODO using extenders as context elements, consider redesign to pins, ref ds_vbcr_omb 
+    MNode* ctsn =  getComp(aCtxId);
+    MVert* ctsv = ctsn ? ctsn->lIf(ctsv) : nullptr;
+    MVert* ctse = ctsv ? ctsv->getExtd() : nullptr;
+    if (ctse) {
+        MVert* ctce = aCtx ? aCtx->getExtd() : nullptr;
+        if (ctce) {
+            res = MVert::connect(ctce, ctse);
         }
-        */
     }
     return res;
 }
-
-bool DesCtxSpl::unbindCtx(const string& aCtxId)
-{
-    bool res = false;
-    return res;
-}
-
-
 
 
 /// DES context consumer
@@ -1710,120 +1804,103 @@ bool DesCtxSpl::unbindCtx(const string& aCtxId)
 
 const string KCnt_ID = "Id"; // Consumer Id
 
-DesCtxCsm::DesCtxCsm(const string &aType, const string& aName, MEnv* aEnv): Syst(aType, aName, aEnv),
-    mInitialized(false), mInitFailed(false), mCsmCp(this)
+DesCtxCsm::DesCtxCsm(const string &aType, const string& aName, MEnv* aEnv): Verte(aType, aName, aEnv),
+    mCsmCp(this)
 {}
 
 MIface* DesCtxCsm::MNode_getLif(TIdHash aId)
 {
     MIface* res = NULL;
     if (res = checkLif2(aId, mMDesCtxCsmPtr));
-    else res = Syst::MNode_getLif(aId);
+    else res = Verte::MNode_getLif(aId);
     return res;
 }
 
-string DesCtxCsm::getCsmId() const
+MIface* DesCtxCsm::MOwned_getLif(TIdHash aId)
 {
-    string cont;
-    bool res = getContent(KCnt_ID, cont);
-    if (res) return cont;
-    else return name();
-
+    MIface* res = NULL;
+    if (res = checkLif2(aId, mMDesCtxCsmPtr));
+    else res = Verte::MOwned_getLif(aId);
+    return res;
 }
 
-void DesCtxCsm::onCtxAdded(const string& aCtxId)
+MIface* DesCtxCsm::MDesCtxCsm_getLif(TIdHash aId)
 {
+    MIface* res = NULL;
+    if (res = checkLif2(aId, mMDesCtxCsmPtr));
+    else res = Verte::MVert_getLif(aId);
+    return res;
 }
 
-void DesCtxCsm::onCtxRemoved(const string& aCtxId)
+void DesCtxCsm::onOwnedAttached(MOwned* aOwned)
 {
-}
-
-#if 0
-void DesCtxCsm::update()
-{
-    Des::update();
-    // TODO init can cause des activation but it is prohibited on update phase, move to confirm
-}
-
-void DesCtxCsm::confirm()
-{
-    Des::confirm();
-    if (!mInitialized) {
-        mInitFailed = !init();
-        if (mInitFailed) {
-            LOGN(EErr, "Init failed");
+    MVert* owdv = aOwned->lIf(owdv);
+    if (owdv) {
+        MVert* pair = getPair(0); 
+        MDesCtxSpl* spl = pair ? pair->lIf(spl) : nullptr; 
+        if (spl) {
+            spl->bindCtx(aOwned->ownedId(), owdv);
         }
-        mInitialized = true;
     }
 }
-#endif
 
-#if 0
+void DesCtxCsm::onOwnedDetached(MOwned* aOwned)
+{
+}
 
-#ifndef SELF_IFR
-bool DesCtxCsm::init()
+bool DesCtxCsm::bindCtx(const string& aCtxId, MVert* aCtx)
 {
     bool res = false;
-    MUnit* ownu = Owner()->lIf(ownu);
-    if (ownu) {
-        auto ifaces = ownu->getIfs<MDesCtxSpl>();
-        if (ifaces) for (auto ifc : *ifaces) {
-            MDesCtxSpl* spl = reinterpret_cast<MDesCtxSpl*>(ifc);
-            if (spl->getSplId() == getCsmId()) {
-                res = spl->registerCsm(&mCsmCp);
-                if (res) {
-                    res = bindCtxs();
-                }
-                break;
-            }
+    // TODO using extenders as context elements, consider redesign to pins, ref ds_vbcr_omb 
+    MNode* ctsn =  getComp(aCtxId);
+    MVert* ctsv = ctsn ? ctsn->lIf(ctsv) : nullptr;
+    MVert* ctse = ctsv ? ctsv->getExtd() : nullptr;
+    if (ctse) {
+        MVert* ctce = aCtx ? aCtx->getExtd() : nullptr;
+        if (ctce) {
+            res = MVert::connect(ctce, ctse);
         }
     }
     return res;
 }
-#else
 
-bool DesCtxCsm::init()
+bool DesCtxCsm::bindAllCtx()
 {
     bool res = false;
-    MDesCtxSpl* spl = getSif<MDesCtxSpl>(spl);
+    MVert* pair = getPair(0);
+    MDesCtxSpl* spl = pair ? pair->lIf(spl) : nullptr;
     if (spl) {
-        res = spl->registerCsm(&mCsmCp);
-        if (res) {
-            res = bindCtxs();
-        }
-    }
-    return res;
-}
-#endif
-
-#endif
-
-bool DesCtxCsm::registerSpl(MDesCtxSpl::TCp* aSpl)
-{
-    //assert(!mCsmCp.firstPair());
-    assert(mCsmCp.pairsBegin() == mCsmCp.pairsEnd());
-    bool res = mCsmCp.connect(aSpl);
-    return res;
-}
-
-bool DesCtxCsm::bindCtxs()
-{
-    bool res = false;
-    for (auto it = ownerCp()->pairsBegin(); it != ownerCp()->pairsEnd(); it++) {
-        auto owdCp = *it;
-        MNode* compn = owdCp->provided()->lIf(compn);
-        MVert* compv = compn ? compn->lIf(compv) : nullptr;
-        if (compv) {
-            MVert* extd = compv->getExtd();
-            if (extd) {
-                res = (*mCsmCp.pairsBegin())->provided()->bindCtx(compn->name(), extd);
-                if (!res) break;
+        for (auto it = ownerCp()->pairsBegin(); it != ownerCp()->pairsEnd(); it++) {
+            auto owdCp = *it;
+            MOwned* compod = owdCp->provided();
+            MVert* compv = compod ? compod->lIf(compv) : nullptr;
+            if (compv) {
+                MVert* extd = compv->getExtd();
+                if (extd) {
+                    res = spl->bindCtx(compod->ownedId(), compv);
+                    if (!res) break;
+                }
             }
         }
+    } else {
+        LOGN(EErr, "Binding all ctx elements, cannot get supplier");
     }
     return res;
 }
+
+void DesCtxCsm::onConnected()
+{
+}
+
+void DesCtxCsm::onDisconnected()
+{
+}
+
+
+
+
+
+
 
 
 #if 0

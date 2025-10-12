@@ -388,9 +388,13 @@
                 representing such connections. Important point is that IRM establishes "connections" on demand. In contrary non-IRM mechanism shall
                 create the connections on system construction phase.
             </simpara>
+            <simpara>
+                With DRI approach local iface resolution + the iface request propagation are used instead of global iface resolution + iface
+                request to resolved ifaces.
+            </simpara>
         </sect2>
-        <sect2 id="ds_dri_lmt"><title><xref linkend="gls_dri"/> approach limitations</title>
-            <sect3 id="ds_dri_lmt_mcins"><title>Multiple-connection inputs aren't supported - just single iface can be resolved</title>
+        <sect2 id="ds_dri_mcins"><title><xref linkend="gls_dri"/> approach limitations: Multiple-connection inputs aren't supported</title>
+            <sect3 ><title>Intro</title>
                 <simpara>
                     Ref fap3 ut_des_utl_2.chs - multiple inputs are connected to extender Ext. But with
                     <xref linkend="gls_dri"/> 
@@ -399,157 +403,184 @@
                 <simpara>
                     This limitation is caused by the limitation of local resolution API - MIface::getLif() that returns just one iface.
                 </simpara>
+                <simpara>
+                    The limitation is very serious: many apps use multi-connection inputs, fap3-vis AVR project for instance.
+                    In AVR DRP as owner collects data from CRP (owned) via DES context down-to-up components.
+                    This is very useful and powerful design approach.
+                </simpara>
+            </sect3>
+            <sect3 id="ds_dri_mcins_s1"><title>Solution#1 Extend MDVarGet iface to get multiple data.</title>
+                <simpara>
+                    This solution requres minimum changes: new method needs to be implemented only in nodes that support
+                    multiple data, transition TrAddVar for instance.
+                </simpara>
             </sect3>
         </sect2>
     </sect1>
 
+    <sect1 id="ds_vbcr"><title>Vertex-based connpoint redesign</title>
+        <sect2><title>Intro</title>
+            <simpara>
+                FAP3 using Vertex based connpoint vastly. Almost all connections in systems are Vertex-based. Vertex-based connpoint
+                utilized <xref linkend="gls_irm"/>. We are going to get rid of using <xref linkend="gls_irm"/> (ref <xref linkend="ds_dri"/>),
+                    so we need to change Vertex-based connpoint design.
+            </simpara>
+        </sect2>
+        <sect2 id="ds_vbcr_omb"><title>Does it make sense to support one-to-many binding?</title>
+            <simpara>
+                There are at least couple use-cases initicating this feature is useful: Socket one-to-many connections and DES context
+                    (ref <xref linkend="ds_dctx"/>
+            </simpara>
+        </sect2>
+    </sect1>
+
     <sect1 id="ds_hinv"><title>Handling of iface is not valid (proxy not set in proxied iface)</title>
-	<sect2><title>Intro</title>
-	    <simpara> Ref <ulink url="../../../fap3/doc/design/index.html#ds_dri_nic"/> </simpara>
-	    <simpara>
-		<xref linkend="gls_dri"/> assumes that we use iface call propagation instead of ifaces resolution.
-		    But with this design we need to invent specific mechanism of handling the case where at some point of
-		    iface call propagation chain the chain gets broken (i.e. the next iface is not found).
-		    The example is MDVarGet iface. Lets assume that there is the following chain:
-		<programlisting>
-		    (Extd (Int)-)-(-(Inp)-Add2)
-		</programlisting>
-		    Add2 trasition will call MDVarGet::VDtGet() method. This method will be propagated till Extd::VDtGet() that will returns  
-		    nullptr (DbBase*). Currently transition Add will consider this as error so will return error as result. This is not 
-		    correct behaviour. 
-	    </simpara>
-	</sect2>
-	<sect2 id="ds_hinv_sls"><title>Solutions</title>
-	    <simpara>
-		We need to indication of iface is not able to serve the request from the client. This is the case where proxied iface is
-		requested but the proxy is not set. Such indication can be done via two solutions:
-	    </simpara>
-	    <sect3 id="ds_hinv_sls_s1"><title>S#1 Modify iface methos to return indication of method cannot be completed because of iface is not "valid" </title>
-	    </sect3>
-	    <sect3><title>S#2 Add to iface base  the method returning indication of iface is not "valid"</title>
-	    </sect3>
-	</sect2>
+        <sect2><title>Intro</title>
+            <simpara> Ref <ulink url="../../../fap3/doc/design/index.html#ds_dri_nic"/> </simpara>
+            <simpara>
+                <xref linkend="gls_dri"/> assumes that we use iface call propagation instead of ifaces resolution.
+                    But with this design we need to invent specific mechanism of handling the case where at some point of
+                    iface call propagation chain the chain gets broken (i.e. the next iface is not found).
+                    The example is MDVarGet iface. Lets assume that there is the following chain:
+                <programlisting>
+                    (Extd (Int)-)-(-(Inp)-Add2)
+                </programlisting>
+                    Add2 trasition will call MDVarGet::VDtGet() method. This method will be propagated till Extd::VDtGet() that will returns  
+                    nullptr (DbBase*). Currently transition Add will consider this as error so will return error as result. This is not 
+                    correct behaviour. 
+            </simpara>
+        </sect2>
+        <sect2 id="ds_hinv_sls"><title>Solutions</title>
+            <simpara>
+                We need to indication of iface is not able to serve the request from the client. This is the case where proxied iface is
+                requested but the proxy is not set. Such indication can be done via two solutions:
+            </simpara>
+            <sect3 id="ds_hinv_sls_s1"><title>S#1 Modify iface methos to return indication of method cannot be completed because of iface is not "valid" </title>
+            </sect3>
+            <sect3><title>S#2 Add to iface base  the method returning indication of iface is not "valid"</title>
+            </sect3>
+        </sect2>
     </sect1>
 
     <sect1 id="ds_naom"><title>Redesign of native agents observing mechanism</title>
-	<sect2><title>Intro</title>
-	    <simpara>
-		Ref
-		<ulink url="../../../fap3/doc/design/index.html#ds_obsi"/> for initial proposal of improvement.
-	    </simpara>
-	    <simpara>
-		Seems we need observable for particular ifaces, MVert, MSyst etc. because those ifaces
-		posess specific events that can be exposed.
-		Actually, current MObservable is just MNode observer. It includes vague method onObsChanged()
-		that tends to notify about some "any" changes. 
-	    </simpara>
-	</sect2>
-	<sect2 ds="ds_naom_rq"><title>Requirements</title>
-	    <sect3 id="ds_naom_rq_01"><title>RQ_01 Extending the events set</title>
-		<simpara>
-		    Observing shall allow extending the events set. It means that some new agent
-		    that can notify of it's specific event shall do it via observation mechaism.
-		</simpara>
-	    </sect3>
-	    <sect3 id="ds_naom_rq_02"><title>RQ_02 Oblservable provides events with parameter(s)</title>
-		<simpara>
-		    Example is the current MObservable method
-		    <programlisting>
-			void onObsContentChanged(MObservable* aObl, const MContent* aCont) = 0;
-		    </programlisting>
-		</simpara>
-	    </sect3>
-	    <sect3 id="ds_naom_rq_03"><title>RQ_03 Oblservable provides events subscribtion with parameter(s)</title>
-		<simpara>
-		    In many cases observer request needs to include some parameters also.
-		    The example is ASdc::NodeCreationObserver that aims to detect the given node has been created.
-		</simpara>
-		<simpara>
-		    The implementation of this requirement seems too complex. Also it can be substituted by observer specific
-		    procedures, like in ASdc::NodeCreationObserver ASdc::NodeCreationObserver.
-		</simpara>
-	    </sect3>
+        <sect2><title>Intro</title>
+            <simpara>
+                Ref
+                <ulink url="../../../fap3/doc/design/index.html#ds_obsi"/> for initial proposal of improvement.
+            </simpara>
+            <simpara>
+                Seems we need observable for particular ifaces, MVert, MSyst etc. because those ifaces
+                posess specific events that can be exposed.
+                Actually, current MObservable is just MNode observer. It includes vague method onObsChanged()
+                that tends to notify about some "any" changes. 
+            </simpara>
+        </sect2>
+        <sect2 ds="ds_naom_rq"><title>Requirements</title>
+            <sect3 id="ds_naom_rq_01"><title>RQ_01 Extending the events set</title>
+                <simpara>
+                    Observing shall allow extending the events set. It means that some new agent
+                    that can notify of it's specific event shall do it via observation mechaism.
+                </simpara>
+            </sect3>
+            <sect3 id="ds_naom_rq_02"><title>RQ_02 Oblservable provides events with parameter(s)</title>
+                <simpara>
+                    Example is the current MObservable method
+                    <programlisting>
+                        void onObsContentChanged(MObservable* aObl, const MContent* aCont) = 0;
+                    </programlisting>
+                </simpara>
+            </sect3>
+            <sect3 id="ds_naom_rq_03"><title>RQ_03 Oblservable provides events subscribtion with parameter(s)</title>
+                <simpara>
+                    In many cases observer request needs to include some parameters also.
+                    The example is ASdc::NodeCreationObserver that aims to detect the given node has been created.
+                </simpara>
+                <simpara>
+                    The implementation of this requirement seems too complex. Also it can be substituted by observer specific
+                    procedures, like in ASdc::NodeCreationObserver ASdc::NodeCreationObserver.
+                </simpara>
+            </sect3>
 
-	</sect2>
-	<sect2 id="ds_naom_opt_1"><title>Option_1. Use events implementing MIface</title>
-	    <sect3><title>Intro</title>
-		<simpara>
-		    With this option events are just specific ifaces implementation. Since each iface if uniquely identified
-		    by its ID the observation mechanism is extandable. I.e. some new agents can provide its specific
-		    event.
-		</simpara>
-		<simpara>
-		    There is suboption here - to "bind" events to ifaces - for instance the current events "Owner attached",
-		    "Owned attached/detached" etc can be bound to MNode. Look at
-		    <xref linkend="ds_naom_opt_3"/>. With this subopt we don't need to have specifc hash ID for event - it can
-			be identified with hash id of binded iface plus simple enum.
-		</simpara>
-	    </sect3>
-	    <sect3><title>Pros</title>
-		<sect4><title>Just one observer iface.</title>
-		</sect4>
-		<sect4><title>Event as the iface allows to pass events extra info to observer.</title>
-		    <simpara>
-			Example is the current MObservable method
-			<programlisting>
-			    void onObsContentChanged(MObservable* aObl, const MContent* aCont) = 0;
-			</programlisting>
-		    </simpara>
-		</sect4>
-	    </sect3>
-	</sect2>
-	<sect2 id="ds_naom_opt_2"><title>Option_2. Use specific Observer extension iface.</title>
-	    <sect3><title>Intro</title>
-		<simpara>
-		    With this option we extend MObserver iface instead of extending events. We can extend
-		    MObserver iface by introducing new agent specific MObserver (e.g MNewAgentObserver) that will expose new agent specific
-		    events for observation. Note that these new events don't need to be MIface, they can be just 
-		    particular contstants defined.
-		</simpara>
-		<simpara>
-		    New agent "base" MObserver needs to expose MNewAgentObserver via local iface resolution.
-		</simpara>
-	    </sect3>
-	</sect2>
-	<sect2 id="ds_naom_opt_3"><title>Option_3. Observer of ifaces</title>
-	    <sect3><title>Intro</title>
-		<simpara>
-		    We introduce particular observers for given ifaces. In that case we don't need to have unique ID for
-		    the event, it is enough to identify events with simple enumeration IDs defined in the scope of the iface
-		    (iface has unique ID so events will be identified uniquely).
-		    However we need to have specific observer ifaces - MNode observer etc. They need to have ID. So this solution
-		    doesn't actually reduce uniquie IDs number.
-		</simpara>
-		<simpara>
-		    The given iface observer has it's owns set of methods. The methods can pass extra parameters, so we
-			don't need to have observers method passing iface based event like in 
-		    <xref linkend="ds_naom_opt_1"/>
-		</simpara>
-		<simpara>
-		    As for observer ifaces, this opt is similar to
-		    <xref linkend="ds_naom_opt_2"/>
-		</simpara>
-	    </sect3>
-	    <sect3><title>Pros</title>
-		<sect4><title>Observer iface can include notif method with extra parameters.</title>
-		</sect4>
-	    </sect3>
-	</sect2>
+        </sect2>
+        <sect2 id="ds_naom_opt_1"><title>Option_1. Use events implementing MIface</title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    With this option events are just specific ifaces implementation. Since each iface if uniquely identified
+                    by its ID the observation mechanism is extandable. I.e. some new agents can provide its specific
+                    event.
+                </simpara>
+                <simpara>
+                    There is suboption here - to "bind" events to ifaces - for instance the current events "Owner attached",
+                    "Owned attached/detached" etc can be bound to MNode. Look at
+                    <xref linkend="ds_naom_opt_3"/>. With this subopt we don't need to have specifc hash ID for event - it can
+                        be identified with hash id of binded iface plus simple enum.
+                </simpara>
+            </sect3>
+            <sect3><title>Pros</title>
+                <sect4><title>Just one observer iface.</title>
+                </sect4>
+                <sect4><title>Event as the iface allows to pass events extra info to observer.</title>
+                    <simpara>
+                        Example is the current MObservable method
+                        <programlisting>
+                            void onObsContentChanged(MObservable* aObl, const MContent* aCont) = 0;
+                        </programlisting>
+                    </simpara>
+                </sect4>
+            </sect3>
+        </sect2>
+        <sect2 id="ds_naom_opt_2"><title>Option_2. Use specific Observer extension iface.</title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    With this option we extend MObserver iface instead of extending events. We can extend
+                    MObserver iface by introducing new agent specific MObserver (e.g MNewAgentObserver) that will expose new agent specific
+                    events for observation. Note that these new events don't need to be MIface, they can be just 
+                    particular contstants defined.
+                </simpara>
+                <simpara>
+                    New agent "base" MObserver needs to expose MNewAgentObserver via local iface resolution.
+                </simpara>
+            </sect3>
+        </sect2>
+        <sect2 id="ds_naom_opt_3"><title>Option_3. Observer of ifaces</title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    We introduce particular observers for given ifaces. In that case we don't need to have unique ID for
+                    the event, it is enough to identify events with simple enumeration IDs defined in the scope of the iface
+                    (iface has unique ID so events will be identified uniquely).
+                    However we need to have specific observer ifaces - MNode observer etc. They need to have ID. So this solution
+                    doesn't actually reduce uniquie IDs number.
+                </simpara>
+                <simpara>
+                    The given iface observer has it's owns set of methods. The methods can pass extra parameters, so we
+                    don't need to have observers method passing iface based event like in 
+                    <xref linkend="ds_naom_opt_1"/>
+                </simpara>
+                <simpara>
+                    As for observer ifaces, this opt is similar to
+                    <xref linkend="ds_naom_opt_2"/>
+                </simpara>
+            </sect3>
+            <sect3><title>Pros</title>
+                <sect4><title>Observer iface can include notif method with extra parameters.</title>
+                </sect4>
+            </sect3>
+        </sect2>
     </sect1>
 
     <sect1 id="ds_rdadp"><title>Redesig of DES adapter</title>
-	<sect2><title>Intro</title>
-	    <simpara>FAP3 DES adapter (DAdp) has the following weaknesses: </simpara>
-	    <itemizedlist>
-		<listitem>
-		    <glossterm id="ds_rdadp_w1">W#1</glossterm> It uses Link to get the access to managed/observer agent
-		    <para>
-			MLink iface and Link impl seem inconsistent. They introduce one-way linkage that is
-			used in DES adapter only. Ref
-			<xref linkend="ds_rdadp_uac"/> for solution.
-		    </para>
-		</listitem>
-	    </itemizedlist>
+        <sect2><title>Intro</title>
+            <simpara>FAP3 DES adapter (DAdp) has the following weaknesses: </simpara>
+            <itemizedlist>
+                <listitem>
+                    <glossterm id="ds_rdadp_w1">W#1</glossterm> It uses Link to get the access to managed/observer agent
+                    <para>
+                        MLink iface and Link impl seem inconsistent. They introduce one-way linkage that is
+                        used in DES adapter only. Ref
+                        <xref linkend="ds_rdadp_uac"/> for solution.
+                    </para>
+                </listitem>
+            </itemizedlist>
 	</sect2>
 	<sect2 id="ds_rdadp_uac"><title>Using agent connpoint to avoid using Link for DES adapter.</title>
 	    <sect3><title>Intro</title>
@@ -564,6 +595,15 @@
 		</simpara>
 	    </sect3>
 	</sect2>
+        <sect2><title>Do we need dedicated iface for resolving supplier and consumer.</title>
+            <simpara>
+                The alternative would be to exploit consumer/supplier owners (DES) local iface resolution mechamism.
+                But this option is not good because local resolution mechanism is used for global resolution.
+                The main design change of fap5 is avoiding global iface resolution, ref
+                <xref linkend="ds_dri"/>, so, it would be reasonable to have dedicated iface for resolving "distant" iface.
+            </simpara>
+            <simpara>So, let's keep using dedicated iface for resolving supplier/consumer atm.</simpara>
+        </sect2>
     </sect1>
 
     <sect1 id="ds_owrowd"><title>Adjust Owner-Owned relationship</title>
@@ -779,25 +819,80 @@
         </sect2>
     </sect1>
 
-    <sect1 id="ds_dctx"><title>DES context (<xrefl linkend="gls_dctx"/>) improvement and bugfix</title>
+    <sect1 id="ds_dctx"><title>DES context (<xref linkend="gls_dctx"/>) improvement</title>
         <sect2><title>Intro</title>
             <simpara>
                 Current DES Ctx implementation uses IFR so we need to re-implement it. Same time there are some design points and possible
                 improvements.
             </simpara>
-        </sect2>
-        <sect2><title>Why ctx supplier and consumer are implemented as DES?</title>
-        </sect2>
-        <sect2><title> Do we need MDesCtxCsm::onCtxAdded(), MDesCtxCsm::onCtxRemoved() ? They aren't used atm.  </title>
-        </sect2>
-        <sect2><title> Why we apply context mechanism in DES only? The mechanism is universal to "bind" upper and lower layers of system hierarchy.d </title>
-        </sect2>
-        <sect2><title> Context is very similar to socket, can we apply socket design to context?  </title>
             <simpara>
-                The similarity also seem in fact that context supplier and consumer gets "connected" via registration.
+                Ref
+                <ulink url="../../../fap3/doc/design/index.html#ds_dct"/> for fap3 DES context materials.
             </simpara>
-            <simpara>But actualy the curent context scheme is more complicated that just connection: if current supplier doesn't have proper context item 
-                from consumer then supplier propagates binding request to the owner.</simpara>
+        </sect2>
+        <sect2><title>Intial analysis</title>
+            <sect3><title>Why ctx supplier and consumer are implemented as DES?</title>
+                <simpara> Current implementation uses first DES tick for initialization.  </simpara>
+                <simpara>
+                    Alternative way is to move the initializatin to system creation phase.
+                    But with this approach the owner needs to handle ctx element addintion - just handling the addition of spl/csm itself is
+                    not always enough because "onwed added" event happens before owned mutation is completed.
+                </simpara>
+                <simpara>
+                    On one hand init on first tick looks reasonable: if allows to start initialization after spl/csm full mutations.
+                    On anonter hand it looks not common.
+                </simpara>
+            </sect3>
+            <sect3><title> Do we need MDesCtxCsm::onCtxAdded(), MDesCtxCsm::onCtxRemoved() ? They aren't used atm.  </title>
+                <simpara>Consumer and Supplier can use MObserver/MObservable ifaces of each other to observe the changes.</simpara>
+            </sect3>
+            <sect3><title> Why we apply context mechanism in DES only? The mechanism is universal to "bind" upper and lower layers of system hierarchy.</title>
+            </sect3>
+            <sect3><title> Context is very similar to socket, can we apply socket design to context?  </title>
+                <sect4><title>Intial thoughts</title>
+                    <simpara>
+                        The similarity also is in fact that context supplier and consumer gets "connected" via registration.
+                    </simpara>
+                    <simpara>But actualy the curent context scheme is more complicated than just connection: if current supplier doesn't have proper context item 
+                        from consumer then supplier propagates binding request to the owner (but consumer remains "connected" to one supplier, seems as fault).</simpara>
+                    <simpara>What is the reason of such design, what are use-cases? BTW socket based design was initial consideration in fap3 DES Context.</simpara>
+                    <simpara>
+                        These approaches (Dedicates spl/csm vs socket) have its own ideas. Dedicates spl/csm is just container that helps binding context.
+                        Primary point here is spl/ctx
+                        element that provides the context data but not the container itself. For socket based context the spl/ctx is connpoint.
+                    </simpara>
+                    <simpara>Needs to attempt to implement context as socket but with some updates: support one-to-many socket (one-to-one is supported atm),
+                        binding update on addition/removal pins.</simpara>
+                    <simpara>
+                        In that case we will still need supplier/consumer interfaces to support contexts resolution and binding.
+                    </simpara>
+                </sect4>
+                <sect4><title>Socket based ctx. Problem: binding on creation phase will not work because of socket incompatibility.</title>
+                    <simpara>
+                        The often case is that context is created following the mutations of adding socket pins. If we try to bind contexts
+                        on "Owned added" event than the context (socket) is not mutated yet so will failed on connection attempt.
+                    </simpara>
+                    <simpara>
+                        This is the weakness of Socket-based approach. In "classic" container-based approach we don't check csm-spl compatibility 
+                        basing on context elements but just use ifaces to check they are complimentary.
+                    </simpara>
+                </sect4>
+                <sect4><title>Socket based ctx. Why not to use it.</title>
+                    <simpara>
+                        Valid use-case is adding/removing context elements. In case of socket it needs quite complicated implementation because
+                        adding socket pin makes socket incompatible with pair.
+                    </simpara>
+                </sect4>
+            </sect3>
+            <sect3><title>Do we really needs special mechanism for auto-binding?</title>
+                <simpara>Why don't use explicit connection when creating subsystem? It will cost just one "conn" mutation.</simpara>
+                <simpara>
+                    Auto-connect mechanism seems convenient when creating big systems, but this needs to be thinked over.
+                    Int that case maybe it make sense to have generic autoconnect mechanism with the proper interfaces for resolution.
+                </simpara>
+            </sect3>
+        </sect2>
+        <sect2 id="ds_dctx_v2"><title>DES Ctx ver 2: socket based</title>
         </sect2>
     </sect1>
 

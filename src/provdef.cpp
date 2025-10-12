@@ -75,6 +75,8 @@ const ProvDef::TFReg ProvDef::mReg ( {
 	Item<Sout>(), 
 	/* SDCs */
         Item<ASdcMut>(), 
+        /* DES context */
+        Item<DesCtxSpl>(), Item<DesCtxCsm>(), 
 
 #if 0
         Item<Link>(),
@@ -85,8 +87,6 @@ const ProvDef::TFReg ProvDef::mReg ( {
 	/* SDCs */
         Item<ASdcInsertN>(),
         Item<ASdcPause>(), Item<ASdcResume>(), Item<ASdcConnT>(), 
-        /* DES context */
-        Item<DesCtxSpl>(), Item<DesCtxCsm>(), 
         /* DES service point */
         Item<DesSpe>(), Item<DesSp>(), Item<DesSpt>(), Item<ADesSpc>(), 
 #endif

@@ -124,13 +124,13 @@ int Socket::PinsCount() const
 MVert* Socket::GetPin(int aInd)
 {
     MOwned* owd = ownerCp()->pairAt(aInd)->provided();
-    return owd->lIft<MVert>();
+    return owd ? owd->lIft<MVert>() : nullptr;
 }
 
 MVert* Socket::GetPin(const string& aId)
 {
     MNode* pinn = getNode(aId);
-    return pinn->lIft<MVert>();
+    return pinn ? pinn->lIft<MVert>() : nullptr;
 }
 
 string Socket::GetPinId(int aInd)

@@ -133,6 +133,8 @@ class ExtdStateInp : public CpStateInp, public MDVarGet, public MDesInpObserver
 	string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
 	string VarGetIfid() const override;
 	MIface* DoGetDObj(const char *aName) override {return nullptr;}
+        // From Vert
+	MVert* getExtd() override { return mInt;}
 	const DtBase* VDtGet(const string& aType) override;
 	// From MDesInpObserver
 	string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
@@ -157,6 +159,8 @@ class ExtdStateOutp : public CpStateOutp, public MDVarGet, public MDesInpObserve
         void Construct() override;
 	//virtual string parentName() const override { return Type(); }
 	//vector<GUri> parentsUri() const override { return getParentsUri(); }
+        // From Vert
+	MVert* getExtd() override { return mInt;}
         // From MDVarGet
 	string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
 	string VarGetIfid() const override;
@@ -390,7 +394,8 @@ class Const: public ConnPoint<MDVarGet, MDesInpObserver>, public MDVarGet
 
 /** @brief DES system
 * */
-class Des: public Syst, public MDesSyncable, public MDesObserver/*, public MDesAdapter, public MDesManageable*/
+class Des: public Syst, public MDesSyncable, public MDesObserver/*, public MDesAdapter, public MDesManageable*/,
+    public MDesCtxBinder
 {
     public:
         //using TScblReg = list<MDesSyncable*>;
@@ -423,6 +428,9 @@ class Des: public Syst, public MDesSyncable, public MDesObserver/*, public MDesA
 	void MDesObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override;
 	void onActivated(MDesSyncable* aComp) override;
 	void onUpdated(MDesSyncable* aComp) override;
+	// From MDesCtxBinder
+	string MDesCtxBinder_Uid() const override {return getUid<MDesCtxBinder>();}
+        bool bindDesCtx(MIface* aCtx) override;
         /*
 	// From MDesManageable
 	virtual string MDesManageable_Uid() const override {return getUid<MDesManageable>();}
@@ -456,6 +464,7 @@ class Des: public Syst, public MDesSyncable, public MDesObserver/*, public MDesA
 	MDesObserver* mMDesObserver = nullptr;
 	//MDesAdapter* mMDesAdapter = nullptr;
 	//MDesManageable* mMDesManageable = nullptr;
+	MDesCtxBinder* mMDesCtxBinder = nullptr;
 };
 
 /** @brief Launcher of DES
@@ -959,30 +968,28 @@ class DesEParb
 #endif
 
 
-/* @brief DES context supplier
+/* @brief DES context supplier, ver 2 (socket based), ref ds_dctx_v2
  * */
-class DesCtxSpl : public Syst, public MDesCtxSpl
+class DesCtxSpl : public Verte, public MDesCtxSpl
 {
     public:
 	using TSplCp = NCpOmnp<MDesCtxSpl, MDesCtxCsm>;  /*!< Supplier connpoint */
     public:
 	inline static constexpr std::string_view idStr() { return "DesCtxSpl"sv;}
 	DesCtxSpl(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
-	// From Node.MIface
-	virtual MIface* MNode_getLif(TIdHash aId) override;
-	// From MNode.MOwned
-	virtual MIface* MOwned_getLif(TIdHash aId) override;
+	// From Node
+	MIface* MNode_getLif(TIdHash aId) override;
+	MIface* MOwned_getLif(TIdHash aId) override;
+	void onOwnedAttached(MOwned* aOwned) override;
+	void onOwnedDetached(MOwned* aOwned) override;
+        // From MVert
+	MIface* MVert_getLif(TIdHash aId) override;
 	// From MDesCtxSpl
-	virtual string MDesCtxSpl_Uid() const override {return getUid<MDesCtxSpl>();}
-	virtual void MDesCtxSpl_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
-	virtual MIface* MDesCtxSpl_getLif(const char *aType) override;
-	// Local
-	virtual string getSplId() const { return name(); }
-	virtual MDesCtxSpl* getSplsHead() override;
-	virtual bool registerCsm(MDesCtxCsm::TCp* aCsm) override;
-	virtual bool bindCtx(const string& aCtxId, MVert* aCtx) override;
-	virtual bool unbindCtx(const string& aCtxId) override;
-	virtual MDesCtxSpl::TCp* splCp() override { return &mSplCp; }
+	string MDesCtxSpl_Uid() const override {return getUid<MDesCtxSpl>();}
+	void MDesCtxSpl_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
+	MIface* MDesCtxSpl_getLif(TIdHash aId) override;
+	virtual string getId() const { return name();}
+	bool bindCtx(const string& aCtxId, MVert* aCtx) override;
     protected:
 	TSplCp mSplCp;  /*!< Ctx supplier CP */
 	MDesCtxSpl* mMDesCtxSplPtr = nullptr;
@@ -991,33 +998,31 @@ class DesCtxSpl : public Syst, public MDesCtxSpl
 
 /** @brief DES context consumer
  * */
-// TODO is DES inheritance reasonable?
-class DesCtxCsm : public Syst, public MDesCtxCsm
+class DesCtxCsm : public Verte, public MDesCtxCsm
 {
     public:
 	using TCsmCp = NCpOnp<MDesCtxCsm, MDesCtxSpl>;
     public:
 	inline static constexpr std::string_view idStr() { return "DesCtxCsm"sv;}
 	DesCtxCsm(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
-	// From Node.MIface
-	virtual MIface* MNode_getLif(TIdHash aId) override;
+	// From Node
+	MIface* MNode_getLif(TIdHash aId) override;
+	MIface* MOwned_getLif(TIdHash aId) override;
+	void onOwnedAttached(MOwned* aOwned) override;
+	void onOwnedDetached(MOwned* aOwned) override;
 	// From MDesCtxCsm
-	virtual string MDesCtxCsm_Uid() const override {return getUid<MDesCtxCsm>();}
-	virtual void MDesCtxCsm_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
-	virtual string getCsmId() const override;
-	virtual void onCtxAdded(const string& aCtxId) override;
-	virtual void onCtxRemoved(const string& aCtxId) override;
-	// From MDesSyncable
-	//virtual void update() override;
-	//virtual void confirm() override;
+	MIface* MDesCtxCsm_getLif(TIdHash aId) override;
+	string MDesCtxCsm_Uid() const override {return getUid<MDesCtxCsm>();}
+	void MDesCtxCsm_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
+	virtual string getId() const { return name();}
+	bool bindCtx(const string& aCtxId, MVert* aCtx) override;
+        // From Vert
+        void onConnected() override;
+        void onDisconnected() override;
     protected:
-	//bool init();
-	// TODO not used, to delete?
-	bool registerSpl(MDesCtxSpl::TCp* aSpl);
-	bool bindCtxs();
+        // Local
+	bool bindAllCtx();
     protected:
-	bool mInitialized;
-	bool mInitFailed;
 	TCsmCp mCsmCp;  /*!< Consumer Cp */
 	MDesCtxCsm* mMDesCtxCsmPtr = nullptr;
 };

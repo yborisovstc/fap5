@@ -78,3 +78,6 @@ Makefile
 .*.chs
 *.out
 clm/fapm5
+compile
+*.csv
+*.dump

@@ -6,6 +6,7 @@ ut_fap5_lib_SOURCES = \
 		       ut_fap5_main.cpp \
 		       ut_desas.cpp \
 		       ut_dessdc.cpp \
+		       ut_desctx.cpp \
 		       ut_adp.cpp \
 		       ut_des.cpp \
 		       ut_node.cpp \

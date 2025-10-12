@@ -101,14 +101,19 @@ class MDesCtxSpl : public MIface
 	inline static constexpr std::string_view idStr() { return "MDesCtxSpl"sv;}
 	inline static constexpr TIdHash idHash() { return 0xb46422c03e7249cf;}
 	// From MIface
-	virtual string Uid() const override { return MDesCtxSpl_Uid();}
-	virtual void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDesCtxSpl_doDump(aLevel, aIdt, std::cout);}
-	virtual MIface* getLif(const char *aType) { return MDesCtxSpl_getLif(aType); }
+	TIdHash id() const override { return idHash();}
+	string Uid() const override { return MDesCtxSpl_Uid();}
+	void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDesCtxSpl_doDump(aLevel, aIdt, std::cout);}
+	MIface* getLif(TIdHash aId) override { return MDesCtxSpl_getLif(aId); }
 	virtual string MDesCtxSpl_Uid() const = 0;
 	virtual void MDesCtxSpl_doDump(int aLevel, int aIdt, ostream& aOs) const = 0;
-	virtual MIface* MDesCtxSpl_getLif(const char *aType) = 0;
+	virtual MIface* MDesCtxSpl_getLif(TIdHash aId) = 0;
 	// Local
-	virtual string getSplId() const = 0;
+	virtual string getId() const = 0;
+	virtual bool bindCtx(const string& aCtxId, MVert* aCtx) = 0;
+#if 0
+	virtual bool bindItem(const string& aItemId, MVert* aItem) = 0;
+	virtual bool unbindItem(const string& aItemId) = 0;
 	/* @brief Gets head of suppliers stack, ref ds_dctx_dic_cs
 	 * */
 	virtual MDesCtxSpl* getSplsHead() = 0;
@@ -117,9 +122,11 @@ class MDesCtxSpl : public MIface
 	 * @param aCtxId  ID of the context
 	 * @param aCtx    the context
 	 * */
-	virtual bool bindCtx(const string& aCtxId, MVert* aCtx) = 0;
+	//virtual bool bindCtx(const string& aCtxId, MVert* aCtx) = 0;
+	virtual bool bindCtx(MDesCtxCsm* aCtx) = 0;
 	virtual bool unbindCtx(const string& aCtxId) = 0;
 	virtual TCp* splCp() = 0;
+#endif
 };
 
 /* @brief DES context consumer
@@ -132,16 +139,26 @@ class MDesCtxCsm : public MIface
 	inline static constexpr std::string_view idStr() { return "MDesCtxCsm"sv;}
 	inline static constexpr TIdHash idHash() { return 0x68950a80697af250;}
 	// From MIface
-	virtual string Uid() const override { return MDesCtxCsm_Uid();}
-	virtual void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDesCtxCsm_doDump(aLevel, aIdt, std::cout);}
+	TIdHash id() const override { return idHash();}
+	string Uid() const override { return MDesCtxCsm_Uid();}
+	MIface* getLif(TIdHash aId) override { return MDesCtxCsm_getLif(aId); }
+	void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDesCtxCsm_doDump(aLevel, aIdt, std::cout);}
 	virtual string MDesCtxCsm_Uid() const = 0;
+	virtual MIface* MDesCtxCsm_getLif(TIdHash aId) = 0;
 	virtual void MDesCtxCsm_doDump(int aLevel, int aIdt, ostream& aOs) const = 0;
 	// Local
-	virtual string getCsmId() const = 0;
+	virtual string getId() const = 0;
+	virtual bool bindCtx(const string& aCtxId, MVert* aCtx) = 0;
+#if 0
+	virtual bool bindItem(const string& aItemId, MVert* aItem) = 0;
+	virtual bool unbindItem(const string& aItemId) = 0;
+	virtual TCp* csmCp() = 0;
 	/* @brief Handles context addition */
-	virtual void onCtxAdded(const string& aCtxId) = 0;
+        // TODO use MObsever/MObservable instead of special notifications
+	//virtual void onCtxAdded(const string& aCtxId) = 0;
 	// TODO Is it needed. Spl can simply disconnect the ctx
-	virtual void onCtxRemoved(const string& aCtxId) = 0;
+	//virtual void onCtxRemoved(const string& aCtxId) = 0;
+#endif
 };
 
 /* @brief DES context binder
@@ -152,10 +169,11 @@ class MDesCtxBinder : public MIface
 	inline static constexpr std::string_view idStr() { return "MDesCtxBinder"sv;}
 	inline static constexpr TIdHash idHash() { return 0xece4117fa87bad2;}
 	// From MIface
+	TIdHash id() const override { return idHash();}
 	virtual string Uid() const override { return MDesCtxBinder_Uid();}
 	virtual string MDesCtxBinder_Uid() const = 0;
 	// Local
-        virtual void bindDesCtx(MIface* aCtx) = 0;
+        virtual bool bindDesCtx(MIface* aCtx) = 0;
 };
 
 
