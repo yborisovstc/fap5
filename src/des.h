@@ -166,6 +166,7 @@ class ExtdStateOutp : public CpStateOutp, public MDVarGet, public MDesInpObserve
 	string VarGetIfid() const override;
 	MIface* DoGetDObj(const char *aName) override {return nullptr;}
 	const DtBase* VDtGet(const string& aType) override;
+	void VDtGet(const string& aType, vector<DtBase*>& aData) override;
 	// From MDesInpObserver
 	string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
 	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
@@ -304,10 +305,11 @@ class State: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, p
 	bool setContent(const string& aId, const string& aData) override;
 	void onContentChanged(const string& aId) override {}
 	// From MDVarGet
-	virtual string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
-	virtual string VarGetIfid() const override;
-	virtual MIface* DoGetDObj(const char *aName) override {return nullptr;}
-	virtual DtBase* VDtGet(const string& aType) override;
+	string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
+	string VarGetIfid() const override;
+	MIface* DoGetDObj(const char *aName) override {return nullptr;}
+	DtBase* VDtGet(const string& aType) override;
+	void VDtGet(const string& aType, vector<DtBase*>& aData) override;
 	// From MDVarSet
 	virtual string MDVarSet_Uid() const override {return getUid<MDVarSet>();}
 	virtual string VarGetSIfid();

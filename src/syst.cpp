@@ -72,6 +72,130 @@ void CpSystExploring::onUnbound()
 {
 }
 
+ 
+// ExtdSystExplorable
+
+string ExtdSystExplorable::KIntName = "Int";
+
+ExtdSystExplorable::ExtdSystExplorable(const string &aType, const string& aName, MEnv* aEnv): 
+    ConnPoint<MSystExplorable, MSystExploring>(aType, aName, aEnv)
+{
+}
+void ExtdSystExplorable::Construct()
+{
+    mInt = new CpSystExploring(string(CpSystExploring::idStr()), KIntName, mEnv);
+    assert(mInt);
+    bool res = attachOwned(mInt);
+    assert(res);
+    res = mInt->bind(MNode::lIft<MVert>());
+    assert(res);
+}
+
+MNode* ExtdSystExplorable::getMag()
+{
+    // Redirect to int point
+    auto pair = (mInt->mPairs.begin() != mInt->mPairs.end()) ? *(mInt->mPairs.begin()) : nullptr;
+    MSystExplorable* pairExpb = pair ? pair->lIft<MSystExplorable>() : nullptr;
+    return pairExpb ? pairExpb->getMag() : nullptr;
+}
+
+void ExtdSystExplorable::onMagChanged()
+{
+    // Redirect to pairs
+    if (mPairs.size() > 1) {
+    } else {
+        auto pair = *mPairs.begin();
+        MSystExploring* pairExpn = pair ? pair->lIft<MSystExploring>() : nullptr;
+        if (pairExpn) {
+            pairExpn->onMagChanged();
+        }
+    }
+}
+
+ 
+// ExtdSystExploring
+
+string ExtdSystExploring::KIntName = "Int";
+
+ExtdSystExploring::ExtdSystExploring(const string &aType, const string& aName, MEnv* aEnv): 
+    CpSystExploring(aType, aName, aEnv)
+{
+}
+void ExtdSystExploring::Construct()
+{
+    mInt = new CpSystExplorable(string(CpSystExplorable::idStr()), KIntName, mEnv);
+    assert(mInt);
+    bool res = attachOwned(mInt);
+    assert(res);
+    res = mInt->bind(MNode::lIft<MVert>());
+    assert(res);
+}
+
+MNode* ExtdSystExploring::getMag()
+{
+    MNode* res = nullptr;
+    // Redirect to pairs
+    if (mPairs.size() > 1) {
+    } else {
+        auto pair = *mPairs.begin();
+        MSystExplorable* pairExpb = pair ? pair->lIft<MSystExplorable>() : nullptr;
+        if (pairExpb) {
+            res = pairExpb->getMag();
+        }
+    }
+    return res;
+}
+
+void ExtdSystExploring::onMagChanged()
+{
+    // Redirect to int point
+    auto pair = (mInt->mPairs.begin() != mInt->mPairs.end()) ? *(mInt->mPairs.begin()) : nullptr;
+    MSystExploring* pairExpn = pair ? pair->lIft<MSystExploring>() : nullptr;
+    if (pairExpn) {
+        pairExpn->onMagChanged();
+    }
+}
+
+
+// PinSystExplorable 
+
+PinSystExplorable::PinSystExplorable(const string &aType, const string& aName, MEnv* aEnv): 
+    ConnPoint<MSystExplorable, MSystExploring>(aType, aName, aEnv)
+{
+}
+
+void PinSystExplorable::onMagChanged()
+{
+
+    if (mPairs.size() == 1) {
+        auto* pair = mPairs.at(0); 
+        MSystExploring* pairExpn = pair ? pair->lIft<MSystExploring>() : nullptr;
+        if (pairExpn) {
+            pairExpn->onMagChanged();
+        }
+    }
+}
+
+// PinSystExploring 
+
+PinSystExploring::PinSystExploring(const string &aType, const string& aName, MEnv* aEnv): 
+    CpSystExploring(aType, aName, aEnv)
+{
+}
+
+MNode* PinSystExploring::getMag()
+{
+    MNode* res = nullptr;
+    if (mPairs.size() == 1) {
+        auto* pair = mPairs.at(0); 
+        MSystExplorable* pairExpb = pair ? pair->lIft<MSystExplorable>() : nullptr;
+        if (pairExpb) {
+            res = pairExpb->getMag();
+        }
+    }
+    return res;
+}
+
 
 
 // System

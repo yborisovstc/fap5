@@ -136,28 +136,26 @@ class TrAdd2Var: public TrVar
 	CpStateInp* mInp2 = nullptr;
 };
 
-#if 0
 
 /** @brief Transition "Subtraction of Var data, single connection inputs"
  * */
 class TrSub2Var: public TrVar
 {
     public:
-	static const char* Type() { return "TrSub2Var";};
+	inline static constexpr std::string_view idStr() { return "TrSub2Var"sv;}
 	TrSub2Var(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	void Construct() override;
 	// From TrVar
 	virtual void Init(const string& aIfaceName) override;
-	virtual FInp* GetFinp(int aId) override;
+	CpStateInp* GetFinp(int aId) override;
 	virtual int GetInpCpsCount() const override {return 2;}
     protected:
 	const static string K_InpInp;
 	const static string K_InpInp2;
-	FInp mInp;
-	FInp mInp2;
+	CpStateInp* mInp = nullptr;
+	CpStateInp* mInp2 = nullptr;
 };
 
-
-#endif
 
 
 /** @brief Transition "Multiplication of Var data"

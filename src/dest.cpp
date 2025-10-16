@@ -262,18 +262,20 @@ CpStateInp* TrAdd2Var::GetFinp(int aId)
     else return nullptr;
 }
 
-#if 0
 
 //// Transition "Subtraction of Var data, single connection inputs"
 
 const string TrSub2Var::K_InpInp = "Inp";
 const string TrSub2Var::K_InpInp2 = "Inp2";
 
-TrSub2Var::TrSub2Var(const string &aType, const string& aName, MEnv* aEnv): TrVar(aType, aName, aEnv),
-    mInp(K_InpInp), mInp2(K_InpInp2)
+TrSub2Var::TrSub2Var(const string &aType, const string& aName, MEnv* aEnv): TrVar(aType, aName, aEnv)
 {
-    AddInput(K_InpInp);
-    AddInput(K_InpInp2);
+}
+
+void TrSub2Var::Construct()
+{
+    mInp = AddInput(K_InpInp);
+    mInp2 = AddInput(K_InpInp2);
 }
 
 void TrSub2Var::Init(const string& aIfaceName)
@@ -288,14 +290,13 @@ void TrSub2Var::Init(const string& aIfaceName)
     }
 }
 
-FInp* TrSub2Var::GetFinp(int aId)
+CpStateInp* TrSub2Var::GetFinp(int aId)
 {
-    if (aId == Func::EInp1) return &mInp;
-    else if (aId == Func::EInp2) return &mInp2;
+    if (aId == Func::EInp1) return mInp;
+    else if (aId == Func::EInp2) return mInp2;
     else return nullptr;
 }
 
-#endif
 
 ///// TrMplVar
 

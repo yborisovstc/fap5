@@ -187,6 +187,31 @@ MyRoot : Elem {
                     }
                 )
             )
+            # "Add int multidata, ds_dri_mcins"
+            SAddIntMd : State (
+                _@ <  {
+                    = "SI"
+                    LogLevel = "Dbg"
+                }
+                Inp ~ : TrAddVar (
+                    Inp ~ : ExtdStateOutp (
+                        Int ~ : State {
+                            = "SI 7"
+                        }
+                        Int ~ : State {
+                            = "SI 4"
+                        }
+                    )
+                    InpN ~ : ExtdStateOutp (
+                        Int ~ : State {
+                            = "SI 2"
+                        }
+                        Int ~ : State {
+                            = "SI 3"
+                        }
+                    )
+                )
+            )
             # "Mpl int"
             SMplInt : State (
                 _@ <  {

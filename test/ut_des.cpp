@@ -18,15 +18,13 @@ class Ut_des : public Ut_fixture
     CPPUNIT_TEST_SUITE(Ut_des);
     //CPPUNIT_TEST(test_des_data);
 //    CPPUNIT_TEST(test_des_1);
-    /*
-    CPPUNIT_TEST(test_des_inval_1);
-    CPPUNIT_TEST(test_des_inval_2);
-    CPPUNIT_TEST(test_des_asr_1);
-    CPPUNIT_TEST(test_des_asr_2);
+    //CPPUNIT_TEST(test_des_inval_1);
+    //CPPUNIT_TEST(test_des_inval_2);
+    //CPPUNIT_TEST(test_des_asr_1);
+    //CPPUNIT_TEST(test_des_asr_2);
     CPPUNIT_TEST(test_des_tr_1);
-    CPPUNIT_TEST(test_des_tr_tres_1);
-    */
-    CPPUNIT_TEST(test_des_utl_1);
+    //CPPUNIT_TEST(test_des_tr_tres_1);
+    //CPPUNIT_TEST(test_des_utl_1);
     // CPPUNIT_TEST(test_des_utl_2); TODO This doesn't work with DRI, ref ds_dri_lmt_mcins. To remove.
     //CPPUNIT_TEST(test_des_sp_1);
     CPPUNIT_TEST_SUITE_END();
@@ -140,6 +138,7 @@ void Ut_des::test_des_tr_1()
     CPPUNIT_ASSERT_MESSAGE("SSwitch2 failed", getStateDstr("Launcher.Ds1.SSwitch2") == "SI 2");
     CPPUNIT_ASSERT_MESSAGE("SSwitchUsInv failed", getStateDstr("Launcher.Ds1.SSwitchUsInv") == "SI 2");
     CPPUNIT_ASSERT_MESSAGE("SAddInt failed", getStateDstr("Launcher.Ds1.SAddInt") == "SI 7");
+    CPPUNIT_ASSERT_MESSAGE("SAddInt failed", getStateDstr("Launcher.Ds1.SAddIntMd") == "SI 6");
     CPPUNIT_ASSERT_MESSAGE("SMplInt failed", getStateDstr("Launcher.Ds1.SMplInt") == "SI 10");
     CPPUNIT_ASSERT_MESSAGE("SDivInt failed", getStateDstr("Launcher.Ds1.SDivInt") == "SI 5");
     CPPUNIT_ASSERT_MESSAGE("SMinInt failed", getStateDstr("Launcher.Ds1.SMinInt") == "SI 1");

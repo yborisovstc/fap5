@@ -391,6 +391,11 @@
             <simpara>
                 With DRI approach local iface resolution + the iface request propagation are used instead of global iface resolution + iface
                 request to resolved ifaces.
+                With this approach there should be the "chain" if "iface points" thru which the iface request is propagated. This chain can be
+                combined with different means: connections, dedicated access methods (like MVert::getExtd(), MSocket::getPin()) etc.
+            </simpara>
+            <simpara>
+                In some cases special connection (binding) can be used to avoid long resolution of next iface.
             </simpara>
         </sect2>
         <sect2 id="ds_dri_mcins"><title><xref linkend="gls_dri"/> approach limitations: Multiple-connection inputs aren't supported</title>
@@ -431,6 +436,69 @@
                 There are at least couple use-cases initicating this feature is useful: Socket one-to-many connections and DES context
                     (ref <xref linkend="ds_dctx"/>
             </simpara>
+        </sect2>
+        <sect2 id="ds_vbcr_extd"><title>Extender</title>
+            <sect3><title>Redesign of initial solution (extender implementing ifaces)</title>
+                <sect4><title>Intro</title>
+                    <simpara>
+                        In the scope of fap5 there was initial solution implemented for extenders. This solution is to 
+                        specialize extender for givern ifaced (for instance specific extender for StateInp, StateOutp etc).
+                        Extender implements given ifaces and acts as binding point.
+                    </simpara>
+                    <simpara>
+                        There are a lot of cons in that approach: specialization (need to create specific agent for given CP),
+                        problem with implementing complex extender, for instance extender of sockets etc.
+                    </simpara>
+                </sect4>
+                <sect4 id="ds_vbcr_extd_ep"><title>Approach: extender as just proxy for resolving ifaces and binding points.</title>
+                    <simpara>
+                        This is very similar to the approach applied in fap3.
+                    </simpara>
+                </sect4>
+            </sect3>
+        </sect2>
+    </sect1>
+
+    <sect1 id="ds_sock"><title>Redesign of Socket</title>
+        <sect2 id="ds_sock_pve"><title>Design options: pins via extenders</title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    Initial desing of Socket is based on pins. Pin agent implements prov/req ifaces by itsels so 
+                    is able to commutate ifaces requests. Pins are binded mutually. This desing option pros is that
+                    it is quite simple because pin is simple node, not composite one. The cons are that pins are binded, but
+                    binding is one-to-one connection, so Socket based on pins can establish just one-to-one connection.
+                </simpara>
+            </sect3>
+        </sect2>
+        <sect2 id="ds_sock_eos"><title>How to suport extender of socket?</title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    This kind of connpoint is usefull in many cases. Actually it is "must have" to createj the chain of propagation 
+                    of sockets.  Looks for instance avr2 EdgeCrpRsSlot::EsNext
+                </simpara>
+            </sect3>
+            <sect3><title><xref linkend="gls_dri"/> is not suitable for socket extending.</title>
+                <simpara>
+                    <xref linkend="gls_dri"/> approach is based on iface requests commutation. It's contrary to
+                    <xref linkend="gls_irm"/> that is based on iface resolution. 
+                        This means that
+                    <xref linkend="gls_dri"/> approach required explicit connection from one cp to another to propagate the iface request.
+                        Yes, it is still possible to obtain "virtual" pair via iface resolution but it seems very ineffective.
+                        Let's consider typical socket extending topology:
+                    <programming>
+                        Sock1                   Sock2
+
+                        {A B C}---[ {A B C}-]---{:A :B :C}
+
+                        {} - socket
+                        [] - extender
+                        A - connpoint
+                        :A - CP compatible to A
+                    </programming>
+                </simpara>
+            </sect3>
+        </sect2>
+        <sect2 id="ds_sock_ses"><title>How to support Socket ebmedded to Socket?</title>
         </sect2>
     </sect1>
 
@@ -678,18 +746,28 @@
 
     <sect1 id="ds_samn"><title>System agent mechanism. Do we need it?</title>
         <sect2><title>Intro</title>
-            <simpara>
-                This mechanism is activelly used in fap3. System can embed specific agent that implements MAgent iface. The agent has an access to 
-                "host" owneds. Also system routes IFR to agents so agents can "represent" system specific native behaviour i.e. support native
-                specialization. In fap5 there was initially idea to get rid of this mechanism to simplify systems and because fap5 doesn't support IRM.
-                But seems the mechanism is really usefull in some use-cases.
-            </simpara>
-            <simpara>
-                One use-case if fap5-vis widget system. On one hand there is Widget DES iface (mostly specified via single connpoint Cp : WidgetCp).
-                On another hand widget is specialized via native behaviour specified by MSceneElem iface.
-                In fap3-vis the solution of specialization was to use "base" Widget with Cp and states (allocation, font etc) and specialized
-                agent that specifically implement MSceneElem. What design can we have for Widget specialization with no usage agent approach?
-            </simpara>
+            <sect3><title>Useful mechanism</title>
+                <simpara>
+                    This mechanism is activelly used in fap3. System can embed specific agent that implements MAgent iface. The agent has an access to 
+                    "host" owneds. Also system routes IFR to agents so agents can "represent" system specific native behaviour i.e. support native
+                    specialization. In fap5 there was initially idea to get rid of this mechanism to simplify systems and because fap5 doesn't support IRM.
+                    But seems the mechanism is really usefull in some use-cases.
+                </simpara>
+            </sect3>
+            <sect3><title>One use-case: fap5-vis widget system</title>
+                <simpara>
+                    One use-case is fap5-vis widget system. On one hand there is Widget DES iface (mostly specified via single connpoint Cp : WidgetCp).
+                    On another hand widget is specialized via native behaviour specified by MSceneElem iface.
+                    In fap3-vis the solution of specialization was to use "base" Widget with Cp and states (allocation, font etc) and specialized
+                    agent that specifically implement MSceneElem. What design can we have for Widget specialization with no usage agent approach?
+                </simpara>
+            </sect3>
+            <sect3><title>Another use-case is avr2: for instance EdgeCrpHsSlot</title>
+                <simpara>
+                    Another use-case is avr2: for instance EdgeCrpHsSlot inherits from  ContainerMod.ColumnItemSlot (Syst actually) but requires to
+                    be DES. So in just includes ADes agent.
+                </simpara>
+            </sect3>
         </sect2>
         <sect2><title>Option#1: keep agents</title>
             <sect3><title>Intro</title>

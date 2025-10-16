@@ -156,6 +156,20 @@ const DtBase* ExtdStateOutp::VDtGet(const string& aType)
     return pairDget ? pairDget->VDtGet(aType) : nullptr;
 }
 
+void ExtdStateOutp::VDtGet(const string& aType, vector<DtBase*>& aData)
+{
+    // Redirect to internal point
+    for (auto it = mInt->mPairs.begin(); it != mInt->mPairs.end(); it++) {
+        auto pair = *it;
+        MDVarGet* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
+        if (pairDget) {
+            pairDget->VDtGet(aType, aData);
+        } else {
+	    LOGN(EErr, "Connection doesn't provide MDVarGet, pair: " + pair->Uid());
+        }
+    }
+}
+
 string ExtdStateOutp::VarGetIfid() const
 {
     // Redirect to internal point
@@ -560,6 +574,12 @@ DtBase* State::VDtGet(const string& aType)
 {
     // Enable getting base data
     return (mCdata && (aType == mCdata->GetTypeSig() || aType.empty())) ? mCdata : nullptr;
+}
+
+void State::VDtGet(const string& aType, vector<DtBase*>& aData)
+{
+    DtBase* dt = VDtGet(aType);
+    aData.push_back(dt);
 }
 
 void State::notifyInpsUpdated()
@@ -1340,7 +1360,7 @@ bool Des::bindDesCtx(MIface* aCtx)
             for (auto pitr = ownerCp()->pairsBegin(); pitr != ownerCp()->pairsEnd(); pitr++) {
                 auto owdCp = *pitr;
                 MDesCtxCsm* owdcsm = owdCp->provided()->lIf(owdcsm);
-                if (spl && owdcsm->getId() == spl->getId()) {
+                if (spl && owdcsm && owdcsm->getId() == spl->getId()) {
                     MVert* csmv = csm->lIf(csmv);
                     if (csmv) {
                         res = MVert::connect(csmv, splv);
@@ -1357,10 +1377,6 @@ bool Des::bindDesCtx(MIface* aCtx)
             }
             if (!found) {
                 // Propagate to owned
-                MDesCtxBinder* owrdcb = owner() ? owner()->lIf(owrdcb) : nullptr;
-                if (owrdcb) {
-                    res = owrdcb->bindDesCtx(csm);
-                }
                 for (auto pitr = ownerCp()->pairsBegin(); pitr != ownerCp()->pairsEnd(); pitr++) {
                     auto owdCp = *pitr;
                     MDesCtxBinder* owdbnd = owdCp->provided()->lIf(owdbnd);

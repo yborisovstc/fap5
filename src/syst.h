@@ -62,6 +62,93 @@ class CpSystExploring: public ConnPoint<MSystExploring, MSystExplorable>
 	void onUnbound() override;
 };
 
+/** @brief Extender of CpSystExplorable
+ * */
+class ExtdSystExplorable : public ConnPoint<MSystExplorable, MSystExploring>, public MSystExplorable, public MSystExploring
+{
+    public:
+	inline static constexpr std::string_view idStr() { return "ExtdSystExplorable"sv;}
+        void Construct() override;
+	ExtdSystExplorable(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+        // From Vert
+	MVert* getExtd() override { return mInt;}
+	// From MSystExplorable
+	string MSystExplorable_Uid() const override {return getUid<MSystExplorable>();}
+	MIface* MSystExplorable_getLif(TIdHash aId) override { return nullptr;} 
+	MNode* getMag() override;
+	// From MSystExploring
+	string MSystExploring_Uid() const override {return getUid<MSystExploring>();}
+	MIface* MSystExploring_getLif(TIdHash aId) override { return nullptr;} 
+	void onMagChanged() override;
+	MSystExploring::TCp* getCp() override { return nullptr;}
+    public:
+        CpSystExploring* mInt = nullptr;
+    protected:
+        static string KIntName;
+};
+
+/** @brief Extender of CP CpSystExploring
+ * */
+class ExtdSystExploring : public CpSystExploring, public MSystExplorable, public MSystExploring
+{
+    public:
+	inline static constexpr std::string_view idStr() { return "ExtdSystExploring"sv;}
+        void Construct() override;
+	ExtdSystExploring(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+        // From Vert
+	MVert* getExtd() override { return mInt;}
+	// From MSystExplorable
+	string MSystExplorable_Uid() const override {return getUid<MSystExplorable>();}
+	MIface* MSystExplorable_getLif(TIdHash aId) override { return nullptr;} 
+	MNode* getMag() override;
+	// From MSystExploring
+	string MSystExploring_Uid() const override {return getUid<MSystExploring>();}
+	MIface* MSystExploring_getLif(TIdHash aId) override { return nullptr;} 
+	void onMagChanged() override;
+	MSystExploring::TCp* getCp() override { return nullptr;}
+    public:
+        CpSystExplorable* mInt = nullptr;
+    protected:
+        static string KIntName;
+};
+
+/** @brief Pin of system Explorable
+ * */
+class PinSystExplorable : public ConnPoint<MSystExplorable, MSystExploring>, public MSystExplorable, public MSystExploring
+{
+    public:
+	inline static constexpr std::string_view idStr() { return "PinSystExplorable"sv;}
+	PinSystExplorable(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	// From MSystExplorable
+	string MSystExplorable_Uid() const override {return getUid<MSystExplorable>();}
+	MIface* MSystExplorable_getLif(TIdHash aId) override { return nullptr;} 
+	MNode* getMag() override { return mProvidedPx ? mProvidedPx->getMag() : nullptr; }
+	// From MSystExploring
+	string MSystExploring_Uid() const override {return getUid<MSystExploring>();}
+	MIface* MSystExploring_getLif(TIdHash aId) override { return nullptr;} 
+	void onMagChanged() override;
+	MSystExploring::TCp* getCp() override { return nullptr;}
+};
+
+
+/** @brief Pin of CP CpSystExploring
+ * */
+class PinSystExploring : public CpSystExploring, public MSystExplorable, public MSystExploring
+{
+    public:
+	inline static constexpr std::string_view idStr() { return "PinSystExploring"sv;}
+	PinSystExploring(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	// From MSystExplorable
+	string MSystExplorable_Uid() const override {return getUid<MSystExplorable>();}
+	MIface* MSystExplorable_getLif(TIdHash aId) override { return nullptr;} 
+	MNode* getMag() override;
+	// From MSystExploring
+	string MSystExploring_Uid() const override {return getUid<MSystExploring>();}
+	MIface* MSystExploring_getLif(TIdHash aId) override { return nullptr;} 
+	void onMagChanged() override { if (mProvidedPx) mProvidedPx->onMagChanged(); }
+	MSystExploring::TCp* getCp() override { return nullptr;}
+};
+
 
 
 

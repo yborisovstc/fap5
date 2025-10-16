@@ -59,35 +59,46 @@ template<class T> const DtBase* FAddDt<T>::FDtGet()
     bool first = true;
     for (int i = 0; i < mHost.GetInpIcCount(EInp); i++) {
         MDVarGet* dget = mHost.GetInpIc(EInp, i);
-        const T* arg = dget->DtGet(arg);
-	if (arg) { // ds_hinv_sls_s1
-	    if (arg->mValid) {
-		if (first) { mRes.mData = arg->mData; first = false;
-		} else { mRes.mData = mRes.mData + arg->mData; }
-		resSet = true;
-	    } else {
-		mRes.mValid = false; break;
-	    }
-	}
+        MDVarGet::TData data;
+        dget->VDtGet(T::TypeSig(), data);
+        for (auto* dt : data) {
+            const T* arg = reinterpret_cast<T*>(dt);
+            if (arg) { // ds_hinv_sls_s1
+                if (arg->mValid) {
+                    if (first) { mRes.mData = arg->mData; first = false;
+                    } else { mRes.mData = mRes.mData + arg->mData; }
+                    resSet = true;
+                } else {
+                    mRes.mValid = false; break;
+                }
+            } else {
+                // TODO handle null data ptr
+            }
+
+        }
     }
     for (int i = 0; i < mHost.GetInpIcCount(EInpN); i++) {
 	MDVarGet* dget = mHost.GetInpIc(EInpN, i);
-	const T* arg = dget->DtGet(arg);
-	if (arg) { // ds_hinv_sls_s1
-	    if (arg->mValid) {
-		if (resSet) {
-		    mRes.mData = mRes.mData - arg->mData;
-		} else {
-		    mRes.mData = -arg->mData;
-		}
-		resSet = true;
-	    } else {
-		mRes.mValid = false; break;
-	    }
-	}
+        MDVarGet::TData data;
+        dget->VDtGet(T::TypeSig(), data);
+        for (auto* dt : data) {
+            const T* arg = reinterpret_cast<T*>(dt);
+            if (arg) { // ds_hinv_sls_s1
+                if (arg->mValid) {
+                    if (resSet) {
+                        mRes.mData = mRes.mData - arg->mData;
+                    } else {
+                        mRes.mData = -arg->mData;
+                    }
+                    resSet = true;
+                } else {
+                    mRes.mValid = false; break;
+                }
+            }
+        }
     }
     if (!resSet) {
-	mRes.mValid = false;
+        mRes.mValid = false;
     }
     LOGF(EDbg, "Inp count: " + to_string(mHost.GetInpIcCount(EInp)) + ", InpN count: " + to_string(mHost.GetInpIcCount(EInpN)) + ", res [" + mRes.ToString(true) + "]");
     return &mRes;
@@ -136,7 +147,6 @@ template<class T> const DtBase* FAddDt2<T>::FDtGet()
     return &mRes;
 }
 
-#if 0
 //// Subtraction, single connecting inputs (ref iss_014), generic data
 
 template<class T> Func* FSubDt2<T>::Create(Host* aHost, const string& aString)
@@ -170,7 +180,6 @@ template<class T> const DtBase* FSubDt2<T>::FDtGet()
     return &mRes;
 }
 
-#endif
 
 ///// FMplDt
 
@@ -823,7 +832,5 @@ void __attribute__((optimize("O0"))) Init()
     FApnd<Sdata<string>>::Create(host, string(), string());
     FApnd<DGuri>::Create(host, string(), string());
     FAddDt2<Sdata<int>>::Create(host, "");
-    /*
     FSubDt2<Sdata<int>>::Create(host, "");
-    */
 }

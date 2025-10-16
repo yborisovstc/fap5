@@ -43,7 +43,7 @@ const ProvDef::TFReg ProvDef::mReg ( {
         Item<Node>(), Item<Elem>(), Item<Vert>(), Item<Verte>(), Item<Import>(), Item<Syst>(), Item<State>(), Item<BState>(), Item<Des>(),
         Item<DesLauncher>(), Item<Const>(),
         /* Transitions */
-        Item<TrAddVar>(), Item<TrAdd2Var>(), Item<TrSizeVar>(), Item<TrSwitchBool>(), Item<TrSwitchBool2>(), Item<TrMplVar>(),
+        Item<TrAddVar>(), Item<TrAdd2Var>(), Item<TrSub2Var>(), Item<TrSizeVar>(), Item<TrSwitchBool>(), Item<TrSwitchBool2>(), Item<TrMplVar>(),
         Item<TrDivVar>(), Item<TrMinVar>(), Item<TrMaxVar>(), Item<TrAndVar>(), Item<TrOrVar>(), Item<TrNegVar>(), 
         Item<TrToUriVar>(), Item<TrAtVar>(), Item<TrAtgVar>(), Item<TrApndVar>(),
         Item<TrFindByP>(), Item<TrTuple>(), Item<TrTupleSel>(), 
@@ -56,7 +56,8 @@ const ProvDef::TFReg ProvDef::mReg ( {
         Item<TrHash>(), Item<TrPair>(),
         /* Connpoints */
         Item<CpStateInp>(), Item<CpStateInpPin>(), Item<CpStateOutp>(), Item<CpStateOutpPin>(), Item<ExtdStateInp>(), Item<ExtdStateOutp>(),
-        Item<Socket>(), Item<CpSystExplorable>(), Item<CpSystExploring>(),
+        Item<Socket>(), Item<CpSystExplorable>(), Item<CpSystExploring>(), Item<ExtdSystExplorable>(), Item<ExtdSystExploring>(),
+        Item<PinSystExplorable>(), Item<PinSystExploring>(),
         /* DES constants */
         Item<SI_0>(), Item<SI_1>(), Item<SB_False>(), Item<SB_True>(),
         /* DES active subs */
