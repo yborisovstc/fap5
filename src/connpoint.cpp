@@ -181,3 +181,51 @@ void Socket::onDisconnecting(MVert* aPair)
 void Socket::onDisconnected()
 {
 }
+
+
+// Extd
+
+
+const string Extd::KUriInt = "Int";  /*!< Internal connpoint */
+
+
+
+Extd::Extd(const string &aType, const string& aName, MEnv* aEnv): Vert(aType, aName, aEnv)
+{
+}
+
+MIface* Extd::MOwner_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMVert));
+    else res = Vert::MOwner_getLif(aId);
+    return res;
+}
+
+
+bool Extd::isCompatible(const MVert* aPair, bool aExt) const
+{
+    bool res = false;
+    auto self = const_cast<Extd*>(this);
+    MVert* intcp = self->getExtd();
+    if (intcp) {
+	res = intcp->isCompatible(aPair, !aExt);
+    }
+    return res;
+}
+
+MVert* Extd::getExtd()
+{
+    MVert* res = nullptr;
+    MNode* extn = getComp(KUriInt);
+    res = extn ? extn->lIf(res) : nullptr;
+    return res;
+}
+
+MVert::TDir Extd::getDir() const
+{
+    TDir res = ERegular;
+    return res;
+}
+
+

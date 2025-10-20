@@ -1176,7 +1176,8 @@ const DtBase* TrTuple::doVDtGet(const string& aType)
 			MVert* compvPair = compv->getPair(0);
 			MDVarGet* inpvg = compvPair->lIf(inpvg);
 			if (inpvg) {
-			    auto* edata = inpvg->VDtGet(elem->GetTypeSig());
+                            auto ts = elem->GetTypeSig();
+			    auto* edata = inpvg->VDtGet(ts);
 			    if (edata) {
 				*elem = *edata;
 			    } else {

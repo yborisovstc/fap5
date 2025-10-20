@@ -86,18 +86,12 @@ class CpStateOutpPin: public CpStateOutp, public MDVarGet, public MDesInpObserve
 	string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
 	string VarGetIfid() const override;
 	MIface* DoGetDObj(const char *aName) override {return nullptr;}
+	const DtBase* VDtGet(const string& aType) override;
         /*
-	const DtBase* VDtGet(const string& aType) override {
-            const DtBase* res = nullptr;
-            auto* pair = (mPairs.size() == 1) ? mPairs.at(0) : nullptr; 
-            MDVarGet* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
-            res = pairDget ? pairDget->VDtGet(aType) : nullptr;
-            return res;
-        }
-        */
 	const DtBase* VDtGet(const string& aType) override {
             return mProvidedPx ? mProvidedPx->VDtGet(aType) : nullptr;
         }
+        */
 	// From MDesInpObserver
 	string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
 	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
@@ -118,7 +112,10 @@ class CpStateOutpPin: public CpStateOutp, public MDVarGet, public MDesInpObserve
 };
 
 
-/** @brief CpStateInp direct extender (extd as inp)
+// TODO consider keeping specialized extender for CpStateInp
+#if 0
+/** @brief CpStateInp direct (specialized) extender (extd as inp)
+ * It is faster than generic CpStateInp extender
  * */
 class ExtdStateInp : public CpStateInp, public MDVarGet, public MDesInpObserver
 {
@@ -145,6 +142,23 @@ class ExtdStateInp : public CpStateInp, public MDVarGet, public MDesInpObserver
     protected:
         static string KIntName;
 
+};
+#endif
+
+/** @brief CpStateInp extender
+ * */
+class ExtdStateInp : public Extd
+{
+    public:
+	inline static constexpr std::string_view idStr() { return "ExtdStateInp"sv;}
+	ExtdStateInp(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+        void Construct() override;
+        MIface* MVert_getLif(TIdHash aId) override;
+    public:
+        CpStateOutp* mInt = nullptr;
+    protected:
+	MDesInpObserver* mMDesInpObserver = nullptr;
+	MDVarGet* mMDVarGet = nullptr;
 };
 
 

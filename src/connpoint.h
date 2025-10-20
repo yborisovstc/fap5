@@ -100,7 +100,8 @@ template <class Provided, class Required>
 bool ConnPoint<Provided, Required>::isCompatible(const MVert* aPair, bool aExt) const
 {
     const TRequired* pRif = aPair->lIf(pRif);
-    return (pRif != nullptr);
+    const TProvided* pPif = aPair->lIf(pPif);
+    return aExt ? (pPif != nullptr) : (pRif != nullptr);
 }
 
     template <class Provided, class Required>
@@ -145,6 +146,29 @@ class Socket: public Verte, public MSocket
         MVert* mMVert = nullptr;
         MSocket* mMSocket = nullptr;
 };
+
+/** @brief Generic extender of CP, ref ds_vbcr_extd_ep
+ * It is "universal" but less effective that specialized extender
+ * Extender doesnt act as iface implementor, i.e. doesn't propagate iface calls
+ * So Internal CP has to be iface implementor itslef (i.e. be CpPin)
+ * */
+class Extd: public Vert
+{
+    public:
+        inline static constexpr std::string_view idStr() { return "Extd"sv;}
+	Extd(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+        // From MOwner
+        MIface *MOwner_getLif(TIdHash aId) override;
+	// From MVert
+	bool isCompatible(const MVert* aPair, bool aExt = false) const override;
+	MVert* getExtd() override;
+	TDir getDir() const override;
+    public:
+	static const string KUriInt;  /*!< Internal connpoint Uri */
+    protected:
+        MVert* mMVert = nullptr;
+};
+
 
 
 

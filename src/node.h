@@ -116,6 +116,9 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	bool getContent(const string& aId, string& aRes) const override;
 	bool setContent(const string& aId, const string& aData) override;
 	void onContentChanged(const string& aId) override;
+	template<class T> inline MIface* checkLif2(TIdHash aId, T*& aPtr) {
+	    return (aId == T::idHash()) ? (aPtr ? aPtr : (aPtr = dynamic_cast<T*>(this)))  : nullptr;
+	}
 
     protected:
 	void notifyChanged();
@@ -123,9 +126,6 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	MNode* addComp(const string_view& aId, const string& aName);
 	const MNode* getComp(const string& aId) const;
 	MNode* getComp(const string& aId) { return const_cast<MNode*>(const_cast<const Node*>(this)->getComp(aId));}
-	template<class T> inline MIface* checkLif2(TIdHash aId, T*& aPtr) {
-	    return (aId == T::idHash()) ? (aPtr ? aPtr : (aPtr = dynamic_cast<T*>(this)))  : nullptr;
-	}
 	template<class T> inline MIface* checkLifn(TIdHash aId, T*& aPtr) {
 	    return (aId == T::idHash()) ? aPtr : nullptr;
 	}

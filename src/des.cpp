@@ -65,7 +65,33 @@ string CpStateOutpPin::VarGetIfid() const
     return mProvidedPx ? mProvidedPx->VarGetIfid() : string();
 }
 
-/// CpStateInp direct extender
+const DtBase* CpStateOutpPin::VDtGet(const string& aType)
+{
+    const DtBase* res = nullptr;
+    if (mProvidedPx) {
+        // Binded
+        mProvidedPx->VDtGet(aType);
+    } else {
+        // Not binded
+        auto* owrn = owner();
+        MVert* owrv = owrn ? owrn->lIf(owrv) : nullptr;
+        if (owrv) {
+            if (owrv->getExtd() == this) {
+                // Extender internal point
+                auto* pair = (owrv->pairsCount() == 1) ? owrv->getPair(0) : nullptr; 
+                auto* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
+                res = pairDget ? pairDget->VDtGet(aType) : nullptr;
+            }
+        } else {
+            // TODO handle
+        }
+    }
+    return res;
+}
+
+#if 0
+
+// CpStateInp direct extender
 
 string ExtdStateInp::KIntName = "Int";
 
@@ -116,6 +142,31 @@ void ExtdStateInp::onInpUpdated()
         auto* ifc = (*it)->lIft<MDesInpObserver>();
         if (ifc) ifc->onInpUpdated();
     }
+}
+
+#endif
+
+// ExtdStateInp
+
+ExtdStateInp::ExtdStateInp(const string &aType, const string& aName, MEnv* aEnv): Extd(aType, aName, aEnv)
+{
+}
+
+void ExtdStateInp::Construct()
+{
+    mInt = new CpStateOutpPin(string(CpStateOutp::idStr()), KUriInt, mEnv);
+    assert(mInt);
+    bool res = attachOwned(mInt);
+    assert(res);
+}
+
+MIface* ExtdStateInp::MVert_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = mInt ? mInt->checkLif2(aId, mMDesInpObserver) : nullptr);
+    else if (res = mInt ? mInt->checkLif2(aId, mMDVarGet) : nullptr);
+    else res = Vert::MVert_getLif(aId);
+    return res;
 }
 
 

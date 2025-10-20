@@ -22,8 +22,9 @@ class Ut_des : public Ut_fixture
     //CPPUNIT_TEST(test_des_inval_2);
     //CPPUNIT_TEST(test_des_asr_1);
     //CPPUNIT_TEST(test_des_asr_2);
-    CPPUNIT_TEST(test_des_tr_1);
+    //CPPUNIT_TEST(test_des_tr_1);
     //CPPUNIT_TEST(test_des_tr_tres_1);
+    CPPUNIT_TEST(test_des_conn_1);
     //CPPUNIT_TEST(test_des_utl_1);
     // CPPUNIT_TEST(test_des_utl_2); TODO This doesn't work with DRI, ref ds_dri_lmt_mcins. To remove.
     //CPPUNIT_TEST(test_des_sp_1);
@@ -44,6 +45,7 @@ class Ut_des : public Ut_fixture
     void test_des_asr_2();
     void test_des_tr_1();
     void test_des_tr_tres_1();
+    void test_des_conn_1();
     void test_des_utl_1();
     void test_des_utl_2();
     /*
@@ -497,6 +499,23 @@ void Ut_des::test_des_inval_2()
 
     delete mEnv;
 }
+
+/** @brief Test of connection topology in DES
+ * */
+void Ut_des::test_des_conn_1()
+{
+    cout << endl << "=== Test of connection topology in DES ===" << endl;
+
+    MNode* root = constructSystem("ut_des_conn_1");
+    CPPUNIT_ASSERT_MESSAGE("Fail to get root", root);
+
+    // Run
+    bool res = mEnv->RunSystem(4);
+    CPPUNIT_ASSERT_MESSAGE("Failed running system", res);
+
+    delete mEnv;
+}
+
 
 
 

@@ -438,7 +438,7 @@
             </simpara>
         </sect2>
         <sect2 id="ds_vbcr_extd"><title>Extender</title>
-            <sect3><title>Redesign of initial solution (extender implementing ifaces)</title>
+            <sect3 id="ds_vbcr_extd_rss"><title>Redesign of initial solution (specialized extender implementing ifaces)</title>
                 <sect4><title>Intro</title>
                     <simpara>
                         In the scope of fap5 there was initial solution implemented for extenders. This solution is to 
@@ -450,9 +450,10 @@
                         problem with implementing complex extender, for instance extender of sockets etc.
                     </simpara>
                 </sect4>
-                <sect4 id="ds_vbcr_extd_ep"><title>Approach: extender as just proxy for resolving ifaces and binding points.</title>
+                <sect4 id="ds_vbcr_extd_rss_ep"><title>Approach: generic extender as just proxy for resolving ifaces and binding points.</title>
                     <simpara>
-                        This is very similar to the approach applied in fap3.
+                        This is very similar to the approach applied in fap3. With this approach extender just helps its pair to extended
+                        CP. This "resoution" adds extra operations but is generic.
                     </simpara>
                 </sect4>
             </sect3>
@@ -477,13 +478,19 @@
                     of sockets.  Looks for instance avr2 EdgeCrpRsSlot::EsNext
                 </simpara>
             </sect3>
-            <sect3><title><xref linkend="gls_dri"/> is not suitable for socket extending.</title>
+            <sect3><title><xref linkend="gls_dri"/> is not fully suitable for socket extending.</title>
                 <simpara>
                     <xref linkend="gls_dri"/> approach is based on iface requests commutation. It's contrary to
                     <xref linkend="gls_irm"/> that is based on iface resolution. 
                         This means that
-                    <xref linkend="gls_dri"/> approach required explicit connection from one cp to another to propagate the iface request.
+                    Specialized <xref linkend="gls_dri"/> approach prefers explicit connection from one cp to another to propagate the iface request.
                         Yes, it is still possible to obtain "virtual" pair via iface resolution but it seems very ineffective.
+                        So this specialized extender approach doesn't fullfil what we need.
+                </simpara>
+                <simpara>
+                    The "generic" extender approach (ref
+                    <xref linkend="ds_vbcr_extd_rss_ep"/>) instead can be used the similar way as it used for simple connpoint extension.
+                        The only socket specific is that routing from the extending socket to the socket 
                         Let's consider typical socket extending topology:
                     <programming>
                         Sock1                   Sock2
