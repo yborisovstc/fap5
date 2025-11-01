@@ -10,7 +10,6 @@
 #include "des.h"
 #include "module.h"
 #include "imports.h"
-#include "mnt.h"
 */
 #include "node.h"
 #include "chromo2.h"
@@ -24,10 +23,10 @@
 #include "dessdo.h"
 #include "dessdc.h"
 #include "desio.h"
+#include "mnt.h"
 /*
 #include "content.h"
 #include "dessp.h"
-#include "mnt.h"
 #include "link.h"
 */
 
@@ -58,6 +57,8 @@ const ProvDef::TFReg ProvDef::mReg ( {
         Item<CpStateInp>(), Item<CpStateInpPin>(), Item<CpStateOutp>(), Item<CpStateOutpPin>(), Item<ExtdStateInp>(), Item<ExtdStateOutp>(),
         Item<Socket>(), Item<CpSystExplorable>(), Item<CpSystExploring>(), Item<ExtdSystExplorable>(), Item<ExtdSystExploring>(),
         Item<PinSystExplorable>(), Item<PinSystExploring>(),
+        /* Extenders */
+        Item<Extd>(), Item<SocketExtd>(), 
         /* DES constants */
         Item<SI_0>(), Item<SI_1>(), Item<SB_False>(), Item<SB_True>(),
         /* DES active subs */
@@ -71,23 +72,24 @@ const ProvDef::TFReg ProvDef::mReg ( {
         Item<SdoTPairs>(), Item<SdoEdges>(), Item<SdoDesIdle>(), 
         /* SDCs */
 	Item<ASdcComp>(), Item<ASdcCompT>(), Item<ASdcRm>(), Item<ASdcConn>(), Item<ASdcDisconn>(), 
-	Item<ASdcInsert2>(), Item<ASdcExtract>(), 
+	Item<ASdcInsert2>(), Item<ASdcInsertN>(), Item<ASdcExtract>(), 
 	/* DES IO */
 	Item<Sout>(), 
 	/* SDCs */
-        Item<ASdcMut>(), 
+        Item<ASdcMut>(), Item<ASdcConnT>(), 
         /* DES context */
         Item<DesCtxSpl>(), Item<DesCtxCsm>(), 
+        /* Mount point */
+        Item<AMntp>(),
 
 #if 0
         Item<Link>(),
-        Item<Extd>(), Item<Extde>(), Item<TrSub2Var>(),
+        Item<Extde>(), Item<TrSub2Var>(),
         Item<ADes>(),
         /* Des adapters */
-        Item<AMntp>(),
 	/* SDCs */
         Item<ASdcInsertN>(),
-        Item<ASdcPause>(), Item<ASdcResume>(), Item<ASdcConnT>(), 
+        Item<ASdcPause>(), Item<ASdcResume>(),
         /* DES service point */
         Item<DesSpe>(), Item<DesSp>(), Item<DesSpt>(), Item<ADesSpc>(), 
 #endif

@@ -22,7 +22,7 @@ class Ut_des : public Ut_fixture
     //CPPUNIT_TEST(test_des_inval_2);
     //CPPUNIT_TEST(test_des_asr_1);
     //CPPUNIT_TEST(test_des_asr_2);
-    //CPPUNIT_TEST(test_des_tr_1);
+    CPPUNIT_TEST(test_des_tr_1);
     //CPPUNIT_TEST(test_des_tr_tres_1);
     CPPUNIT_TEST(test_des_conn_1);
     //CPPUNIT_TEST(test_des_utl_1);
@@ -510,7 +510,7 @@ void Ut_des::test_des_conn_1()
     CPPUNIT_ASSERT_MESSAGE("Fail to get root", root);
 
     // Run
-    bool res = mEnv->RunSystem(4);
+    bool res = mEnv->RunSystem(4, 2);
     CPPUNIT_ASSERT_MESSAGE("Failed running system", res);
 
     delete mEnv;

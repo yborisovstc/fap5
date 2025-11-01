@@ -5,6 +5,8 @@ AM_CPPFLAGS = -D_PLAT_LINUX_ -pthread
 lib_LTLIBRARIES = libfap5.la
 
 libfap5_la_SOURCES = \
+		     mnt.h \
+		     mnt.cpp \
 		     desio.h \
 		     desio.cpp \
 		     dessdc.h \
@@ -109,6 +111,7 @@ include_HEADERS = \
 		   guri.h \
 		   nconn.h \
 		   typeid.h \
+		   mmntp.h \
 		   mlink.h \
 		   mconnpoint.h \
 		   mdata.h \

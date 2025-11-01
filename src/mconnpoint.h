@@ -5,7 +5,8 @@
 
 class MVert;
 
-/* No need atm
+/** @brief Connection point interface
+ * */
 class MConnPoint : public MIface
 {
     public:
@@ -17,9 +18,9 @@ class MConnPoint : public MIface
 	string Uid() const override { return MConnPoint_Uid();}
 	virtual string MConnPoint_Uid() const = 0;
 	// Local
-
+        virtual TIdHash idProvided() const = 0;
+        virtual TIdHash idRequired() const = 0;
 };
-*/
 
 /** @brief Socket interface
  * */
@@ -36,7 +37,7 @@ class MSocket: public MIface
 	// Local
 	virtual int PinsCount() const = 0;
 	virtual MVert* GetPin(int aInd) = 0;
-	virtual string GetPinId(int aInd) = 0;
+	virtual string GetPinId(int aInd) const = 0;
 	virtual MVert* GetPin(const string& aId) = 0;
 };
 

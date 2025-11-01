@@ -103,6 +103,7 @@ MNode* Node::addComp(const string_view& aId, const string& aName)
 {
     MNode* cp = Provider()->createNode(string(aId), aName, mEnv);
     assert(cp);
+    cp->Construct();
     bool res = attachOwned(cp);
     assert(res);
     return cp;
@@ -162,7 +163,7 @@ void Node::getUri(GUri& aUri, const MNode* aBase) const
     if (aBase != this) {
 	const MOwner* owner = this->owner();
 	if (owner) {
-            const MOwner* base = MNode::lIf(base);
+            const MOwner* base = aBase ? aBase->lIf(base) : nullptr;
 	    owner->ownerGetUri(aUri, base);
 	} else {
 	    if (mEnv && mEnv->provider() && mEnv->provider()->isProvided(this)) {
@@ -594,7 +595,6 @@ MNode* Node::mutAddElem(const ChromoNode& aMut, bool aUpdOnly, const MutCtx& aCt
             MParent* parent = parentNode->lIf(parent);
             uelem = parent->createHeir(sname);
             if (uelem) {
-                uelem->Construct();
                 PFL_DUR_STAT_START(PEvents::EDurStat_MutAtt);
                 attachOwned(uelem);
                 MChild* elemChild = uelem->lIft<MChild>();

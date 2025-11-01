@@ -74,6 +74,9 @@ MSystExplorable* SdoBase::getExplorable()
 
 void SdoBase::UpdateMag()
 {
+    if (mName == "Name") {
+        LOGN(EDbg, "UpdateMag");
+    }
     // Attempt MDesAdapter iface first
     MSystExplorable* desa = getExplorable();
     MNode* mag = nullptr;
@@ -94,6 +97,7 @@ void SdoBase::UpdateMag()
                 obl->addObserver(&mEagObs, TNodeEventOwnedAttached::idHash);
                 obl->addObserver(&mEagObs, TNodeEventChanged::idHash);
             }
+            LOGN(EInfo, "Explorable is attached [" + mSue->Uid() + "]");
             // We need to observe also agents observable but ifr cannot get it because of stopping on getting local iface
             // So, we need to use the trick: first get agents and then use ifr for getting observable
 #if 0

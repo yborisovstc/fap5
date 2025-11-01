@@ -141,6 +141,9 @@ MNode* ProvBase::CreateAgent(const string& aType, const string& aName, MEnv* aEn
     auto it = FReg().find(aType);
     if (it != FReg().end()) {
         res = it->second(aName, aEnv);
+        if (res) {
+            res->Construct();
+        }
     }
     return res;
 }

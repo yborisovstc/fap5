@@ -14,6 +14,7 @@ class Vert : public Node, public MVert
         Vert(const string &aType, const string &aName, MEnv* aEnv): Node(aType, aName, aEnv) {}
         // From MNode
         MIface *MNode_getLif(TIdHash aId) override;
+	GUri parentUri() const override { return string(idStr());}
         // From MVert
         string MVert_Uid() const override { return getUid<MVert>();}
         MIface *MVert_getLif(TIdHash aId) override;
@@ -32,7 +33,7 @@ class Vert : public Node, public MVert
 	void vertGetUri(GUri& aUri, const MNode* aBase = nullptr) const override;
     protected:
         // Local
-	virtual void onConnected();
+	virtual void onConnected(MVert* aPair);
 	virtual void onDisconnecting(MVert* aPair) {}
 	virtual void onDisconnected();
 	virtual void onBound() {}
@@ -72,7 +73,7 @@ class Verte : public Elem, public MVert
 	void vertGetUri(GUri& aUri, const MNode* aBase = nullptr) const override;
     protected:
         // Local
-	virtual void onConnected();
+	virtual void onConnected(MVert* aPair);
 	virtual void onDisconnecting(MVert* aPair) {}
 	virtual void onDisconnected();
 	virtual void onBound() {}

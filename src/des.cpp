@@ -8,9 +8,9 @@
 // Enable verification of DES active registry. !Affect system performance
 #define DES_RGS_VERIFY
 
-void CpStateInp::onConnected()
+void CpStateInp::onConnected(MVert* aPair)
 {
-    Vert::onConnected();
+    Vert::onConnected(aPair);
     // Notify inp updated
     if (mProvidedPx) mProvidedPx->onInpUpdated();
 }
@@ -48,9 +48,9 @@ string CpStateInpPin::VarGetIfid() const
     return res;
 }
 
-void CpStateInpPin::onConnected()
+void CpStateInpPin::onConnected(MVert* aPair)
 {
-    CpStateInp::onConnected();
+    CpStateInp::onConnected(aPair);
 }
 
 void CpStateInpPin::onDisconnected()
@@ -89,7 +89,6 @@ const DtBase* CpStateOutpPin::VDtGet(const string& aType)
     return res;
 }
 
-#if 0
 
 // CpStateInp direct extender
 
@@ -144,7 +143,8 @@ void ExtdStateInp::onInpUpdated()
     }
 }
 
-#endif
+
+#if 0
 
 // ExtdStateInp
 
@@ -169,6 +169,7 @@ MIface* ExtdStateInp::MVert_getLif(TIdHash aId)
     return res;
 }
 
+#endif
 
 
 /// CpStateOutp direct extender
@@ -207,7 +208,7 @@ const DtBase* ExtdStateOutp::VDtGet(const string& aType)
     return pairDget ? pairDget->VDtGet(aType) : nullptr;
 }
 
-void ExtdStateOutp::VDtGet(const string& aType, vector<DtBase*>& aData)
+void ExtdStateOutp::VDtGet(const string& aType, MDVarGet::TData& aData)
 {
     // Redirect to internal point
     for (auto it = mInt->mPairs.begin(); it != mInt->mPairs.end(); it++) {
@@ -466,6 +467,9 @@ void State::setActivated()
 
 void State::update()
 {
+    if (mName == "SCrpCtx_Dbg_MagUri") {
+        LOGN(EDbg, "update");
+    }
     PFL_DUR_STAT_START(PEvents::EDurStat_StUpdate);
     mActNotified = false;
     string dtype;
@@ -624,10 +628,14 @@ bool State::updateWithContValue(const string& aData)
 DtBase* State::VDtGet(const string& aType)
 {
     // Enable getting base data
-    return (mCdata && (aType == mCdata->GetTypeSig() || aType.empty())) ? mCdata : nullptr;
+    bool dataMatched = ((aType == mCdata->GetTypeSig()) || aType.empty());
+    if (!dataMatched) {
+        LOGN(EErr, "Requesting incompatible data [" + aType + "], supported [" + mCdata->GetTypeSig() + "]");
+    } 
+    return dataMatched ? mCdata : nullptr;
 }
 
-void State::VDtGet(const string& aType, vector<DtBase*>& aData)
+void State::VDtGet(const string& aType, MDVarGet::TData& aData)
 {
     DtBase* dt = VDtGet(aType);
     aData.push_back(dt);
@@ -947,7 +955,11 @@ bool BState::updateWithContValue(const string& aData)
 DtBase* BState::VDtGet(const string& aType)
 {
     // Enable getting base data
-    return (mCdata && (aType == mCdata->GetTypeSig() || aType.empty())) ? mCdata : nullptr;
+    bool dataMatched = ((aType == mCdata->GetTypeSig()) || aType.empty());
+    if (!dataMatched) {
+        LOGN(EErr, "Requesting incompatible data [" + aType + "], supported [" + mCdata->GetTypeSig() + "]");
+    } 
+    return dataMatched ? mCdata : nullptr;
 }
 
 void BState::notifyInpsUpdated()
@@ -1250,12 +1262,16 @@ void Des::RmSyncable(TScblReg& aReg, MDesSyncable* aScbl)
 
 void Des::onOwnedAttached(MOwned* aOwned)
 {
+    if (aOwned->ownedId() == "DrpCtx") {
+        LOGN(EDbg, "onOwnedAttached - DrpCtx");
+    }
     Syst::onOwnedAttached(aOwned);
     MDesSyncable* os = aOwned->lIf(os);
     if (os) {
         mDesObsrCp.connect(os->desSyncableCp());
 	os->setActivated();
     }
+    /*
     if (MDesCtxCsm* csm = aOwned->lIf(csm)) {
         MDesCtxBinder* owrdcb = owner() ? owner()->lIf(owrdcb) : nullptr;
         if (owrdcb) {
@@ -1270,6 +1286,7 @@ void Des::onOwnedAttached(MOwned* aOwned)
             }
         }
     }
+    */
 }
 
 void Des::onOwnedDetached(MOwned* aOwned)
@@ -1412,7 +1429,7 @@ bool Des::bindDesCtx(MIface* aCtx)
                 auto owdCp = *pitr;
                 MDesCtxCsm* owdcsm = owdCp->provided()->lIf(owdcsm);
                 if (spl && owdcsm && owdcsm->getId() == spl->getId()) {
-                    MVert* csmv = csm->lIf(csmv);
+                    MVert* csmv = owdcsm->lIf(csmv);
                     if (csmv) {
                         res = MVert::connect(csmv, splv);
                         if (!res) {
@@ -1872,13 +1889,14 @@ bool DesCtxSpl::bindCtx(const string& aCtxId, MVert* aCtx)
 const string KCnt_ID = "Id"; // Consumer Id
 
 DesCtxCsm::DesCtxCsm(const string &aType, const string& aName, MEnv* aEnv): Verte(aType, aName, aEnv),
-    mCsmCp(this)
+    mCsmCp(this), mDesSyncCp(this)
 {}
 
 MIface* DesCtxCsm::MNode_getLif(TIdHash aId)
 {
     MIface* res = NULL;
-    if (res = checkLif2(aId, mMDesCtxCsmPtr));
+    if (res = checkLif2(aId, mMDesCtxCsm));
+    else if (res = checkLif2(aId, mMDesSyncable));
     else res = Verte::MNode_getLif(aId);
     return res;
 }
@@ -1886,7 +1904,8 @@ MIface* DesCtxCsm::MNode_getLif(TIdHash aId)
 MIface* DesCtxCsm::MOwned_getLif(TIdHash aId)
 {
     MIface* res = NULL;
-    if (res = checkLif2(aId, mMDesCtxCsmPtr));
+    if (res = checkLif2(aId, mMDesCtxCsm));
+    else if (res = checkLif2(aId, mMDesSyncable));
     else res = Verte::MOwned_getLif(aId);
     return res;
 }
@@ -1894,7 +1913,7 @@ MIface* DesCtxCsm::MOwned_getLif(TIdHash aId)
 MIface* DesCtxCsm::MDesCtxCsm_getLif(TIdHash aId)
 {
     MIface* res = NULL;
-    if (res = checkLif2(aId, mMDesCtxCsmPtr));
+    if (res = checkLif2(aId, mMDesCtxCsm));
     else res = Verte::MVert_getLif(aId);
     return res;
 }
@@ -1955,13 +1974,43 @@ bool DesCtxCsm::bindAllCtx()
     return res;
 }
 
-void DesCtxCsm::onConnected()
+void DesCtxCsm::onConnected(MVert* aPair)
 {
+    if (mName == "DrpCtx") {
+        LOGN(EDbg, "onConnected");
+    }
+    bindAllCtx();
 }
 
 void DesCtxCsm::onDisconnected()
 {
 }
+
+void DesCtxCsm::confirm()
+{
+    if (!mBound) {
+        MDesCtxCsm* csm = MDesCtxCsm::lIf(csm);
+        MDesCtxBinder* owrdcb = owner() ? owner()->lIf(owrdcb) : nullptr;
+        if (owrdcb) {
+            bool res = owrdcb->bindDesCtx(csm);
+            if (!res) {
+                LOGN(EErr, "Failed binding context supplier " + csm->Uid());
+            } else {
+                LOGN(EDbg, "Context consumer has been bound");
+            }
+        }
+        mBound = true;
+    }
+}
+
+void DesCtxCsm::setActivated()
+{
+    MDesObserver* obs = mDesSyncCp.mPair ? mDesSyncCp.mPair->provided() : nullptr;
+    if (obs) {
+        obs->onActivated(this);
+    }
+}
+
 
 
 
@@ -1973,8 +2022,8 @@ void DesCtxCsm::onDisconnected()
 #if 0
 // DES Input demultiplexor
 
-static const string K_Cp_Inp = "Inp";
-static const string K_Cp_Outp = "Outp";
+        static const string K_Cp_Inp = "Inp";
+        static const string K_Cp_Outp = "Outp";
 
 DesInpDemux::DesInpDemux(const string &aType, const string& aName, MEnv* aEnv): Des(aType, aName, aEnv)
 {

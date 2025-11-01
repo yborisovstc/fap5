@@ -395,7 +395,7 @@
                 combined with different means: connections, dedicated access methods (like MVert::getExtd(), MSocket::getPin()) etc.
             </simpara>
             <simpara>
-                In some cases special connection (binding) can be used to avoid long resolution of next iface.
+                In most cases special connection (binding) can be used to create the chain of iface implementators propagating iface request.
             </simpara>
         </sect2>
         <sect2 id="ds_dri_mcins"><title><xref linkend="gls_dri"/> approach limitations: Multiple-connection inputs aren't supported</title>
@@ -420,6 +420,36 @@
                     multiple data, transition TrAddVar for instance.
                 </simpara>
             </sect3>
+            <sect3><title>Status</title>
+                <simpara>
+                    <xref linkend="ds_dri_mcins_s1"/> applied atm.
+                </simpara>
+            </sect3>
+        </sect2>
+        <sect2 id="ds_dri_oto"><title><xref linkend="gls_dri"/> approach limitations: Binding supports one-to-one connection only</title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    Current implementation of DRI supports only one-to-one binding. This for instance cause limitation in sockets connection -
+                    it can be one-to-one only.
+                </simpara>
+                <simpara>This limitation needs to be avoided. We need one-to-many sockets connection. One use-case if AVR VertDrp where
+                    the number of edges VertCP can connecto to one vert edgeCp. Ref for instance test ut_avr_vert_drp_2.</simpara>
+            </sect3>
+            <sect3 id="ds_dri_oto_s1"><title>Solution#1 Enable one-to-many binding, use native CP for binding but not simple ptr. </title>
+            </sect3>
+        </sect2>
+        <sect2 id="ds_dri_uncp"><title>Binding: using native CP instead of simple ptr.</title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    Currently simple ptr is used for binding. The idea was that binded node is under full control of binding "owner"
+                    (that actually gives "provided" iface). So the owner unbinds binded node in cases the binding invalidates. But in some cases 
+                    this "control" gets not so simple. The example is removing some pin in socket connected. Socket needs to handle pin removal
+                    and unbind pins properly. 
+                </simpara>
+                <simpara>
+                    More robust approach is to use native CP instead of simple ptr. In this case binding invalidation is handling "automatically"
+                </simpara>
+            </sect3>
         </sect2>
     </sect1>
 
@@ -435,6 +465,10 @@
             <simpara>
                 There are at least couple use-cases initicating this feature is useful: Socket one-to-many connections and DES context
                     (ref <xref linkend="ds_dctx"/>
+            </simpara>
+            <simpara>
+                Ref
+                <xref linkend="ds_dri_oto"/> for more info.
             </simpara>
         </sect2>
         <sect2 id="ds_vbcr_extd"><title>Extender</title>
@@ -478,30 +512,42 @@
                     of sockets.  Looks for instance avr2 EdgeCrpRsSlot::EsNext
                 </simpara>
             </sect3>
-            <sect3><title><xref linkend="gls_dri"/> is not fully suitable for socket extending.</title>
+            <sect3 id="ds_sock_eos_ith"><title>Initial thoughts regarding socket extender design</title>
                 <simpara>
                     <xref linkend="gls_dri"/> approach is based on iface requests commutation. It's contrary to
-                    <xref linkend="gls_irm"/> that is based on iface resolution. 
-                        This means that
-                    Specialized <xref linkend="gls_dri"/> approach prefers explicit connection from one cp to another to propagate the iface request.
-                        Yes, it is still possible to obtain "virtual" pair via iface resolution but it seems very ineffective.
-                        So this specialized extender approach doesn't fullfil what we need.
+                    <xref linkend="gls_irm"/> that is based on iface resolution.
+                        Iface request commutation can be done basing on "internal" connections (using term "binding" for that),
+                        connections, and other system topologies elements.
                 </simpara>
                 <simpara>
                     The "generic" extender approach (ref
-                    <xref linkend="ds_vbcr_extd_rss_ep"/>) instead can be used the similar way as it used for simple connpoint extension.
-                        The only socket specific is that routing from the extending socket to the socket 
-                        Let's consider typical socket extending topology:
+                    <xref linkend="ds_vbcr_extd_rss_ep"/>) can be used the similar way as it used for simple connpoint extension.
+                        The only socket specific is that routing from the pins of extending socket to the pins of extender internal socket 
+                        is relatively expensive (needs to resolve socket pair pins by names).
+                        So seems that specialized extender approach needs to be used ATM, ref
+                    <xref linkend="ds_sock_eos_sse"/>.
+                </simpara>
+            </sect3>
+            <sect3 id="ds_sock_eos_sse"><title>Specialize socket extender</title>
+                <simpara>
+                    Lets look at the simple extending
                     <programming>
                         Sock1                   Sock2
 
-                        {A B C}---[ {A B C}-]---{:A :B :C}
+                        {A B}---[ :A :B Int{A B}-]---{:A :B}
+                        _          |  |     | |
+                        _          ---------
+                        _             |       |
+                        _             ---------
+
 
                         {} - socket
-                        [] - extender
+                        Int - extender internal CP, socket in our case
+                        [] - extender, socket actually
                         A - connpoint
                         :A - CP compatible to A
                     </programming>
+                        Within socket extender the internal CP pins shall be connected to extender (actually socket) pins  
                 </simpara>
             </sect3>
         </sect2>
@@ -915,8 +961,8 @@
                 <ulink url="../../../fap3/doc/design/index.html#ds_dct"/> for fap3 DES context materials.
             </simpara>
         </sect2>
-        <sect2><title>Intial analysis</title>
-            <sect3><title>Why ctx supplier and consumer are implemented as DES?</title>
+        <sect2 id="ds_dctx_ia"><title>Intial analysis</title>
+            <sect3 id="ds_dctx_ia_wid"><title>Why ctx supplier and consumer are implemented as DES?</title>
                 <simpara> Current implementation uses first DES tick for initialization.  </simpara>
                 <simpara>
                     Alternative way is to move the initializatin to system creation phase.
@@ -976,8 +1022,27 @@
                     Int that case maybe it make sense to have generic autoconnect mechanism with the proper interfaces for resolution.
                 </simpara>
             </sect3>
+            <sect3><title>Initially redesigned as non-DES - it is not working</title>
+                <simpara>
+                    Tried to implement ctx just as vertex but not DES. But it doesn't work because of context/supplier binding
+                    happens on mutation phase (particularly when consumer/supplier added to owner). On this phase the consumer owner
+                    is not attached to the system tree yet, so find of ctx pair is not possible. This is the answer on the question
+                    <xref linkend="ds_dctx_ia_wid"/>
+                </simpara>
+                <simpara>
+                    Needs to return to initial DES based design or find other design options.
+                </simpara>
+            </sect3>
         </sect2>
         <sect2 id="ds_dctx_v2"><title>DES Ctx ver 2: socket based</title>
+        </sect2>
+    </sect1>
+
+    <sect1 id="ds_opt"><title>Optimization</title>
+        <sect2 id="ds_opt_udth"><title>Use data type ID as hash</title>
+            <simpara>
+                Do same opt as for ifaces id was done. Avoid using strings comparition.
+            </simpara>
         </sect2>
     </sect1>
 

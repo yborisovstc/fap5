@@ -62,7 +62,7 @@ template<class T> const DtBase* FAddDt<T>::FDtGet()
         MDVarGet::TData data;
         dget->VDtGet(T::TypeSig(), data);
         for (auto* dt : data) {
-            const T* arg = reinterpret_cast<T*>(dt);
+            const T* arg = reinterpret_cast<const T*>(dt);
             if (arg) { // ds_hinv_sls_s1
                 if (arg->mValid) {
                     if (first) { mRes.mData = arg->mData; first = false;
@@ -82,7 +82,7 @@ template<class T> const DtBase* FAddDt<T>::FDtGet()
         MDVarGet::TData data;
         dget->VDtGet(T::TypeSig(), data);
         for (auto* dt : data) {
-            const T* arg = reinterpret_cast<T*>(dt);
+            const T* arg = reinterpret_cast<const T*>(dt);
             if (arg) { // ds_hinv_sls_s1
                 if (arg->mValid) {
                     if (resSet) {

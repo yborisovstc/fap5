@@ -78,7 +78,7 @@ bool Vert::connect(MVert* aPair)
     bool res = isCompatible(aPair, false);
     if (res) {
         mPairs.push_back(aPair);
-        onConnected();
+        onConnected(aPair);
         res = true;
     }
     return res;
@@ -105,7 +105,7 @@ void Vert::vertGetUri(GUri& aUri, const MNode* aBase) const
     return getUri(aUri, aBase);
 }
 
-void Vert::onConnected()
+void Vert::onConnected(MVert* aPair)
 {
     notifyChanged();
 }
@@ -194,7 +194,7 @@ bool Verte::connect(MVert* aPair)
     bool res = isCompatible(aPair, false);
     if (res) {
         mPairs.push_back(aPair);
-        onConnected();
+        onConnected(aPair);
         res = true;
     }
     return res;
@@ -221,7 +221,7 @@ void Verte::vertGetUri(GUri& aUri, const MNode* aBase) const
     return getUri(aUri, aBase);
 }
 
-void Verte::onConnected()
+void Verte::onConnected(MVert* aPair)
 {
     notifyChanged();
 }

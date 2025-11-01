@@ -25,7 +25,7 @@ class CpStateInp: public ConnPoint<MDesInpObserver, MDVarGet>
         virtual ~CpStateInp() {}
     protected:
         // From ConnPoint
-	void onConnected() override;
+	void onConnected(MVert* aPair) override;
 	void onDisconnected() override;
 	void onBound() override;
 	void onUnbound() override;
@@ -53,7 +53,11 @@ class CpStateInpPin: public CpStateInp, public MDesInpObserver, public MDVarGet
 	// From MDesInpObserver
 	string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
 	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
-	void onInpUpdated() override { if (mProvidedPx) mProvidedPx->onInpUpdated(); }
+	void onInpUpdated() override {
+            if (mProvidedPx) { 
+                mProvidedPx->onInpUpdated();
+            }
+        }
         // From MDVarGet
 	string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
 	string VarGetIfid() const override;
@@ -67,7 +71,7 @@ class CpStateInpPin: public CpStateInp, public MDesInpObserver, public MDVarGet
         }
     protected:
         // From ConnPoint
-	void onConnected() override;
+	void onConnected(MVert* aPair) override;
 	void onDisconnected() override;
 };
 
@@ -112,8 +116,6 @@ class CpStateOutpPin: public CpStateOutp, public MDVarGet, public MDesInpObserve
 };
 
 
-// TODO consider keeping specialized extender for CpStateInp
-#if 0
 /** @brief CpStateInp direct (specialized) extender (extd as inp)
  * It is faster than generic CpStateInp extender
  * */
@@ -143,9 +145,10 @@ class ExtdStateInp : public CpStateInp, public MDVarGet, public MDesInpObserver
         static string KIntName;
 
 };
-#endif
 
-/** @brief CpStateInp extender
+// TODO consider using this instead of specialized extender for CpStateInp
+#if 0
+/** @brief CpStateInp extender basing on generic extender
  * */
 class ExtdStateInp : public Extd
 {
@@ -160,7 +163,7 @@ class ExtdStateInp : public Extd
 	MDesInpObserver* mMDesInpObserver = nullptr;
 	MDVarGet* mMDVarGet = nullptr;
 };
-
+#endif
 
 /** @brief CpStateOutp direct extender (extd as outp)
  * */
@@ -180,7 +183,7 @@ class ExtdStateOutp : public CpStateOutp, public MDVarGet, public MDesInpObserve
 	string VarGetIfid() const override;
 	MIface* DoGetDObj(const char *aName) override {return nullptr;}
 	const DtBase* VDtGet(const string& aType) override;
-	void VDtGet(const string& aType, vector<DtBase*>& aData) override;
+	void VDtGet(const string& aType, MDVarGet::TData& aData) override;
 	// From MDesInpObserver
 	string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
 	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
@@ -323,7 +326,7 @@ class State: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, p
 	string VarGetIfid() const override;
 	MIface* DoGetDObj(const char *aName) override {return nullptr;}
 	DtBase* VDtGet(const string& aType) override;
-	void VDtGet(const string& aType, vector<DtBase*>& aData) override;
+	void VDtGet(const string& aType, MDVarGet::TData& aData) override;
 	// From MDVarSet
 	virtual string MDVarSet_Uid() const override {return getUid<MDVarSet>();}
 	virtual string VarGetSIfid();
@@ -1014,10 +1017,11 @@ class DesCtxSpl : public Verte, public MDesCtxSpl
 
 /** @brief DES context consumer
  * */
-class DesCtxCsm : public Verte, public MDesCtxCsm
+class DesCtxCsm : public Verte, public MDesCtxCsm, public MDesSyncable
 {
     public:
 	using TCsmCp = NCpOnp<MDesCtxCsm, MDesCtxSpl>;
+        using TDesSyncCp = NCpOnp<MDesSyncable, MDesObserver>;  /*!< DES syncable connpoint */
     public:
 	inline static constexpr std::string_view idStr() { return "DesCtxCsm"sv;}
 	DesCtxCsm(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
@@ -1033,14 +1037,28 @@ class DesCtxCsm : public Verte, public MDesCtxCsm
 	virtual string getId() const { return name();}
 	bool bindCtx(const string& aCtxId, MVert* aCtx) override;
         // From Vert
-        void onConnected() override;
+        void onConnected(MVert* aPair) override;
         void onDisconnected() override;
+	// From MDesSyncable
+	virtual string MDesSyncable_Uid() const override {return getUid<MDesSyncable>();}
+	virtual void MDesSyncable_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
+	virtual MIface* MDesSyncable_getLif(TIdHash aId) override { return nullptr; }
+	virtual void update() override {}
+	virtual void confirm() override;
+	virtual void setUpdated() override {}
+	virtual void setActivated() override;
+	virtual bool isActive() const override { return false;}
+	virtual int countOfActive(bool aLocal = false) const override { return 0;}
+        TDesSyncableCp* desSyncableCp() override { return &mDesSyncCp;}
     protected:
         // Local
 	bool bindAllCtx();
     protected:
+        bool mBound = false;
 	TCsmCp mCsmCp;  /*!< Consumer Cp */
-	MDesCtxCsm* mMDesCtxCsmPtr = nullptr;
+        TDesSyncCp mDesSyncCp; //<! DES Syncable connpoint
+	MDesCtxCsm* mMDesCtxCsm = nullptr;
+	MDesSyncable* mMDesSyncable = nullptr;
 };
 
 #if 0

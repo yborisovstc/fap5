@@ -277,7 +277,8 @@ void DAdp::updateMag()
     DGuri magUri;
     if (mMagBase) {
         GetGData(mStMagUri, magUri);
-        MNode* magn = magUri.IsValid() ? mMagBase->getNode(magUri.mData) : mMagBase;
+        //YB!! MNode* magn = magUri.IsValid() ? mMagBase->getNode(magUri.mData) : mMagBase;
+        MNode* magn = magUri.IsValid() ? mMagBase->getNode(magUri.mData) : nullptr;
         if (magn && magn != mMag) {
             mMag = magn;
             notifyMagChanged();
@@ -288,11 +289,13 @@ void DAdp::updateMag()
 
 void DAdp::onMagChanged()
 {
+    if (mName == "MagAdp") {
+        LOGN(EDbg, "onMagChanged");
+    }
     auto magBase = getMagBase();
     if (magBase != mMagBase) {
         mMagBase = magBase;
         updateMag();
-        notifyMagChanged();
     }
 }
 

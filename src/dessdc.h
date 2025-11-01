@@ -435,9 +435,10 @@ class ASdcConn : public ASdc
 class ASdcConnT : public ASdc
 {
     public:
-        static const char* Type() { return "ASdcConnT";};
+        inline static constexpr std::string_view idStr() { return "ASdcConnT"sv;}
         ASdcConnT(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
     protected:
+        void Construct() override;
         // From ASdc
         virtual bool getState(bool aConf = false) override;
         bool doCtl() override;
@@ -526,15 +527,15 @@ class ASdcInsert3 : public ASdc
 };
 #endif
 
-#if 0
 /** @brief SDC agent "Insert node into list AFTER a the chain given node"
  * */
 class ASdcInsertN : public ASdc
 {
     public:
-        static const char* Type() { return "ASdcInsertN";};
+        inline static constexpr std::string_view idStr() { return "ASdcInsertN"sv;}
         ASdcInsertN(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
     protected:
+        void Construct() override;
         // From MObserver
         virtual void onObsChanged(MObservable* aObl) override;
         // From ASdc
@@ -548,7 +549,6 @@ class ASdcInsertN : public ASdc
         ASdc::MagDobs mDobsNprev; /*!< "Link prev CP" observation */
         MVert* mCpPair;
 };
-#endif
 
 
 

@@ -15,7 +15,7 @@ using namespace std;
 class MDVarGet: public MIface
 {
     public:
-        using TData = vector<DtBase*>;
+        using TData = vector<const DtBase*>;
     public:
 	inline static constexpr std::string_view idStr() { return "MDVarGet"sv;}
 	inline static constexpr TIdHash idHash() { return 0x5ee8e840211d938d;}
@@ -39,7 +39,9 @@ class MDVarGet: public MIface
 	virtual const DtBase* VDtGet(const string& aType) { return nullptr;}
 	/** @brief Gets the set of data by type. Appends data to aData.
 	 * */
-	virtual void VDtGet(const string& aType, vector<DtBase*>& aData) {}
+	virtual void VDtGet(const string& aType, TData& aData) {
+            aData.push_back(VDtGet(aType));
+        }
 	template<class T> const T* DtGet(const T* aData) { return reinterpret_cast<const T*>(VDtGet(aData->TypeSig()));}
 	template<class T> const T* DtGet() { return reinterpret_cast<const T*>(VDtGet(T::TypeSig()));}
 };

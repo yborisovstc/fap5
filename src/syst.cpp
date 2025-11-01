@@ -23,8 +23,9 @@ MIface* CpSystExplorable::MSystExploring_getLif(TIdHash aId)
     return res;
 }
 
-void CpSystExplorable::onConnected()
+void CpSystExplorable::onConnected(MVert* aPair)
 {
+    notifyMagChanged();
 }
 
 void CpSystExplorable::onDisconnected()
@@ -50,13 +51,28 @@ MNode* CpSystExplorable::getMag()
     return res;
 }
 
+void CpSystExplorable::notifyMagChanged()
+{
+    // Notify pairs
+    for (auto it = mPairs.begin(); it != mPairs.end(); it++) {
+        auto pair = *it;
+        MSystExploring* pairExpn = pair ? pair->lIft<MSystExploring>() : nullptr;
+        if (pairExpn) {
+            pairExpn->onMagChanged();
+        }
+    }
+
+}
+
+
+
 /// CpSystExploring
 
 
-void CpSystExploring::onConnected()
+void CpSystExploring::onConnected(MVert* aPair)
 {
     if (mProvidedPx) {
-	mProvidedPx->onMagChanged();
+        mProvidedPx->onMagChanged();
     }
 }
 
@@ -102,9 +118,8 @@ MNode* ExtdSystExplorable::getMag()
 void ExtdSystExplorable::onMagChanged()
 {
     // Redirect to pairs
-    if (mPairs.size() > 1) {
-    } else {
-        auto pair = *mPairs.begin();
+    for (auto it = mPairs.begin(); it != mPairs.end(); it++) {
+        auto pair = *it;
         MSystExploring* pairExpn = pair ? pair->lIft<MSystExploring>() : nullptr;
         if (pairExpn) {
             pairExpn->onMagChanged();
@@ -112,7 +127,7 @@ void ExtdSystExplorable::onMagChanged()
     }
 }
 
- 
+
 // ExtdSystExploring
 
 string ExtdSystExploring::KIntName = "Int";
@@ -135,13 +150,14 @@ MNode* ExtdSystExploring::getMag()
 {
     MNode* res = nullptr;
     // Redirect to pairs
-    if (mPairs.size() > 1) {
-    } else {
+    if (mPairs.size() == 1) {
         auto pair = *mPairs.begin();
         MSystExplorable* pairExpb = pair ? pair->lIft<MSystExplorable>() : nullptr;
         if (pairExpb) {
             res = pairExpb->getMag();
         }
+    } else {
+        // TODO handle
     }
     return res;
 }
@@ -166,14 +182,14 @@ PinSystExplorable::PinSystExplorable(const string &aType, const string& aName, M
 
 void PinSystExplorable::onMagChanged()
 {
-
-    if (mPairs.size() == 1) {
-        auto* pair = mPairs.at(0); 
+    for (auto it = mPairs.begin(); it != mPairs.end(); it++) {
+        auto pair = *it;
         MSystExploring* pairExpn = pair ? pair->lIft<MSystExploring>() : nullptr;
         if (pairExpn) {
             pairExpn->onMagChanged();
         }
     }
+
 }
 
 // PinSystExploring 
@@ -271,7 +287,7 @@ void Syst::onOwnedAttached(MOwned* aOwned)
 {
     Elem::onOwnedAttached(aOwned);
     auto expl = aOwned->lIft<MSystExploring>();
-    if (expl) {
+    if (expl && expl->getCp()) {
 	// Connect owned as exploring/controlling
 	bool res = mExplorableCp.connect(expl->getCp());
 	assert(res);

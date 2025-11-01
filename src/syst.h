@@ -33,10 +33,11 @@ class CpSystExplorable: public ConnPoint<MSystExplorable, MSystExploring>, publi
 	MSystExploring::TCp* getCp() override { return &mExploringCp;}
     protected:
         // From ConnPoint
-	void onConnected() override;
+	void onConnected(MVert* aPair) override;
 	void onDisconnected() override;
 	void onBound() override;
 	void onUnbound() override;
+        void notifyMagChanged();
     protected:
 	TExploringCp mExploringCp;
 	MSystExplorable* mMSystExplorable = nullptr;
@@ -56,7 +57,7 @@ class CpSystExploring: public ConnPoint<MSystExploring, MSystExplorable>
             TBase(aType, aName, aEnv) {}
     protected:
         // From ConnPoint
-	void onConnected() override;
+	void onConnected(MVert* aPair) override;
 	void onDisconnected() override;
 	void onBound() override;
 	void onUnbound() override;

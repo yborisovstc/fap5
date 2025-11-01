@@ -311,6 +311,9 @@ bool ASdc::areInpsValid() const
 void ASdc::confirm()
 {
     PFL_DUR_STAT_START(PEvents::EDurStat_ASdcConfirm);
+    if (mName == "CreateWdg") {
+        LOGN(EDbg, "confirm");
+    }
     if (mMag && areInpsValid() && mIapEnb.data(true).mData) { // Ref ds_dcs_sdc_dsgn_oin Solution#1
         PFL_DUR_STAT_START(PEvents::EDurStat_ASdcConfState);
         bool state = getState(true);
@@ -882,6 +885,14 @@ ASdcConnT::ASdcConnT(const string &aType, const string& aName, MEnv* aEnv): ASdc
     mIapV2("V2", this, K_CpUri_V2), mNco1(this), mNco2(this)
 { }
 
+void ASdcConnT::Construct()
+{
+    ASdc::Construct();
+    mIapTarg.Construct();
+    mIapV1.Construct();
+    mIapV2.Construct();
+}
+
 bool ASdcConnT::getState(bool aConf)
 {
     bool res = false;
@@ -1287,7 +1298,6 @@ bool ASdcInsert3::getState(bool aConf)
 
 
 
-#if 0
 
 /// SDC agent "Insert node into list AFTER a the chain given node"
 
@@ -1296,6 +1306,15 @@ ASdcInsertN::ASdcInsertN(const string &aType, const string& aName, MEnv* aEnv): 
     mIapPname("Pname", this, K_CpUri_Insr2_Pname),
     mDobsNprev(this, MagDobs::EO_CHG)
 { }
+
+void ASdcInsertN::Construct()
+{
+    ASdc::Construct();
+    mIapName.Construct();
+    mIapPrev.Construct();
+    mIapNext.Construct();
+    mIapPname.Construct();
+}
 
 bool ASdcInsertN::getState(bool aConf)
 {
@@ -1434,7 +1453,6 @@ void ASdcInsertN::onObsChanged(MObservable* aObl)
     notifyOutp();
 }
 
-#endif
 
 
 

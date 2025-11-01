@@ -3,35 +3,40 @@ MyRoot : Elem {
         About = "DES connecting"
         LogLevel = "Dbg"
         Sock1 : Socket {
-            Inp1 : CpStateInpPin
-            Inp2 : CpStateInpPin
+            Pin1 : CpStateInpPin
+            Pin2 : CpStateInpPin
+        }
+        Sock1p : Socket {
+            Pin1 : CpStateOutpPin
+            Pin2 : CpStateOutpPin
         }
         Ds1 : Des {
             S1 : Sock1 (
-                Inp1 ~ : SI_0
-                Inp2 ~ : SI_1
+                Pin1 ~ : SI_0
+                Pin2 ~ : SI_1
             )
-            S2 : Sock1
+            S2 : Sock1p
             St1 : State (
                 _@ <  {
                     = "SI"
                     LogLevel = "Dbg"
                 }
-                Inp ~ S2.Inp1
+                Inp ~ S2.Pin1
             )
             St2 : State (
                 _@ <  {
                     = "SI"
                     LogLevel = "Dbg"
                 }
-                Inp ~ S2.Inp2
+                Inp ~ S2.Pin2
             )
-            SockExtd : Extd {
-                Int : Sock1
+            SockExtd : SocketExtd {
+                Pin1 : CpStateInpPin
+                Pin2 : CpStateInpPin
+                Int : Sock1p
             }
+            SockExtd.Int ~ S1
             S2 ~ SockExtd
-            SockExtd.Int.Inp1 ~ : SI_0
-            SockExtd.Int.Inp2 ~ : SI_2
         }
     }
 }
