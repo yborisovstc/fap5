@@ -59,19 +59,6 @@ MyRoot : Elem {
         VectIter_Done_Dbg : State (
             Inp ~ VectIter.OutpDone
         )
-        Iter2 : DesUtils.IdxItr2 (
-            _@ < LogLevel = "Dbg"
-            Sw1 < LogLevel = "Dbg"
-            InpCnt ~ : TrSizeVar (
-                Inp ~ SVect
-            )
-            InpDone ~ : State {
-                = "SB true"
-            }
-            InpReset ~ : State {
-                = "SB false"
-            }
-        )
         # "Vector iterator based on DesUtils.VectIter"
         VectIter2 : DesUtils.VectIter (
             _@ < LogLevel = "Dbg"
@@ -93,6 +80,7 @@ MyRoot : Elem {
             Vert2 : Vert1
             Vert3 : Vert2
             Targets : Syst {
+                CpExplorable : CpSystExplorable
                 Target3 : Vert3
             }
             # "Controller uses adapter for access to target"
@@ -100,12 +88,8 @@ MyRoot : Elem {
                 LogLevel = "Dbg"
                 Parents : SdoParents
             }
-            TargBaseLink : Link {
-                Outp : CpStateMnodeOutp
-            }
-            TargBaseLink ~ Targets
             Adapter  (
-                InpMagBase ~ TargBaseLink.Outp
+                CpExploring ~ Targets.CpExplorable
                 InpMagUri ~ : Const {
                     = "URI Target3"
                 }
@@ -117,7 +101,9 @@ MyRoot : Elem {
                 }
             )
             CrpResolver.InpParents ~ Adapter.Parents
-            CrpResolver.InpDefRes ~ : Const { = "URI Vert" }
+            CrpResolver.InpDefRes ~ : Const {
+                = "URI Vert"
+            }
             CrpRes_Dbg : State (
                 _@ < LogLevel = "Dbg"
                 _@ < = "URI"
@@ -128,6 +114,7 @@ MyRoot : Elem {
         {
             # ">>> Example: collecting of CPs of a systsem"
             CcpTargets : Syst {
+                CpExplorable : CpSystExplorable
                 CcpTarget : Syst {
                     Inp1 : ExtdStateInp
                     Outp1 : ExtdStateOutp
@@ -138,12 +125,8 @@ MyRoot : Elem {
                 LogLevel = "Dbg"
                 CompsNames : SdoCompsUri
             }
-            CcpTargetsLink : Link {
-                Outp : CpStateMnodeOutp
-            }
-            CcpTargetsLink ~ CcpTargets
             CcpAdapter  (
-                InpMagBase ~ CcpTargetsLink.Outp
+                CpExploring ~ CcpTargets.CpExplorable
                 InpMagUri ~ TargUri : Const {
                     = "URI CcpTarget"
                 }
@@ -153,7 +136,7 @@ MyRoot : Elem {
                 # "INP: components names"
                 InpCompNames : ExtdStateInp
                 # "INP: Model link"
-                InpMdlLink : ExtdStateMnodeInp
+                CpObserving : ExtdSystExploring
                 InpTargUri : ExtdStateInp
                 CompsIter : DesUtils.VectIter (
                     _@ < LogLevel = "Dbg"
@@ -172,7 +155,7 @@ MyRoot : Elem {
                     Inp ~ CompsIter.OutV
                 )
                 CompAdapter : DAdp (
-                    InpMagBase ~ InpMdlLink.Int
+                    CpExploring ~ CpObserving.Int
                     InpMagUri ~ : TrApndVar (
                         Inp1 ~ InpTargUri.Int
                         Inp2 ~ CompsIter.OutV
@@ -192,7 +175,7 @@ MyRoot : Elem {
                 # "<<< ConnPoints collector"
             }
             CpsCollector.InpCompNames ~ CcpAdapter.CompsNames
-            CpsCollector.InpMdlLink ~ CcpTargetsLink.Outp
+            CpsCollector.CpObserving ~ CcpTargets.CpExplorable
             CpsCollector.InpTargUri ~ TargUri
             # "<<< Example: collecting of CPs of a systsem"
         }

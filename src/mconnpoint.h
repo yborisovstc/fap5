@@ -2,6 +2,7 @@
 #define __FAP5_MCONNPOINT_H
 
 #include "miface.h"
+#include "npconn.h"
 
 class MVert;
 
@@ -20,6 +21,11 @@ class MConnPoint : public MIface
 	// Local
         virtual TIdHash idProvided() const = 0;
         virtual TIdHash idRequired() const = 0;
+        virtual MNpc* bP() = 0;
+        // Binding
+        virtual bool bind(MNpc* aPair) = 0;
+        virtual bool unbind(MNpc* aPair) = 0;
+	virtual bool isBound(const MNpc* aPair) const = 0;
 };
 
 /** @brief Socket interface

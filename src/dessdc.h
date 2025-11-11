@@ -23,7 +23,7 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
     public:
         using TObserverCp = NCpOmnp<MObserver, MObservable>;
         using TDesSyncCp = NCpOnp<MDesSyncable, MDesObserver>;  /*!< DES syncable connpoint */
-        using TExplCp = NCpOnp<MSystExploring, MSystExplorable>;
+        using TExplCp = NpcOnp;
     public:
         /** @brief Node creation observer
          * */
@@ -101,6 +101,7 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
                 SdcPapb(const string& aName, ASdc* aHost, const string& aCpUri);
                 void Construct();
                 string getCpUri() const { return mCpUri;}
+                MNpc* bCp() { return &mBp; }
                 // From MDVarGet
                 virtual string MDVarGet_Uid() const override {return mHost->getUidC<MDVarGet>(mName);}
                 MIface* MDVarGet_getLif(TIdHash aId) override {
@@ -117,6 +118,7 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
                 ASdc* mHost;
                 string mCpUri;  /*!< Output URI */
                 MVert* mOutp = nullptr;
+                NpcOnp mBp;
                 MDVarGet* mMDVarGet = nullptr;
         };
 
@@ -275,7 +277,7 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
         string MSystExploring_Uid() const override  {return getUid<MSystExploring>();}
         MIface* MSystExploring_getLif(TIdHash aId) override { return nullptr;}
         void onMagChanged() override;
-        MSystExploring::TCp* getCp() override { return &mExploringCp;}
+        MNpc* getCp() override { return &mExploringCp;}
     public:
         bool registerIap(SdcIapb* aIap);
         bool registerPap(SdcPapb* aPap);
@@ -302,6 +304,7 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
         TObserverCp mObrCp;               /*!< Observer connpoint */
         TDesSyncCp mSyncCp; //<! DES Syncable connpoint
         TExplCp mExploringCp; /*! Exploring Cp */
+        NpcOmnp mInpsBp; /*!< Inputs binding point */
         MNode* mMag; /*!< Managed agent */
         bool mUpdNotified;  //<! Sign of that State notified observers on Update
         bool mActNotified;  //<! Sign of that State notified observers on Activation

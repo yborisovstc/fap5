@@ -205,7 +205,8 @@ const string DAdp::KCpExplName = "CpExploring";
 const string K_DAdp_InpMagUri = "InpMagUri";
 const string K_DAdp_StMagUri = "StMagUri";
 
-DAdp::DAdp(const string &aType, const string& aName, MEnv* aEnv): Des(aType, aName, aEnv)
+DAdp::DAdp(const string &aType, const string& aName, MEnv* aEnv): Des(aType, aName, aEnv),
+    mCpExpl(MSystExploring::idHash(), MSystExplorable::idHash(), dynamic_cast<MSystExploring*>(this))
 {
 }
 
@@ -214,9 +215,8 @@ void DAdp::Construct()
     // Add exploring cp
     auto ecp = addComp(CpSystExploring::idStr(), KCpExplName);
     assert(ecp);
-    mCpExpl = ecp->lIft<MVert>();
-    assert(mCpExpl);
-    bool res = mCpExpl->bind(MNode::lIft<MNode>());
+    auto ecpcp = ecp->lIft<MConnPoint>();
+    bool res = ecpcp->bind(&mCpExpl);
     assert(res);
     // Add MAG uri input
     auto inpMagUrin = addComp(CpStateInp::idStr(), K_DAdp_InpMagUri);
@@ -226,10 +226,9 @@ void DAdp::Construct()
     mStMagUri = addComp(BState::idStr(), K_DAdp_StMagUri);
     assert(mStMagUri);
     mStMagUri->lIft<MContentOwner>()->setContent("", "URI");
-    res = inpMagUri->bind(mStMagUri->MNode::lIft<MNode>());
-    assert(res);
-    auto stMagUriv = mStMagUri->lIft<MVert>();
-    res = stMagUriv->bind(inpMagUri);
+    auto* stMagUriCp = mStMagUri->lIft<MConnPoint>();
+    auto* stMagUriv = mStMagUri->lIft<MVert>();
+    res = stMagUriCp->bind(inpMagUri->lIft<MConnPoint>()->bP());
     assert(res);
     mHdlr = new MagUriHandler("MagUriHandler", mEnv, this);
     MVert::connect(stMagUriv, mHdlr->lIft<MVert>());
@@ -264,9 +263,9 @@ MNode* DAdp::getMag()
 MNode* DAdp::getMagBase()
 {
     MNode* res = nullptr;
-    if (mCpExpl && mCpExpl->pairsCount()) {
-	auto* pairv = mCpExpl->getPair(0);
-	auto* explb = pairv->lIft<MSystExplorable>();
+    if (mCpExpl.pcount()) {
+	auto* pairv = mCpExpl.pairAt(0);
+	auto* explb = pairv->prov<MSystExplorable>();
 	res = explb ? explb->getMag() : nullptr;
     }
     return res;
@@ -302,6 +301,6 @@ void DAdp::onMagChanged()
 void DAdp::notifyMagChanged()
 {
     for (auto pair : mExplorableCp.mPairs) {
-	pair->provided()->onMagChanged();
+	pair->prov<MSystExploring>()->onMagChanged();
     }
 }

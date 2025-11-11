@@ -74,7 +74,6 @@ template<class T> const DtBase* FAddDt<T>::FDtGet()
             } else {
                 // TODO handle null data ptr
             }
-
         }
     }
     for (int i = 0; i < mHost.GetInpIcCount(EInpN); i++) {

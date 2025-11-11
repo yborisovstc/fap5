@@ -6,6 +6,7 @@
 #include "miface.h"
 
 #include "mvert.h"
+#include "npconn.h"
 
 
 /** @brief Edge spec
@@ -95,8 +96,6 @@ class MSystExplorable: public MIface
  * */
 class MSystExploring: public MIface
 {
-    public: 
-	using TCp = MNcp<MSystExploring, MSystExplorable>;
     public:
 	inline static constexpr std::string_view idStr() { return "MSystExploring"sv;}
 	inline static constexpr TIdHash idHash() { return 0x5be939ac33d3b333;}
@@ -108,7 +107,7 @@ class MSystExploring: public MIface
 	virtual string MSystExploring_Uid() const = 0;
 	virtual MIface* MSystExploring_getLif(TIdHash aId) = 0;
 	virtual void onMagChanged() = 0;
-	virtual TCp* getCp() = 0;
+	virtual MNpc* getCp() = 0;
 };
 
 

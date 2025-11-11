@@ -89,7 +89,7 @@ class DAdp: public Des, public MSystExploring
 	string MSystExploring_Uid() const override {return getUid<MSystExploring>();}
 	MIface* MSystExploring_getLif(TIdHash aId) override; 
 	void onMagChanged() override;
-	MSystExploring::TCp* getCp() override { return nullptr;}
+	MNpc* getCp() override { return nullptr;}
 	// From MSystExplorable
 	MNode* getMag() override;
     protected:
@@ -98,7 +98,7 @@ class DAdp: public Des, public MSystExploring
 	MNode* getMagBase();
 	void updateMag();
     protected:
-	MVert* mCpExpl = nullptr;
+	NpcOnp mCpExpl;
 	MNode* mMagBase = nullptr;
 	MNode* mMag = nullptr;
 	MNode* mStMagUri = nullptr;

@@ -80,20 +80,17 @@ MyRoot : Elem {
                 = "SI -1"
             }
             Inp ~ : TrSwitchBool (
-                LogLevel = "Dbg"
+                _@ < LogLevel = "Dbg"
                 Inp1 ~ Max
-                Inp2 ~ : TrInpSel (
+                Inp2 ~ InpSel : TrInpSel (
+                    _@ < LogLevel = "Dbg"
                     Inp ~ Ext
                     Idx ~ InpIterator.Outp
                 )
                 Sel ~ Max_Lt : TrCmpVar (
-                    LogLevel = "Dbg"
+                    _@ < LogLevel = "Dbg"
                     Inp ~ Max
-                    Inp2 ~ : TrInpSel (
-                        LogLevel = "Dbg"
-                        Inp ~ Ext
-                        Idx ~ InpIterator.Outp
-                    )
+                    Inp2 ~ InpSel
                 )
             )
         )

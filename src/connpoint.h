@@ -5,6 +5,7 @@
 #include "vert.h"
 #include "node.h"
 #include "elem.h"
+#include "npconn.h"
 
 // TODO consider using prov/req ifaces id as arrts instead of template pars
 /** @brief Connection point in native treee.
@@ -12,112 +13,37 @@
  * so can be managed via model mutation.
  * Connpoint proxies provided iface, set via binding operation
  * */
-template <class Provided, class Required>
 class ConnPoint : public Vert, public MConnPoint
 {
     public:
-        using TProvided = Provided;
-        using TRequired = Required;
-    public:
-        //ConnPoint(const string &aType, const string &aName, MEnv* aEnv);
-        ConnPoint(const string &aType, const string &aName, MEnv* aEnv): Vert(aType, aName, aEnv) {}
+        ConnPoint(const string &aType, const string &aName, MEnv* aEnv, MIface::TIdHash aPifId, MIface::TIdHash aRifId): Vert(aType, aName, aEnv),
+            mPifId(aPifId), mRifId(aRifId) {}
         virtual ~ConnPoint() {}
         // From MNode
         MIface *MNode_getLif(TIdHash aId) override;
         MIface *MOwned_getLif(TIdHash aId) override;
         // From MConnPoint
         string MConnPoint_Uid() const override  { return getUid<MConnPoint>();}
-        TIdHash idProvided() const override { return TProvided::idHash(); }
-        TIdHash idRequired() const override { return TRequired::idHash(); }
+        TIdHash idProvided() const override { return mPifId; }
+        TIdHash idRequired() const override { return mRifId; }
         // From MVert
         MIface *MVert_getLif(TIdHash aId) override;
         bool isCompatible(const MVert* aPair, bool aExt = false) const override;
         MVert* getExtd() override;
         TDir getDir() const override { return ERegular;}
-        bool bind(MIface* aBound) override {
-            auto* bound = aBound->lIft<TProvided>();
-            // TODO to replace assert with log
-	    assert(mProvidedPx == nullptr);
-            bool res = bound ? mProvidedPx = bound, true : false;
-            if (res) onBound();
-            return res;
-        }
-        bool unbind(MIface* aBound) override {
-	    auto* bound = aBound->lIft<TProvided>();
-	    assert(mProvidedPx == bound);
-            bool res = mProvidedPx ? mProvidedPx = nullptr, true : false;
-            if (res) onUnbound();
-            return res;
-        }
-	bool isBound(const MIface* aBound) const override {
-	    const auto* bound = const_cast<MIface*>(aBound)->lIft<TProvided>();
-	    return bound && (mProvidedPx == bound);
-	}
+	bool isBound(const MVert* aBound) const override;
+        bool bind(MVert* aPair) override;
+        bool unbind(MVert* aPair) override;
+        // From MConnPoint
+        bool bind(MNpc* aPair) override;
+        bool unbind(MNpc* aPair) override;
+	bool isBound(const MNpc* aPair) const;
     protected:
-        TProvided* mProvidedPx = nullptr;
-    private:
+        MIface::TIdHash mPifId;
+        MIface::TIdHash mRifId;
         MVert* mMVert = nullptr;
-        TRequired* mRequired = nullptr;
-        TProvided* mProvided = nullptr;
         MConnPoint* mMConnPoint = nullptr;
 };
-
-    template <class Provided, class Required>
-MIface* ConnPoint<Provided, Required>::MNode_getLif(TIdHash aId)
-{
-    // TODO to reuse MOwned resolver?
-    MIface* res = nullptr;
-    if (res = checkLif2(aId, mMVert));
-    else if (res = checkLifn(aId, mProvidedPx));    // Keep binded as priority
-    else if (res = checkLif2(aId, mProvided));
-    else res = Node::MNode_getLif(aId);
-    return res;
-}
-
-    template <class Provided, class Required>
-MIface* ConnPoint<Provided, Required>::MOwned_getLif(TIdHash aId)
-{
-    MIface* res = nullptr;
-    if (res = checkLif2(aId, mMVert));
-    else if (res = checkLifn(aId, mProvidedPx));    // Keep binded as priority
-    else if (res = checkLif2(aId, mProvided));
-    else res = Node::MOwned_getLif(aId);
-    return res;
-}
-
-    template <class Provided, class Required>
-MIface* ConnPoint<Provided, Required>::MVert_getLif(TIdHash aId)
-{
-    MIface* res = nullptr;
-    if (res = checkLifn(aId, mProvidedPx));    // Keep binded as priority
-    else if (res = checkLif2(aId, mProvided));
-    else if (res = checkLif2(aId, mRequired)); // Needs for CPs binding
-    else if (res = checkLif2(aId, mMConnPoint));
-    else res = Vert::MVert_getLif(aId);
-    return res;
-}
-
-template <class Provided, class Required>
-bool ConnPoint<Provided, Required>::isCompatible(const MVert* aPair, bool aExt) const
-{
-    bool res = false;
-    const MConnPoint* pcp = aPair->lIft<const MConnPoint>();
-    if (pcp) {
-        auto sRid = idRequired();
-        auto sPid = idProvided();
-        auto pRid = pcp->idRequired();
-        auto pPid = pcp->idProvided();
-        res = aExt ? (pRid == sRid && pPid == sPid) : (pRid == sPid && pPid == sRid);
-    }
-    return res;
-}
-
-    template <class Provided, class Required>
-MVert* ConnPoint<Provided, Required>::getExtd()
-{
-    return nullptr;
-}
-
 
 
 
@@ -138,6 +64,9 @@ class Socket: public Verte, public MSocket
         bool isCompatible(const MVert* aPair, bool aExt = false) const override;
         MVert* getExtd() override;
         TDir getDir() const override;
+	bool isBound(const MVert* aBound) const override;
+        bool bind(MVert* aPair) override;
+        bool unbind(MVert* aPair) override;
         // From MSocket
         string MSocket_Uid() const override  { return getUid<MSocket>();}
         int PinsCount() const override;
@@ -153,6 +82,7 @@ class Socket: public Verte, public MSocket
         // Bind/connect, unbind/disconnect pins
         void bindPins(MSocket* aPair, bool aConnect, bool aUndo = false);
     protected:
+        // TODO consider adding binding point
         MVert* mMVert = nullptr;
         MSocket* mMSocket = nullptr;
 };
@@ -169,6 +99,8 @@ class SocketExtd : public Socket
 	// From Node
 	void onOwnedAttached(MOwned* aOwned) override;
 	void onOwnedDetached(MOwned* aOwned) override;
+        // From MVert
+        MVert* getExtd() override;
         // From MSocket
         MVert* GetPin(int aInd) override;
     public:

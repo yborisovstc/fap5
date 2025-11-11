@@ -126,7 +126,7 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	MNode* addComp(const string_view& aId, const string& aName);
 	const MNode* getComp(const string& aId) const;
 	MNode* getComp(const string& aId) { return const_cast<MNode*>(const_cast<const Node*>(this)->getComp(aId));}
-	template<class T> inline MIface* checkLifn(TIdHash aId, T*& aPtr) {
+	template<class T> inline MIface* checkLifn(TIdHash aId, T* aPtr) {
 	    return (aId == T::idHash()) ? aPtr : nullptr;
 	}
 	template<class T> string getUid() const {return getUriS() + Ifu::KUidSep + string(T::idStr());}

@@ -1,5 +1,6 @@
 MyRoot : Elem {
     Launcher : DesLauncher {
+        LogLevel = "Dbg"
         Ds1 : Des {
             _ <  {
                 # "<<< Hidden"
@@ -193,7 +194,7 @@ MyRoot : Elem {
                     = "SI"
                     LogLevel = "Dbg"
                 }
-                Inp ~ : TrAddVar (
+                Inp ~ AddMd : TrAddVar (
                     Inp ~ : ExtdStateOutp (
                         Int ~ : State {
                             = "SI 7"
@@ -544,6 +545,26 @@ MyRoot : Elem {
                     Inp ~ : State {
                         = "SS Inp3"
                     }
+                )
+            )
+            # "Intput counter, indirect inputs"
+            InpCntRes2 : State (
+                _@ <  {
+                    = "SI "
+                    LogLevel = "Dbg"
+                }
+                Inp ~ : TrInpCnt (
+                    Inp ~ : ExtdStateOutp (
+                        Int ~ : Const {
+                            = "SI 3"
+                        }
+                        Int ~ : Const {
+                            = "SI 4"
+                        }
+                        Int ~ : Const {
+                            = "SI 5"
+                        }
+                    )
                 )
             )
             # "Intput selector"

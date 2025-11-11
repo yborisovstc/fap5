@@ -15,7 +15,8 @@ vector<GUri> TrBase::getParentsUri()
 }
 */
 
-TrBase::TrBase(const string &aType, const string& aName, MEnv* aEnv): CpStateOutp(aType, aName, aEnv), mCInv(true)
+TrBase::TrBase(const string &aType, const string& aName, MEnv* aEnv): CpStateOutp(aType, aName, aEnv), mCInv(true),
+    mInpsBp(MDesInpObserver::idHash(), MDVarGet::idHash(), dynamic_cast<MDesInpObserver*>(this))
 {
 }
 
@@ -53,7 +54,7 @@ CpStateInp* TrBase::AddInput(const string& aName)
     assert(res);
     // This check needs because transition can support auto-bounding like TrTuple
     if (!inp->isBound(MNode::lIft<MVert>())) {
-	res = inp->bind(MNode::lIft<MVert>());
+	res = inp->bind(&mInpsBp);
 	assert(res);
     }
     return inp;
@@ -100,6 +101,18 @@ MDVarGet* TrBase::InpIc(const CpStateInp* aInp, int aIcId)
 MDVarGet* TrBase::InpIc(int aInpId, int aIcId)
 {
     return GetFinp(aInpId)->mPairs.at(aIcId)->lIft<MDVarGet>();
+}
+
+int TrBase::InpDtCount(const CpStateInp* aInp)
+{
+    MDVarGet::TData data;
+    const_cast<CpStateInp*>(aInp)->VDtGet(string(), data);
+    return data.size();
+}
+
+int TrBase::InpDtCount(int aInpId)
+{
+    return InpDtCount(GetFinp(aInpId));
 }
 
 
@@ -1205,9 +1218,9 @@ const DtBase* TrTuple::doVDtGet(const string& aType)
 
 void TrTuple::onOwnedAttached(MOwned* aOwned)
 {
-    auto vert = aOwned->lIft<MVert>();
-    if (vert) {
-	vert->bind(MNode::lIft<MVert>());
+    auto cp = aOwned->lIft<MConnPoint>();
+    if (cp) {
+	cp->bind(&mInpsBp);
     }
 }
 
@@ -1349,7 +1362,8 @@ const DtBase* TrInpCnt::doVDtGet(const string& aType)
     // TODO Make optimisation to not check type each cycle
     if (aType == TRes::TypeSig()) {
 	mRes.mValid = false;
-	int icnt = InpIcCount(mInpInp);
+	//int icnt = InpIcCount(mInpInp);
+	int icnt = InpDtCount(mInpInp);
 	mRes.mData = icnt;
 	mRes.mValid = true;
 	return &mRes;
@@ -1404,8 +1418,28 @@ MDVarGet* TrInpSel::GetInp()
 const DtBase* TrInpSel::doVDtGet(const string& aType)
 {
     const DtBase* res = nullptr;
+    /*
     MDVarGet* inp = GetInp();
     res = inp ? inp->VDtGet(aType) : nullptr;
+    return res;
+    */
+
+    const Sdata<int>* idx = GetInpData(mInpIdx, idx);
+    if (idx && idx->IsValid()) {
+	int icnt = InpDtCount(mInpInp);
+	if (icnt > 0) {
+	    if (idx->mData >= 0 && idx->mData < icnt) {
+                MDVarGet::TData data;
+                mInpInp->VDtGet(string(), data);
+                res = data.at(idx->mData);
+		LOGN(EDbg, "Count: " + to_string(icnt) + ", Idx: " + to_string(idx->mData) + ", res: " + res->ToString(1));
+	    } else {
+		LOGN(EErr, "Incorrect index  [" + to_string(idx->mData) + "], inps num: " + to_string(icnt));
+	    }
+	}
+    } else {
+        LOGN(EErr, "Invalid index");
+    }
     return res;
 }
 
@@ -1747,11 +1781,10 @@ const DtBase* TrHash::doVDtGet(const string& aType)
 	int hash = 0;
 	for (int i = 0; i < icnt; i++) {
 	    auto* dget = InpIc(mInpInp, i);
-	    const DtBase* data = dget->VDtGet(string());
-	    if (data) {
-		hash += data->Hash();
-	    } else {
-		data = dget->VDtGet(string()); // Debug
+            MDVarGet::TData data;
+	    dget->VDtGet(string(), data);
+            for (auto* dt : data) {
+		hash += dt->Hash();
 	    }
 	}
 	mRes.mData = hash;

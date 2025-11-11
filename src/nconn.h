@@ -1,5 +1,5 @@
-#ifndef __FAP3_NCONN_H
-#define __FAP3_NCONN_H
+#ifndef __FAP5_NCONN_H
+#define __FAP5_NCONN_H
 
 #include <map>
 #include <unordered_map>
@@ -507,6 +507,7 @@ class NCpOnp : public MNcp<TPif, TRif>
 	    public:
 		PIter(const TPairsIterator& aItr): mItr(aItr) {}
 		PIter& operator=(const PIter& aIt) { this->mItr = aIt.mItr; return *this; }
+                // 
 		PIter& operator++() override { mItr++; return *this; }
 		//PIter operator++(int) override { PIter tmp(*this); operator++(); return tmp; }
 		bool operator==(const typename TSelf::MIter& aIt) const override { auto ait = reinterpret_cast<const TThis::PIter&>(aIt); return (mItr == ait.mItr); }

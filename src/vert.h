@@ -27,18 +27,18 @@ class Vert : public Node, public MVert
 	bool connect(MVert* aPair) override;
 	bool disconnect(MVert* aPair) override;
 	bool isConnected(const MVert* aPair) const override;
-        bool bind(MIface* aBound) override { return false; }
-        bool unbind(MIface* aBound) override { return false; }
-	bool isBound(const MIface* aBound) const override { return false;}
 	void vertGetUri(GUri& aUri, const MNode* aBase = nullptr) const override;
+	bool isBound(const MVert* aBound) const override { return false; }
+        bool bind(MVert* aPair) override { return false; }
+        bool unbind(MVert* aPair) override { return false; }
+	void onBound(MVert* aPair) override {}
+	void onUnbinding(MVert* aPair) override {}
+	void onUnbound(MVert* aPair) override {}
     protected:
         // Local
 	virtual void onConnected(MVert* aPair);
 	virtual void onDisconnecting(MVert* aPair) {}
 	virtual void onDisconnected();
-	virtual void onBound() {}
-	virtual void onUnbinding() {}
-	virtual void onUnbound() {}
     public:
         TPairs mPairs;
     private:
@@ -67,18 +67,18 @@ class Verte : public Elem, public MVert
 	bool connect(MVert* aPair) override;
 	bool disconnect(MVert* aPair) override;
 	bool isConnected(const MVert* aPair) const override;
-        bool bind(MIface* aBound) override { return false; }
-        bool unbind(MIface* aBound) override { return false; }
-	bool isBound(const MIface* aBound) const override { return false;}
 	void vertGetUri(GUri& aUri, const MNode* aBase = nullptr) const override;
+	bool isBound(const MVert* aBound) const override { return false; }
+        bool bind(MVert* aPair) override { return false; }
+        bool unbind(MVert* aPair) override { return false; }
+	void onBound(MVert* aPair) override {}
+	void onUnbinding(MVert* aPair) override {}
+	void onUnbound(MVert* aPair) override {}
     protected:
         // Local
 	virtual void onConnected(MVert* aPair);
 	virtual void onDisconnecting(MVert* aPair) {}
 	virtual void onDisconnected();
-	virtual void onBound() {}
-	virtual void onUnbinding() {}
-	virtual void onUnbound() {}
     public:
         TPairs mPairs;
     private:

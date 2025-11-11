@@ -1,6 +1,104 @@
 
 #include "connpoint.h"
 
+//// ConnPoint
+
+MIface* ConnPoint::MNode_getLif(TIdHash aId)
+{
+    // TODO to reuse MOwned resolver?
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMVert));
+    else if (res = checkLif2(aId, mMConnPoint));
+    else res = Node::MNode_getLif(aId);
+    return res;
+}
+
+MIface* ConnPoint::MOwned_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMVert));
+    else res = Node::MOwned_getLif(aId);
+    return res;
+}
+
+MIface* ConnPoint::MVert_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMConnPoint));
+    else res = Vert::MVert_getLif(aId);
+    return res;
+}
+
+bool ConnPoint::isCompatible(const MVert* aPair, bool aExt) const
+{
+    bool res = false;
+    const MConnPoint* pcp = aPair->lIft<const MConnPoint>();
+    if (pcp) {
+        auto sRid = idRequired();
+        auto sPid = idProvided();
+        auto pRid = pcp->idRequired();
+        auto pPid = pcp->idProvided();
+        res = aExt ? (pRid == sRid && pPid == sPid) : (pRid == sPid && pPid == sRid);
+    }
+    return res;
+}
+
+MVert* ConnPoint::getExtd()
+{
+    return nullptr;
+}
+
+bool ConnPoint::bind(MNpc* aPair)
+{
+    bool res = aPair->connect(bP());
+    return res;
+}
+
+bool ConnPoint::unbind(MNpc* aPair)
+{
+    return aPair->disconnect(bP());
+}
+
+bool ConnPoint::isBound(const MNpc* aPair) const
+{
+    return aPair->isConnected(const_cast<ConnPoint*>(this)->bP());
+}
+
+bool ConnPoint::isBound(const MVert* aPair) const
+{
+    MVert* pairv = const_cast<MVert*>(aPair);
+    auto* pairCp = const_cast<MConnPoint*>(pairv->lIft<MConnPoint>());
+    return pairCp ? pairCp->bP()->isConnected(const_cast<ConnPoint*>(this)->bP()) : false;
+}
+
+bool ConnPoint::bind(MVert* aPair)
+{
+    bool res = false;
+    auto* pairCp = aPair->lIft<MConnPoint>();
+    if (pairCp) {
+        res = bP()->connect(pairCp->bP());
+        if (res) {
+            onBound(aPair);
+            aPair->onBound(this);
+        }
+    }
+    return res;
+}
+
+bool ConnPoint::unbind(MVert* aPair)
+{
+    bool res = false;
+    auto* pairCp = aPair->lIft<MConnPoint>();
+    if (pairCp) {
+        res = bP()->disconnect(pairCp->bP());
+        if (res) {
+            onUnbound(aPair);
+            aPair->onUnbound(this);
+        }
+    }
+    return res;
+}
+
 
 //// Socket
 
@@ -169,6 +267,7 @@ string Socket::GetPinId(int aInd) const
     return owd->ownedId();
 }
 
+// TODO return res?
 void Socket::bindPins(MSocket* aPair, bool aConnect, bool aUndo)
 {
     for (int i = 0; i < PinsCount(); i++) {
@@ -190,16 +289,24 @@ void Socket::bindPins(MSocket* aPair, bool aConnect, bool aUndo)
                     }
                 }
             } else {
-                if (aUndo) {
-                    bool res = pin->unbind(pairPin)/* && pairPin->unbind()*/;
-                    if (!res) {
-                        LOGN(EErr, "Failed unbinding pins [" + GetPinId(i) + "]");
+                if (pin && pairPin) {
+                    if (aUndo) {
+                        if (pin->isBound(pairPin)) {
+                            bool res = pin ? pin->unbind(pairPin) : false;
+                            if (!res) {
+                                LOGN(EErr, "Failed unbinding pins [" + GetPinId(i) + "]");
+                            }
+                        }
+                    } else {
+                        if (!pin->isBound(pairPin)) {
+                            bool res = pin ? pin->bind(pairPin) : false;
+                            if (!res) {
+                                LOGN(EErr, "Failed binding pins [" + GetPinId(i) + "]");
+                            }
+                        }
                     }
                 } else {
-                    bool res = pin->bind(pairPin)/* && pairPin->bind(pin)*/;
-                    if (!res) {
-                        LOGN(EErr, "Failed binding pins [" + GetPinId(i) + "]");
-                    }
+                    LOGN(EErr, "Attempt binding non-connpoint pin [" + pin->Uid() + "]");
                 }
             }
         } else {
@@ -210,7 +317,8 @@ void Socket::bindPins(MSocket* aPair, bool aConnect, bool aUndo)
 
 void Socket::onConnected(MVert* aPair)
 {
-    MVert* ecp = aPair->getExtd(); 
+    //MVert* ecp = aPair->getExtd(); 
+    MVert* ecp = nullptr;  // We connect to extd as to socket, i.e. binding pins
     // Checking if the pair is Extender
     if (ecp) {
         // Extended socket, connect pins
@@ -242,6 +350,47 @@ void Socket::onDisconnected()
 {
 }
 
+// TODO desing option w/o binding point, consider bp option also
+bool Socket::isBound(const MVert* aPair) const
+{
+    bool res = false;
+    auto* self = const_cast<Socket*>(this);
+    if (PinsCount()) {
+        auto* pin = self->GetPin(self->GetPinId(0));
+        auto* pairPinSc = aPair->lIft<const MSocket>();
+        auto* pairPinS = const_cast<MSocket*>(pairPinSc);
+        auto pairPin = pairPinS->GetPin(pairPinSc->GetPinId(0));
+        res = pin->isBound(pairPin);
+    }
+    return res;
+}
+
+bool Socket::bind(MVert* aPair)
+{
+    // Solution#1, ref ds_sock_ses_s1
+    bool res = false;
+    auto* pairS = aPair->lIft<MSocket>();
+    if (pairS) {
+        bindPins(pairS, true, false);
+        res = true;
+    }
+    return res;
+}
+
+bool Socket::unbind(MVert* aPair)
+{
+    bool res = false;
+    auto* pairS = aPair->lIft<MSocket>();
+    if (pairS) {
+        bindPins(pairS, true, true);
+        res = true;
+    }
+    return res;
+}
+
+
+
+
 
 // SocketExtd 
 
@@ -253,6 +402,9 @@ SocketExtd::SocketExtd(const string &aType, const string& aName, MEnv* aEnv): So
 
 void SocketExtd::onOwnedAttached(MOwned* aOwned)
 {
+    if (mName == "S2_Pin3") {
+        LOGN(EErr, "onOwnedAttached");
+    }
     Socket::onOwnedAttached(aOwned);
     MSocket* owds = aOwned->lIf(owds);
     if (owds && aOwned->ownedId() == KUriInt) {
@@ -273,6 +425,14 @@ MVert* SocketExtd::GetPin(int aInd)
     if (owd->ownedId() != KUriInt) {
         res = owd ? owd->lIft<MVert>() : nullptr;
     }
+    return res;
+}
+
+MVert* SocketExtd::getExtd()
+{
+    MVert* res = nullptr;
+    MNode* extn = getComp(KUriInt);
+    res = extn ? extn->lIf(res) : nullptr;
     return res;
 }
 

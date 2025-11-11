@@ -8,34 +8,128 @@
 // Enable verification of DES active registry. !Affect system performance
 #define DES_RGS_VERIFY
 
+/// CpStateInp
+
+CpStateInp::CpStateInp(const string &aType, const string& aName, MEnv* aEnv):
+    ConnPoint(aType, aName, aEnv, MDesInpObserver::idHash(), MDVarGet::idHash()),
+    mBcp(mRifId, mPifId, dynamic_cast<MDVarGet*>(this))
+{}
+
+MIface* CpStateInp::MVert_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLifn(aId, mBcp.mPair ? mBcp.mPair->prov<MDesInpObserver>() : nullptr));
+    else res = TBase::MVert_getLif(aId);
+    return res;
+}
+
 void CpStateInp::onConnected(MVert* aPair)
 {
-    Vert::onConnected(aPair);
+    TBase::onConnected(aPair);
     // Notify inp updated
-    if (mProvidedPx) mProvidedPx->onInpUpdated();
+    if (mBcp.mPair) mBcp.mPair->prov<MDesInpObserver>()->onInpUpdated();
 }
 
 void CpStateInp::onDisconnected()
 {
     // Notify inp updated
-    if (mProvidedPx) mProvidedPx->onInpUpdated();
+    if (mBcp.mPair) mBcp.mPair->prov<MDesInpObserver>()->onInpUpdated();
 }
 
-void CpStateInp::onBound()
+void CpStateInp::onBound(MVert* aPair)
 {
     // Notify inp updated
     // TODO seems we don't need such notif. it's because binding is the
     // primary op followed by conn.
-    if (mProvidedPx) mProvidedPx->onInpUpdated();
+    if (mBcp.mPair) mBcp.mPair->prov<MDesInpObserver>()->onInpUpdated();
 }
 
-void CpStateInp::onUnbound()
+void CpStateInp::onUnbound(MVert* aPair)
 {
     // Notify inp updated
-    if (mProvidedPx) mProvidedPx->onInpUpdated();
+    if (mBcp.mPair) mBcp.mPair->prov<MDesInpObserver>()->onInpUpdated();
+}
+
+string CpStateInp::VarGetIfid() const
+{
+    string res;
+    /*
+    auto* pair = (mPairs.size() == 1) ? mPairs.at(0) : nullptr; 
+    MDVarGet* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
+    res = pairDget ? pairDget->VarGetIfid() : nullptr;
+    return res;
+    */
+    // Inp CP allows multiple pairs
+    for (auto* pair : mPairs) {
+        MDVarGet* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
+        if (pairDget) {
+            string ifid = pairDget->VarGetIfid();
+            if (res.empty()) {
+                res = ifid;
+            } else if (ifid.empty()) {
+                // No id from this pair, just ignore
+            } else if (ifid != res) {
+                // Id from this pair doesn't match current id - error
+                res.clear();
+                break;
+            }
+        }
+    }
+    return res;
+}
+
+const DtBase* CpStateInp::VDtGet(const string& aType)
+{
+    const DtBase* res = nullptr;
+    auto* pair = (mPairs.size() == 1) ? mPairs.at(0) : nullptr; 
+    MDVarGet* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
+    res = pairDget ? pairDget->VDtGet(aType) : nullptr;
+    return res;
+}
+
+void CpStateInp::VDtGet(const string& aType, MDVarGet::TData& aData)
+{
+    for (auto* pair : mPairs) {
+        MDVarGet* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
+        if (pairDget) {
+            pairDget->VDtGet(aType, aData);
+        }
+    }
 }
 
 
+/// CpStateOutp
+
+CpStateOutp::CpStateOutp(const string &aType, const string& aName, MEnv* aEnv):
+    ConnPoint(aType, aName, aEnv, MDVarGet::idHash(), MDesInpObserver::idHash()),
+    mBcp(mRifId, mPifId, dynamic_cast<MDesInpObserver*>(this))
+{}
+
+MIface* CpStateOutp::MVert_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLifn(aId, mBcp.mPair ? mBcp.mPair->prov<MDVarGet>() : nullptr));
+    else res = ConnPoint::MVert_getLif(aId);
+    return res;
+}
+
+
+void CpStateOutp::onInpUpdated()
+{
+    for (auto it = mPairs.begin(); it != mPairs.end(); it++) {
+        MDesInpObserver* obs = (*it)->lIf(obs);
+        if (obs) {
+            obs->onInpUpdated();
+        }
+    }
+}
+
+
+#if 0
+
+CpStateInpPin::CpStateInpPin(const string &aType, const string& aName, MEnv* aEnv):
+    TBase(aType, aName, aEnv), mBcp(this)
+{}
 
 CpStateInpPin::~CpStateInpPin() {}
 
@@ -56,6 +150,26 @@ void CpStateInpPin::onConnected(MVert* aPair)
 void CpStateInpPin::onDisconnected()
 {
 }
+
+const DtBase* CpStateInpPin::VDtGet(const string& aType)
+{
+    const DtBase* res = nullptr;
+    auto* pair = (mPairs.size() == 1) ? mPairs.at(0) : nullptr; 
+    MDVarGet* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
+    res = pairDget ? pairDget->VDtGet(aType) : nullptr;
+    return res;
+}
+
+void CpStateInpPin::onInpUpdated()
+{
+    for (auto it = mBcp.pairsBegin(); it != mBcp.pairsEnd(); it++) {
+        it->provided()->onInpUpdated();
+    }
+}
+
+
+
+
 
 
 CpStateOutpPin::~CpStateOutpPin() {}
@@ -89,6 +203,8 @@ const DtBase* CpStateOutpPin::VDtGet(const string& aType)
     return res;
 }
 
+#endif
+
 
 // CpStateInp direct extender
 
@@ -104,44 +220,33 @@ void ExtdStateInp::Construct()
     assert(mInt);
     bool res = attachOwned(mInt);
     assert(res);
-    //mInt->setProvided(this);
-    res = mInt->bind(MNode::lIft<MVert>());
+    res = mInt->bind(bP());
     assert(res);
 }
 
-string ExtdStateInp::VarGetIfid() const
-{
-    string res;
-    if (mPairs.size() == 1) {
-	auto* pair = mPairs.at(0);
-	auto ifc = pair->lIft<MDVarGet>();
-        if (ifc) {
-            res = ifc->VarGetIfid();
-        }
-    }
-    return res;
 
+
+#if 0
+void CpStateInpPin::onDisconnected()
+{
 }
 
-const DtBase* ExtdStateInp::VDtGet(const string& aType)
+const DtBase* CpStateInpPin::VDtGet(const string& aType)
 {
     const DtBase* res = nullptr;
-    if (mPairs.size() == 1) {
-	auto* pair = mPairs.at(0);
-	auto ifc = pair->lIft<MDVarGet>();
-	res = ifc ? ifc->VDtGet(aType) : nullptr;
-    }
+    auto* pair = (mPairs.size() == 1) ? mPairs.at(0) : nullptr; 
+    MDVarGet* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
+    res = pairDget ? pairDget->VDtGet(aType) : nullptr;
     return res;
 }
 
-void ExtdStateInp::onInpUpdated()
+void CpStateInpPin::onInpUpdated()
 {
-    // Redirect to internal point
-    for (auto it = mInt->mPairs.begin(); it != mInt->mPairs.end(); it++) {
-        auto* ifc = (*it)->lIft<MDesInpObserver>();
-        if (ifc) ifc->onInpUpdated();
+    for (auto it = mBcp.pairsBegin(); it != mBcp.pairsEnd(); it++) {
+        it->provided()->onInpUpdated();
     }
 }
+#endif
 
 
 #if 0
@@ -174,16 +279,8 @@ MIface* ExtdStateInp::MVert_getLif(TIdHash aId)
 
 /// CpStateOutp direct extender
 
-string ExtdStateOutp::KIntName = "Int";
 
-/*
-vector<GUri> ExtdStateOutp::getParentsUri()
-{
-    auto p = Extd::getParentsUri();
-    p.insert(p.begin(), Type());
-    return p;
-}
-*/
+string ExtdStateOutp::KIntName = "Int";
 
 ExtdStateOutp::ExtdStateOutp(const string &aType, const string& aName, MEnv* aEnv): CpStateOutp(aType, aName, aEnv)
 {
@@ -195,40 +292,10 @@ void ExtdStateOutp::Construct()
     assert(mInt);
     bool res = attachOwned(mInt);
     assert(res);
-    //mInt->setProvided(this);
-    res = mInt->bind(MNode::lIft<MVert>());
+    res = mInt->bind(bP());
     assert(res);
 }
 
-const DtBase* ExtdStateOutp::VDtGet(const string& aType)
-{
-    // Redirect to internal point
-    auto pair = (mInt->mPairs.begin() != mInt->mPairs.end()) ? *(mInt->mPairs.begin()) : nullptr;
-    MDVarGet* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
-    return pairDget ? pairDget->VDtGet(aType) : nullptr;
-}
-
-void ExtdStateOutp::VDtGet(const string& aType, MDVarGet::TData& aData)
-{
-    // Redirect to internal point
-    for (auto it = mInt->mPairs.begin(); it != mInt->mPairs.end(); it++) {
-        auto pair = *it;
-        MDVarGet* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
-        if (pairDget) {
-            pairDget->VDtGet(aType, aData);
-        } else {
-	    LOGN(EErr, "Connection doesn't provide MDVarGet, pair: " + pair->Uid());
-        }
-    }
-}
-
-string ExtdStateOutp::VarGetIfid() const
-{
-    // Redirect to internal point
-    auto pair = (mInt->mPairs.begin() != mInt->mPairs.end()) ? *(mInt->mPairs.begin()) : nullptr;
-    MDVarGet* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
-    return pairDget ? pairDget->VarGetIfid() : nullptr;
-}
 
 #if 0
 /// CpStateOutp direct extender with ifaces impl
@@ -326,8 +393,9 @@ ExtdStateMnodeOutp::ExtdStateMnodeOutp(const string &aType, const string& aName,
 const string State::KCont_Value = "";
 const string State::KInpName = "Inp";
 
-State::State(const string &aType, const string& aName, MEnv* aEnv): ConnPoint<MDVarGet, MDesInpObserver>(aType, aName, aEnv),
-    mDesSyncCp(this), mPdata(NULL), mCdata(NULL), mUpdNotified(false), mActNotified(false), mStDead(false), mInp(nullptr)
+State::State(const string &aType, const string& aName, MEnv* aEnv): ConnPoint(aType, aName, aEnv, MDVarGet::idHash(), MDesInpObserver::idHash()),
+    mDesSyncCp(this), mPdata(NULL), mCdata(NULL), mUpdNotified(false), mActNotified(false), mStDead(false), mInp(nullptr),
+    mInpBp(mRifId, mPifId, dynamic_cast<MDesInpObserver*>(this))
 { }
 
 void State::Construct()
@@ -337,7 +405,8 @@ void State::Construct()
     assert(mInp);
     bool res = attachOwned(mInp);
     assert(res);
-    mInp->bind(MNode::lIft<MVert>());
+    //mInp->MNode::lIft<MConnPoint>()->bind(&mInpBp);
+    mInp->bind(&mInpBp);
 }
 
 State::~State()
@@ -375,6 +444,15 @@ MIface* State::MOwned_getLif(TIdHash aId)
     MIface* res = nullptr;
     if (res = checkLif2(aId, mMDesSyncable));
     else res = TBase::MOwned_getLif(aId);
+    return res;
+}
+
+MIface* State::MVert_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMDVarGet));
+    else if (res = checkLif2(aId, mMDVarSet));
+    else res = TBase::MVert_getLif(aId);
     return res;
 }
 
@@ -425,34 +503,6 @@ bool State::setContent(const string& aId, const string& aData)
     return res;
 }
 
-bool State::isCompatible(const MVert* aPair, bool aExt) const
-{
-    bool res = false;
-    bool ext = aExt;
-    const MVert* cp = aPair;
-    // Checking if the pair is Extender
-    if (aPair != this) {
-	MVert* ecp = const_cast<MVert*>(cp)->getExtd(); 
-	if (ecp) {
-	    ext = !ext;
-	    cp = ecp;
-	}
-	if (cp) {
-	    // Check roles conformance
-	    const TRequired* rq = cp->lIf(rq);
-            const TProvided* pv = cp->lIf(pv);
-            if (ext) {
-                res = (pv != nullptr);
-            } else {
-                res = (rq != nullptr);
-            }
-        }
-    } else {
-        res = aExt;
-    }
-    return res;
-}
-
 void State::setActivated()
 {
     if (!mActNotified) {
@@ -467,7 +517,7 @@ void State::setActivated()
 
 void State::update()
 {
-    if (mName == "SCrpCtx_Dbg_MagUri") {
+    if (mName == "St3") {
         LOGN(EDbg, "update");
     }
     PFL_DUR_STAT_START(PEvents::EDurStat_StUpdate);
@@ -503,6 +553,9 @@ void State::update()
 
 void State::confirm()
 {
+    //if (mName == "TupleRes2") {
+    //    LOGN(EInfo, "confirm");
+    //}
     mUpdNotified = false;
     bool changed = false;
     PFL_DUR_STAT_START(PEvents::EDurStat_StConfirm);
@@ -566,7 +619,7 @@ void State::onInpUpdated()
 
 MDVarGet* State::GetInp()
 {
-    return mInp->mPairs.empty() ? nullptr : mInp->mPairs.at(0)->lIft<MDVarGet>();
+      return mInpBp.pcount() ? mInpBp.pairAt(0)->prov<MDVarGet>() : nullptr;
 }
 
 string State::VarGetIfid() const
@@ -654,8 +707,9 @@ void State::notifyInpsUpdated()
 
 const string BState::KCont_Value = "";
 
-BState::BState(const string &aType, const string& aName, MEnv* aEnv): ConnPoint<MDVarGet, MDesInpObserver>(aType, aName, aEnv),
-    mDesSyncCp(this), mPdata(NULL), mCdata(NULL), mUpdNotified(false), mActNotified(false), mStDead(false)
+BState::BState(const string &aType, const string& aName, MEnv* aEnv): ConnPoint(aType, aName, aEnv, MDVarGet::idHash(), MDesInpObserver::idHash()),
+    mDesSyncCp(this), mPdata(NULL), mCdata(NULL), mUpdNotified(false), mActNotified(false), mStDead(false),
+    mInpBp(MDesInpObserver::idHash(), MDVarGet::idHash(), dynamic_cast<MDesInpObserver*>(this))
 { }
 
 BState::~BState()
@@ -696,29 +750,6 @@ MIface* BState::MOwned_getLif(TIdHash aId)
     return res;
 }
 
-/*
-MDesObserver* State::desObserver()
-{
-    MDesObserver* res = nullptr;
-    auto it = mDesSyncCp.pairsBegin();
-    if (it != mDesSyncCp.pairsEnd()) {
-        res = it->provided();
-    }
-}
-*/
-
-bool BState::bind(MIface* aBound)
-{
-    bool res = false;
-    auto cpv = aBound->lIft<MVert>();
-    assert(mInp == nullptr);
-    if (cpv) {
-        mInp = cpv;
-        res = true;
-    }
-    return res;
-}
-
 bool BState::getContentId(int aIdx, string& aRes) const
 {
     bool res = true;
@@ -755,33 +786,6 @@ bool BState::setContent(const string& aId, const string& aData)
     return res;
 }
 
-bool BState::isCompatible(const MVert* aPair, bool aExt) const
-{
-    bool res = false;
-    bool ext = aExt;
-    const MVert* cp = aPair;
-    // Checking if the pair is Extender
-    if (aPair != this) {
-	MVert* ecp = const_cast<MVert*>(cp)->getExtd(); 
-	if (ecp) {
-	    ext = !ext;
-	    cp = ecp;
-	}
-	if (cp) {
-	    // Check roles conformance
-	    const TRequired* rq = cp->lIf(rq);
-            const TProvided* pv = cp->lIf(pv);
-            if (ext) {
-                res = (pv != nullptr);
-            } else {
-                res = (rq != nullptr);
-            }
-        }
-    } else {
-        res = aExt;
-    }
-    return res;
-}
 
 void BState::setActivated()
 {
@@ -893,7 +897,7 @@ void BState::onInpUpdated()
 
 MDVarGet* BState::GetInp()
 {
-    return (mInp && mInp->pairsCount() == 1) ? mInp->getPair(0)->lIft<MDVarGet>() : nullptr;
+    return mInpBp.pcount() ? mInpBp.pairAt(0)->prov<MDVarGet>() : nullptr;
 }
 
 string BState::VarGetIfid() const
@@ -975,7 +979,7 @@ void BState::notifyInpsUpdated()
 
 const string Const::KCont_Value = "";
 
-Const::Const(const string &aType, const string& aName, MEnv* aEnv): ConnPoint<MDVarGet, MDesInpObserver>(aType, aName, aEnv),
+Const::Const(const string &aType, const string& aName, MEnv* aEnv): ConnPoint(aType, aName, aEnv, MDVarGet::idHash(), MDesInpObserver::idHash()),
     mData(NULL), mStDead(false)
 { }
 
@@ -995,6 +999,15 @@ MIface* Const::MNode_getLif(TIdHash aId)
     else res = TBase::MNode_getLif(aId);
     return res;
 }
+
+MIface* Const::MVert_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMDVarGet));
+    else res = TBase::MVert_getLif(aId);
+    return res;
+}
+
 
 MIface* Const::MOwner_getLif(TIdHash aId)
 {
@@ -1043,34 +1056,6 @@ bool Const::setContent(const string& aId, const string& aData)
 	res = updateWithContValue(aData);
     else
 	res = TBase::setContent(aId, aData);
-    return res;
-}
-
-bool Const::isCompatible(const MVert* aPair, bool aExt) const
-{
-    bool res = false;
-    bool ext = aExt;
-    const MVert* cp = aPair;
-    // Checking if the pair is Extender
-    if (aPair != this) {
-	MVert* ecp = const_cast<MVert*>(cp)->getExtd(); 
-	if (ecp) {
-	    ext = !ext;
-	    cp = ecp;
-	}
-	if (cp) {
-	    // Check roles conformance
-	    const TRequired* rq = cp->lIf(rq);
-            const TProvided* pv = cp->lIf(pv);
-            if (ext) {
-                res = (pv != nullptr);
-            } else {
-                res = (rq != nullptr);
-            }
-        }
-    } else {
-        res = aExt;
-    }
     return res;
 }
 
@@ -1170,12 +1155,15 @@ void Des::update()
 
 void Des::confirm()
 {
-    for (auto comp : *mUpdated) {
+    // Using safe iteration because mUpdated can be changed via some comp confirm
+    while (!mUpdated->empty()) {
+        auto* comp = mUpdated->back();
 	try {
 	    comp->confirm();
 	} catch (std::exception e) {
 	    LOGN(EErr, "Error on confirm [" + comp->Uid() + "]");
 	}
+        mUpdated->pop_back();
     }
     if (mIsActive && !mActNotified) {
 	mIsActive = false;
@@ -1564,6 +1552,10 @@ void DesLauncher::outputCounter(int aCnt)
 }
 */
 
+
+#if 0
+// Seems not used anymore
+
 /// Input access point base
 
 void DesIapb::Construct(CpStateInp* aInp)
@@ -1571,6 +1563,7 @@ void DesIapb::Construct(CpStateInp* aInp)
     aInp->bind(this);
     mInp = aInp;
 }
+#endif
 
 
 

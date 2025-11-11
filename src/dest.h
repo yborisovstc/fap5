@@ -11,7 +11,7 @@
 
 /** @brief Transition function base 
  * */ 
-class TrBase: public CpStateOutp, public MDVarGet, public MDesInpObserver
+class TrBase: public CpStateOutp, public MDVarGet
 {
     public:
 	static const char* Type() { return "TrBase";}
@@ -38,13 +38,18 @@ class TrBase: public CpStateOutp, public MDVarGet, public MDesInpObserver
 	template <class T> inline const T* GetInpData(CpStateInp* aInp, const T* aData);
 	virtual const DtBase* doVDtGet(const string& aType) { return nullptr;}
 	virtual CpStateInp* GetFinp(int aId) { return nullptr; }
+        /** @brief Input connections count */
 	int InpIcCount(const CpStateInp* aInp);
 	int InpIcCount(int aInpId);
         MDVarGet* InpIc(const CpStateInp* aInp, int aIcId = 0);
         MDVarGet* InpIc(int aInpId, int aIcId = 0);
-    protected:
 	CpStateInp* AddInput(const string& aName);
+        /** @brief Input data count */
+	int InpDtCount(const CpStateInp* aInp);
+	int InpDtCount(int aInpId);
+    protected:
 	bool mCInv;              //!< Sign of data cache invalidated
+        NpcOmnp mInpsBp;
 	const DtBase* mResp = nullptr;
 	MDVarGet* mMDVarGet = nullptr;
 	MVert* mMVert = nullptr;

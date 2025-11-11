@@ -63,6 +63,8 @@ libfap5_la_SOURCES = \
 		     node.h \
 		     node.cpp \
 		     nconn.h \
+		     npconn.h \
+		     npconn.cpp \
 		     typeid.h \
 		     mlink.h \
 		     mconnpoint.h \
@@ -110,6 +112,7 @@ include_HEADERS = \
 		   chromo.h \
 		   guri.h \
 		   nconn.h \
+		   npconn.h \
 		   typeid.h \
 		   mmntp.h \
 		   mlink.h \

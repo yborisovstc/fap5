@@ -11,9 +11,11 @@ MIface* CpSystExplorable::MOwned_getLif(TIdHash aId)
     return res;
 }
 
-MIface* CpSystExplorable::MSystExplorable_getLif(TIdHash aId)
+MIface* CpSystExplorable::MVert_getLif(TIdHash aId)
 {
-    MIface* res = checkLif2(aId, mMSystExplorable);
+    MIface* res = nullptr;
+    if (res = checkLifn(aId, mBcp.mPair->prov<MSystExplorable>()));
+    else (res = TBase::MVert_getLif(aId));
     return res;
 }
 
@@ -32,23 +34,16 @@ void CpSystExplorable::onDisconnected()
 {
 }
 
-void CpSystExplorable::onBound()
+void CpSystExplorable::onBound(MVert* aPair)
 {
 }
 
-void CpSystExplorable::onUnbound()
+void CpSystExplorable::onUnbinding(MVert* aPair)
 {
 }
 
-MNode* CpSystExplorable::getMag()
+void CpSystExplorable::onUnbound(MVert* aPair)
 {
-    MNode* res = nullptr;
-    if (mExploringCp.pcount() == 1) {
-	auto expbl = mExploringCp.pairAt(0);
-	assert(expbl);
-	res = expbl->provided()->getMag();
-    }
-    return res;
 }
 
 void CpSystExplorable::notifyMagChanged()
@@ -61,18 +56,26 @@ void CpSystExplorable::notifyMagChanged()
             pairExpn->onMagChanged();
         }
     }
-
 }
 
 
 
 /// CpSystExploring
 
+MIface* CpSystExploring::MVert_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLifn(aId, mBcp.mPair->prov<MSystExploring>()));
+    else (res = TBase::MVert_getLif(aId));
+    return res;
+}
+
 
 void CpSystExploring::onConnected(MVert* aPair)
 {
-    if (mProvidedPx) {
-        mProvidedPx->onMagChanged();
+    for (auto it = mBcp.pairsBegin(); it != mBcp.pairsEnd(); it++) {
+        MNpc* pair = *it;
+        pair->prov<MSystExploring>()->onMagChanged();
     }
 }
 
@@ -80,14 +83,35 @@ void CpSystExploring::onDisconnected()
 {
 }
 
-void CpSystExploring::onBound()
+void CpSystExploring::onBound(MVert* aPair)
 {
 }
 
-void CpSystExploring::onUnbound()
+void CpSystExploring::onUnbinding(MVert* aPair)
 {
 }
 
+void CpSystExploring::onUnbound(MVert* aPair)
+{
+}
+
+MNode* CpSystExploring::getMag()
+{
+    MNode* res = nullptr;
+    if (mPairs.size() == 1) {
+        auto* pair = mPairs.at(0);
+        auto* paireb = pair ? pair->lIft<MSystExplorable>() : nullptr;
+        res = paireb ? paireb->getMag() : nullptr;
+    } else if (mPairs.size() > 1) {
+        // TODO introduce pairs number limitation on connection phase
+        assert(false);
+    }
+    return res;
+}
+
+
+
+#if 0
  
 // ExtdSystExplorable
 
@@ -126,6 +150,28 @@ void ExtdSystExplorable::onMagChanged()
         }
     }
 }
+#endif
+
+
+
+// ExtdSystExplorable
+
+string ExtdSystExplorable::KIntName = "Int";
+
+ExtdSystExplorable::ExtdSystExplorable(const string &aType, const string& aName, MEnv* aEnv): 
+    CpSystExplorable(aType, aName, aEnv)
+{
+}
+void ExtdSystExplorable::Construct()
+{
+    mInt = new CpSystExploring(string(CpSystExploring::idStr()), KIntName, mEnv);
+    assert(mInt);
+    bool res = attachOwned(mInt);
+    assert(res);
+    res = mInt->bind(bP());
+    assert(res);
+}
+
 
 
 // ExtdSystExploring
@@ -142,41 +188,16 @@ void ExtdSystExploring::Construct()
     assert(mInt);
     bool res = attachOwned(mInt);
     assert(res);
-    res = mInt->bind(MNode::lIft<MVert>());
+    res = mInt->bind(bP());
     assert(res);
 }
 
-MNode* ExtdSystExploring::getMag()
-{
-    MNode* res = nullptr;
-    // Redirect to pairs
-    if (mPairs.size() == 1) {
-        auto pair = *mPairs.begin();
-        MSystExplorable* pairExpb = pair ? pair->lIft<MSystExplorable>() : nullptr;
-        if (pairExpb) {
-            res = pairExpb->getMag();
-        }
-    } else {
-        // TODO handle
-    }
-    return res;
-}
 
-void ExtdSystExploring::onMagChanged()
-{
-    // Redirect to int point
-    auto pair = (mInt->mPairs.begin() != mInt->mPairs.end()) ? *(mInt->mPairs.begin()) : nullptr;
-    MSystExploring* pairExpn = pair ? pair->lIft<MSystExploring>() : nullptr;
-    if (pairExpn) {
-        pairExpn->onMagChanged();
-    }
-}
-
-
+#if 0
 // PinSystExplorable 
 
 PinSystExplorable::PinSystExplorable(const string &aType, const string& aName, MEnv* aEnv): 
-    ConnPoint<MSystExplorable, MSystExploring>(aType, aName, aEnv)
+    ConnPoint<MSystExplorable, MSystExploring>(aType, aName, aEnv), mBcp(this)
 {
 }
 
@@ -189,14 +210,28 @@ void PinSystExplorable::onMagChanged()
             pairExpn->onMagChanged();
         }
     }
-
 }
+
+MNode* PinSystExplorable::getMag()
+{
+    return mBcp.mPair ? mBcp.mPair->getMag() : nullptr;
+}
+
+
 
 // PinSystExploring 
 
 PinSystExploring::PinSystExploring(const string &aType, const string& aName, MEnv* aEnv): 
-    CpSystExploring(aType, aName, aEnv)
+    CpSystExploring(aType, aName, aEnv), mBcp(this)
 {
+}
+
+MIface* PinSystExploring::MVert_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMSystExploring));
+    else (res = TBase::MVert_getLif(aId));
+    return res;
 }
 
 MNode* PinSystExploring::getMag()
@@ -212,12 +247,21 @@ MNode* PinSystExploring::getMag()
     return res;
 }
 
+void PinSystExploring::onMagChanged()
+{
+    for (auto it = mBcp.pairsBegin(); it != mBcp.pairsEnd(); it++) {
+        it->provided()->onMagChanged();
+    }
+}
+
+#endif
+
 
 
 // System
 
 Syst::Syst(const string &aType, const string &aName, MEnv* aEnv): Elem(aType, aName, aEnv),
-    mAgtCp(this), mExplorableCp(this)
+    mAgtCp(this), mExplorableCp(MSystExplorable::idHash(), MSystExploring::idHash(), dynamic_cast<MSystExplorable*>(this))
 {
 }
 

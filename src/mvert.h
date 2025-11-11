@@ -53,13 +53,15 @@ class MVert: public MIface
 	static bool disconnect(MVert* aSelf, MVert* aPair) { return aPair->disconnect(aSelf) ? aSelf->disconnect(aPair) : false;}
 	/** @brief Indicates of connected to pair */
 	virtual bool isConnected(const MVert* aPair) const = 0;
-        /** @brief Bounds two verted for extending connection abilities
-         * */
-        // TODO maybe it makes sense to move this to separate iface, like MConnPoint
-	virtual bool isBound(const MIface* aBound) const = 0;
-        virtual bool bind(MIface* aBound) = 0;
-        virtual bool unbind(MIface* aBound) = 0;
 	virtual void vertGetUri(GUri& aUri, const MNode* aBase = nullptr) const = 0;
+        /** @brief Binding */
+	virtual bool isBound(const MVert* aPair) const = 0;
+        virtual bool bind(MVert* aPair) = 0;
+        virtual bool unbind(MVert* aPair) = 0;
+	virtual void onBound(MVert* aPair) = 0;
+	virtual void onUnbinding(MVert* aPair) = 0;
+	virtual void onUnbound(MVert* aPair) = 0;
+        // TODO add method bP() for getting binding point. So, bind() can be implemented in vert
 };
 
 #endif

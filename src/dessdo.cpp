@@ -13,14 +13,16 @@ void SdoBase::InpBase::Construct()
     assert(cp);
     bool res = mHost->attachOwned(cp);
     assert(res);
-    auto cpv = cp->lIft<MVert>();
+    auto cpv = cp->lIft<MConnPoint>();
     assert(cpv);
-    res = cpv->bind(mHost->MNode::lIft<MNode>());
+    res = cpv->bind(&mHost->mInpsBp);
     assert(res);
 }
 
 SdoBase::SdoBase(const string &aType, const string& aName, MEnv* aEnv): CpStateOutp(aType, aName, aEnv),
-    mObrCp(this), mEagObs(this), mSue(nullptr), mCInv(true), mExploringCp(this)
+    mObrCp(this), mEagObs(this), mSue(nullptr), mCInv(true),
+    mExploringCp(MSystExploring::idHash(), MSystExplorable::idHash(), dynamic_cast<MDesInpObserver*>(this)),
+    mInpsBp(MDesInpObserver::idHash(), MDVarGet::idHash(), dynamic_cast<MDesInpObserver*>(this))
 {
 }
 
@@ -67,7 +69,7 @@ MSystExplorable* SdoBase::getExplorable()
     MSystExplorable* res = nullptr;
     if (mExploringCp.pcount() == 1) {
 	auto pair = mExploringCp.pairAt(0);
-	res = pair->provided();
+	res = pair->prov<MSystExplorable>();
     }
     return res;
 }
@@ -167,7 +169,7 @@ void SdoBase::onMagChanged()
     UpdateMag();
 }
 
-MSystExploring::TCp* SdoBase::getCp()
+MNpc* SdoBase::getCp()
 {
     return &mExploringCp;
 }

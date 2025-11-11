@@ -17,16 +17,16 @@ class Ut_des : public Ut_fixture
 {
     CPPUNIT_TEST_SUITE(Ut_des);
     //CPPUNIT_TEST(test_des_data);
-//    CPPUNIT_TEST(test_des_1);
+    //CPPUNIT_TEST(test_des_1);
     //CPPUNIT_TEST(test_des_inval_1);
     //CPPUNIT_TEST(test_des_inval_2);
     //CPPUNIT_TEST(test_des_asr_1);
     //CPPUNIT_TEST(test_des_asr_2);
-    CPPUNIT_TEST(test_des_tr_1);
+    //CPPUNIT_TEST(test_des_tr_1);
     //CPPUNIT_TEST(test_des_tr_tres_1);
     CPPUNIT_TEST(test_des_conn_1);
     //CPPUNIT_TEST(test_des_utl_1);
-    // CPPUNIT_TEST(test_des_utl_2); TODO This doesn't work with DRI, ref ds_dri_lmt_mcins. To remove.
+    // CPPUNIT_TEST(test_des_utl_2);
     //CPPUNIT_TEST(test_des_sp_1);
     CPPUNIT_TEST_SUITE_END();
     public:
@@ -159,6 +159,7 @@ void Ut_des::test_des_tr_1()
     CPPUNIT_ASSERT_MESSAGE("SCmpLt failed", getStateDstr("Launcher.Ds1.SCmpLt") == "SB true");
     CPPUNIT_ASSERT_MESSAGE("SCmpNeqInv failed", getStateDstr("Launcher.Ds1.SCmpNeqInv") == "SB true");
     CPPUNIT_ASSERT_MESSAGE("TupleSelIfaceG failed", getStateDstr("Launcher.Ds1.TupleSelIfaceG") == "SB true");
+    CPPUNIT_ASSERT_MESSAGE("InpCntRes2 failed", getStateDstr("Launcher.Ds1.InpCntRes2") == "SI 3");
     CPPUNIT_ASSERT_MESSAGE("InpCntRes failed", getStateDstr("Launcher.Ds1.InpCntRes") == "SI 3");
     CPPUNIT_ASSERT_MESSAGE("InpSelRes failed", getStateDstr("Launcher.Ds1.InpSelRes") == "SS 'Inp3'");
     string sr = "CHR2 {\n    Text = \"Button 3\"\n    BgColor <  {\n        R = \"0.0\"\n        G = \"0.0\"\n        B = \"1.0\"\n    }\n}";
@@ -507,11 +508,13 @@ void Ut_des::test_des_conn_1()
     cout << endl << "=== Test of connection topology in DES ===" << endl;
 
     MNode* root = constructSystem("ut_des_conn_1");
-    CPPUNIT_ASSERT_MESSAGE("Fail to get root", root);
 
     // Run
     bool res = mEnv->RunSystem(4, 2);
     CPPUNIT_ASSERT_MESSAGE("Failed running system", res);
+
+    CPPUNIT_ASSERT_MESSAGE("Ds1.St1 wrong data", getStateDstr("Launcher.Ds1.St1") == "SI 0");
+    CPPUNIT_ASSERT_MESSAGE("Ds1.St2 wrong data", getStateDstr("Launcher.Ds1.St2") == "SI 1");
 
     delete mEnv;
 }

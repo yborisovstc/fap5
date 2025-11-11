@@ -129,7 +129,7 @@ void ASdc::SdcIapb::Construct()
 }
 
 ASdc::SdcPapb::SdcPapb(const string& aName, ASdc* aHost, const string& aCpUri):
-    mName(aName), mHost(aHost), mCpUri(aCpUri)
+    mName(aName), mHost(aHost), mCpUri(aCpUri), mBp(MDVarGet::idHash(), MDesInpObserver::idHash(), this)
 {
 }
 
@@ -164,7 +164,8 @@ bool ASdc::SdcIap<T>::updateData()
     }
     int inpCount = mInp->pairsCount();
     if (inpCount == 1) {
-	const T* data = mInp->getPair(0)->lIft<MDVarGet>()->DtGet(data);
+        auto inpDg = mInp->getPair(0)->lIft<MDVarGet>();
+	const T* data = inpDg ? inpDg->DtGet(data) : nullptr;
 	if (data) {
 	    mCdt = *data;
 	    res = data->IsValid();
@@ -192,7 +193,7 @@ bool ASdc::SdcIapEnb::updateData()
     bool first = true;
     for (int i = 0; i < mInp->pairsCount(); i++) {
 	auto ifc = mInp->getPair(i)->lIft<MDVarGet>();
-	const Sdata<bool>* st = ifc->DtGet(st);
+	const Sdata<bool>* st = ifc ? ifc->DtGet(st) : nullptr;
 	if (st) {
 	    if (first) mCdt = *st;
 	    else {
@@ -218,7 +219,9 @@ bool ASdc::SdcIapEnb::updateData()
 
 
 ASdc::ASdc(const string &aType, const string& aName, MEnv* aEnv): Node(aType, aName, aEnv),
-    mIaps(), mMag(NULL), mUpdNotified(false), mActNotified(false), mObrCp(this), mSyncCp(this), mExploringCp(this),
+    mIaps(), mMag(NULL), mUpdNotified(false), mActNotified(false), mObrCp(this), mSyncCp(this),
+    mExploringCp(MSystExploring::idHash(), MSystExplorable::idHash(), dynamic_cast<MSystExploring*>(this)),
+    mInpsBp(MDesInpObserver::idHash(), MDVarGet::idHash(), dynamic_cast<MDesInpObserver*>(this)),
     mIapEnb("Enb", this, K_CpUri_Enable), mOapOut("Outp", this, K_CpUri_Outp, [this](Sdata<bool>& aData) {getOut(aData);}),
     /*mMagObs(this), */mCdone(false)
 {
@@ -263,7 +266,9 @@ MVert* ASdc::addInput(const string& aName)
     assert(res);
     MVert* cpv = cp->lIf(cpv);
     assert(cpv);
-    cpv->bind(MNode::lIft<MNode>());
+    MConnPoint* cpcp = cp->lIf(cpcp);
+    assert(cpcp);
+    cpcp->bind(&mInpsBp);
     return cpv;
 }
 
@@ -448,7 +453,7 @@ MSystExplorable* ASdc::getExplorable()
     MSystExplorable* res = nullptr;
     if (mExploringCp.pcount() == 1) {
 	auto pair = mExploringCp.pairAt(0);
-	res = pair->provided();
+	res = pair->prov<MSystExplorable>();
     }
     return res;
 }
@@ -508,7 +513,9 @@ bool ASdc::registerIap(SdcIapb* aIap)
 bool ASdc::registerPap(SdcPapb* aPap)
 {
     aPap->mOutp = addOutput(aPap->getCpUri());
-    aPap->mOutp->bind(aPap);
+    auto outcp = aPap->mOutp->lIft<MConnPoint>();
+    assert(outcp);
+    outcp->bind(aPap->bCp());
     mPaps.push_back(aPap);
     return true;
 }

@@ -8,7 +8,7 @@
 
 /** @brief SDO base
  * */
-class SdoBase : public CpStateOutp, public MDVarGet, public MObserver, public MDesInpObserver, public MSystExploring
+class SdoBase : public CpStateOutp, public MDVarGet, public MObserver, public MSystExploring
 {
     public:
 	using TObserverCp = NCpOmnp<MObserver, MObservable>;
@@ -111,7 +111,7 @@ class SdoBase : public CpStateOutp, public MDVarGet, public MObserver, public MD
 	string MSystExploring_Uid() const override  {return getUid<MSystExploring>();}
 	MIface* MSystExploring_getLif(TIdHash aId) override { return nullptr;}
 	void onMagChanged() override;
-	MSystExploring::TCp* getCp() override;
+	MNpc* getCp() override;
     protected:
 	void UpdateMag();
 	void NotifyInpsUpdated();
@@ -126,7 +126,8 @@ class SdoBase : public CpStateOutp, public MDVarGet, public MObserver, public MD
 	EagObs mEagObs;  /*!< Explored agent observer */
 	MNode* mSue; /*!< System under exploring */
 	bool mCInv;              //!< Sign of data cache invalidated
-	NCpOnp<MSystExploring, MSystExplorable> mExploringCp;
+	NpcOnp mExploringCp;
+        NpcOmnp mInpsBp;  /*!< Inputs binding point */
 	MDVarGet* mMDVarGet = nullptr;
 	MObserver* mMObserver = nullptr;
 	MSystExploring* mMSystExploring = nullptr;

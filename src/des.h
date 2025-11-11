@@ -13,51 +13,80 @@
 #include "connpoint.h"
 
 
-/** @brief Lightweight connection point - state input
+/** @brief Simple connection point - state input
  * Needs to be bound to state to attach state as Provided proxy
+ * Specific of simple connpoint is that it is bound to single binder (actually onwer)
+ * so connpont can just redirect provided iface resolution request instead of implementing 
+ * iface locally. This is a bit faster than implementing iface. However implementing iface
+ * option remains open here.
  * */
-class CpStateInp: public ConnPoint<MDesInpObserver, MDVarGet>
+class CpStateInp: public ConnPoint, public MDVarGet
 {
     public:
+        using TBase = ConnPoint;
+    public:
 	inline static constexpr std::string_view idStr() { return "CpStateInp"sv;}
-        CpStateInp(const string &aType, const string& aName, MEnv* aEnv):
-            ConnPoint<MDesInpObserver, MDVarGet> (aType, aName, aEnv) {}
+        CpStateInp(const string &aType, const string& aName, MEnv* aEnv);
         virtual ~CpStateInp() {}
+        // From MVert
+        MIface *MVert_getLif(TIdHash aId) override;
+        // From MDVarGet
+	string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
+	string VarGetIfid() const override;
+	MIface* DoGetDObj(const char *aName) override {return nullptr;}
+	const DtBase* VDtGet(const string& aType) override;
+	void VDtGet(const string& aType, MDVarGet::TData& aData) override;
+        // From ConnPoint
+        MNpc* bP() override { return &mBcp;}
     protected:
         // From ConnPoint
 	void onConnected(MVert* aPair) override;
 	void onDisconnected() override;
-	void onBound() override;
-	void onUnbound() override;
+        // From Vert
+	void onBound(MVert* aPair) override;
+	void onUnbinding(MVert* aPair) override {}
+	void onUnbound(MVert* aPair) override;
+    protected:
+        NpcOnp mBcp;
 };
 
-class CpStateOutp: public ConnPoint<MDVarGet, MDesInpObserver>
+class CpStateOutp: public ConnPoint, public MDesInpObserver
 {
     public:
 	inline static constexpr std::string_view idStr() { return "CpStateOutp"sv;}
-        CpStateOutp(const string &aType, const string& aName, MEnv* aEnv):
-            ConnPoint<MDVarGet, MDesInpObserver> (aType, aName, aEnv) {}
+        CpStateOutp(const string &aType, const string& aName, MEnv* aEnv);
         virtual ~CpStateOutp() {}
+        // From MVert
+	MIface* MVert_getLif(TIdHash aId) override;
+	// From MDesInpObserver
+	string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
+	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
+	void onInpUpdated() override;
+        // From ConnPoint
+        MNpc* bP() override { return &mBcp;}
+    protected:
+        NpcOnp mBcp;
 };
+
+#if 0
 
 /** @brief State input CP that implement required iface and proxied provided
  *  Can be used as pin in combined CPs (Socket etc.)
+ *  Supports multiple binders
  * */
-class CpStateInpPin: public CpStateInp, public MDesInpObserver, public MDVarGet
+class CpStateInpPin: public ConnPoint<MDesInpObserver, MDVarGet>, public MDesInpObserver, public MDVarGet
 {
     public:
+        using TBase = ConnPoint<MDesInpObserver, MDVarGet>;
+        using TBcp = NCpOmnp<TRequired, TProvided>;
+    public:
 	inline static constexpr std::string_view idStr() { return "CpStateInpPin"sv;}
-        CpStateInpPin(const string &aType, const string& aName, MEnv* aEnv):
-            CpStateInp(aType, aName, aEnv) {}
+        CpStateInpPin(const string &aType, const string& aName, MEnv* aEnv);
         virtual ~CpStateInpPin();
 	// From MDesInpObserver
 	string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
 	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
-	void onInpUpdated() override {
-            if (mProvidedPx) { 
-                mProvidedPx->onInpUpdated();
-            }
-        }
+	void onInpUpdated() override;
         // From MDVarGet
 	string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
 	string VarGetIfid() const override;
@@ -73,6 +102,8 @@ class CpStateInpPin: public CpStateInp, public MDesInpObserver, public MDVarGet
         // From ConnPoint
 	void onConnected(MVert* aPair) override;
 	void onDisconnected() override;
+    protected:
+        TBcp mBcp;
 };
 
 
@@ -115,30 +146,21 @@ class CpStateOutpPin: public CpStateOutp, public MDVarGet, public MDesInpObserve
         }
 };
 
+#endif
+
 
 /** @brief CpStateInp direct (specialized) extender (extd as inp)
  * It is faster than generic CpStateInp extender
  * */
-class ExtdStateInp : public CpStateInp, public MDVarGet, public MDesInpObserver
+class ExtdStateInp : public CpStateInp
 {
     public:
+        using TBase = CpStateInp;
+    public:
 	inline static constexpr std::string_view idStr() { return "ExtdStateInp"sv;}
-        void Construct() override;
-	//static vector<GUri> getParentsUri();
-	ExtdStateInp(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
-	//virtual string parentName() const override { return Type(); }
-	//vector<GUri> parentsUri() const override { return getParentsUri(); }
-	// From MDVarGet
-	string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
-	string VarGetIfid() const override;
-	MIface* DoGetDObj(const char *aName) override {return nullptr;}
-        // From Vert
-	MVert* getExtd() override { return mInt;}
-	const DtBase* VDtGet(const string& aType) override;
-	// From MDesInpObserver
-	string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
-	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
-	void onInpUpdated() override;
+        ExtdStateInp(const string &aType, const string& aName, MEnv* aEnv);
+        virtual ~ExtdStateInp() {}
+	void Construct() override;
     public:
         CpStateOutp* mInt = nullptr;
     protected:
@@ -165,39 +187,25 @@ class ExtdStateInp : public Extd
 };
 #endif
 
-/** @brief CpStateOutp direct extender (extd as outp)
+/** @brief CpStateOutp direct (specialized) extender (extd as outp)
  * */
-class ExtdStateOutp : public CpStateOutp, public MDVarGet, public MDesInpObserver
+class ExtdStateOutp : public CpStateOutp
 {
     public:
+        using TBase = CpStateOutp;
+    public:
 	inline static constexpr std::string_view idStr() { return "ExtdStateOutp"sv;}
-	//static vector<GUri> getParentsUri();
-	ExtdStateOutp(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
-        void Construct() override;
-	//virtual string parentName() const override { return Type(); }
-	//vector<GUri> parentsUri() const override { return getParentsUri(); }
-        // From Vert
-	MVert* getExtd() override { return mInt;}
-        // From MDVarGet
-	string MDVarGet_Uid() const override {return getUid<MDVarGet>();}
-	string VarGetIfid() const override;
-	MIface* DoGetDObj(const char *aName) override {return nullptr;}
-	const DtBase* VDtGet(const string& aType) override;
-	void VDtGet(const string& aType, MDVarGet::TData& aData) override;
-	// From MDesInpObserver
-	string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
-	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
-	void onInpUpdated() override {
-            for (auto pair : mPairs) {
-                auto inpObs = pair->lIft<MDesInpObserver>();
-                if (inpObs) inpObs->onInpUpdated();
-            }
-        }
+        ExtdStateOutp(const string &aType, const string& aName, MEnv* aEnv);
+        virtual ~ExtdStateOutp() {}
+	void Construct() override;
     public:
         CpStateInp* mInt = nullptr;
     protected:
         static string KIntName;
+
 };
+
+
 #if 0
 /** @brief DES State input with data latched on update phase
  * Follows DFI approach but inverse, ref ds_dfi
@@ -282,10 +290,10 @@ class CpStateMnodeOutp: public CpState
 // TODO Use BState as a base
 /** @brief State, ver. 2, non-inhritable, monolitic, direct data, switching updated-confirmed
  * */
-class State: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, public MDesInpObserver, public MDVarGet, public MDVarSet
+class State: public ConnPoint, public MDesSyncable, public MDesInpObserver, public MDVarGet, public MDVarSet
 {
     public:
-        using TBase = ConnPoint<MDVarGet, MDesInpObserver>;
+        using TBase = ConnPoint;
         using TDesSyncCp = NCpOnp<MDesSyncable, MDesObserver>;  /*!< DES syncable connpoint */
     public:
 	inline static constexpr std::string_view idStr() { return "State"sv;}
@@ -298,7 +306,7 @@ class State: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, p
 	MIface* MOwner_getLif(TIdHash aId) override;
 	GUri parentUri() const override { return string(idStr());}
 	// From MVert
-	bool isCompatible(const MVert* aPair, bool aExt) const override;
+	MIface* MVert_getLif(TIdHash aId) override;
 	virtual TDir getDir() const override { return EOut;}
 	// From MDesSyncable
 	virtual string MDesSyncable_Uid() const override {return getUid<MDesSyncable>();}
@@ -331,6 +339,8 @@ class State: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, p
 	virtual string MDVarSet_Uid() const override {return getUid<MDVarSet>();}
 	virtual string VarGetSIfid();
 	virtual const bool VDtSet(const DtBase& aData) override;
+        // From MConnPoint
+        MNpc* bP() override { return &mInpBp;}
     public:
 	static const string KCont_Value;
     protected:
@@ -352,7 +362,7 @@ class State: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, p
 	bool mActNotified;  //<! Sign of that State notified observers on Activation
 	bool mInpValid;
 	bool mStDead;     //<! Sign of State destructed, needs to avoid callbacks initialted by bases */
-	//MNode* mInp;      //<! Input cached
+	NpcOnp mInpBp;
 	MDesSyncable* mMDesSyncable = nullptr;
 	MDesInpObserver* mMDesInpObserver = nullptr;
 	MDVarGet* mMDVarGet = nullptr;
@@ -363,10 +373,10 @@ class State: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, p
 
 /** @brief Constant data
  * */
-class Const: public ConnPoint<MDVarGet, MDesInpObserver>, public MDVarGet
+class Const: public ConnPoint, public MDVarGet
 {
     public:
-        using TBase = ConnPoint<MDVarGet, MDesInpObserver>;
+        using TBase = ConnPoint;
     public:
 	inline static constexpr std::string_view idStr() { return "Const"sv;}
 	Const(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
@@ -377,8 +387,8 @@ class Const: public ConnPoint<MDVarGet, MDesInpObserver>, public MDVarGet
 	MIface* MOwner_getLif(TIdHash aId) override;
 	GUri parentUri() const override { return string(idStr());}
 	// From MVert
-	bool isCompatible(const MVert* aPair, bool aExt) const override;
 	virtual TDir getDir() const override { return EOut;}
+	MIface* MVert_getLif(TIdHash aId) override;
 	// From Node.MContentOwner
 	int contCount() const override { return Node::contCount() + 1;}
 	bool getContentId(int aIdx, string& aRes) const override;
@@ -390,6 +400,8 @@ class Const: public ConnPoint<MDVarGet, MDesInpObserver>, public MDVarGet
 	virtual string VarGetIfid() const override;
 	virtual MIface* DoGetDObj(const char *aName) override {return nullptr;}
 	virtual DtBase* VDtGet(const string& aType) override;
+        // From MConnPoint
+        MNpc* bP() override { return nullptr;}
     public:
 	static const string KCont_Value;
     protected:
@@ -567,10 +579,10 @@ class DesAs2: public DesLauncher
  * This allows simplify "custom" systems (like DAdp) having pair CpStateInp-DState
  * instead of ExtdStateInp-State. I.e. the system exposes input binded to state as it's own.
  * */
-class BState: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, public MDesInpObserver, public MDVarGet, public MDVarSet
+class BState: public ConnPoint, public MDesSyncable, public MDesInpObserver, public MDVarGet, public MDVarSet
 {
     public:
-        using TBase = ConnPoint<MDVarGet, MDesInpObserver>;
+        using TBase = ConnPoint;
         using TDesSyncCp = NCpOnp<MDesSyncable, MDesObserver>;  /*!< DES syncable connpoint */
     public:
 	inline static constexpr std::string_view idStr() { return "BState"sv;}
@@ -582,9 +594,9 @@ class BState: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, 
 	MIface* MOwner_getLif(TIdHash aId) override;
 	GUri parentUri() const override { return string(idStr());}
 	// From MVert
-	bool isCompatible(const MVert* aPair, bool aExt) const override;
 	TDir getDir() const override { return EOut;}
-        bool bind(MIface* aBound) override;
+        // From MConnPoint
+        //bool bind(MNpc* aPair) override;
 	// From MDesSyncable
 	virtual string MDesSyncable_Uid() const override {return getUid<MDesSyncable>();}
 	virtual void MDesSyncable_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
@@ -615,6 +627,8 @@ class BState: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, 
 	virtual string MDVarSet_Uid() const override {return getUid<MDVarSet>();}
 	virtual string VarGetSIfid();
 	virtual const bool VDtSet(const DtBase& aData) override;
+        // From MConnPoint
+        MNpc* bP() override { return &mInpBp;}
     public:
 	static const string KCont_Value;
     protected:
@@ -635,7 +649,7 @@ class BState: public ConnPoint<MDVarGet, MDesInpObserver>, public MDesSyncable, 
 	bool mActNotified;  //<! Sign of that State notified observers on Activation
 	bool mInpValid;
 	bool mStDead;     //<! Sign of State destructed, needs to avoid callbacks initialted by bases */
-        MVert* mInp = nullptr; //<! Binded input
+        NpcOnp mInpBp; //<! Input binding point
 	MDesSyncable* mMDesSyncable = nullptr;
 	MDesInpObserver* mMDesInpObserver = nullptr;
 	MDVarGet* mMDVarGet = nullptr;
@@ -923,6 +937,8 @@ void DesEOst<T>::updateInvalid()
     }
 }
 
+#if 0
+// Seems not used anymore
 
 /** @brief Input access point base
  * */
@@ -963,6 +979,7 @@ class DesIap: public DesIapb {
     public:
         T mData;
 };
+#endif
 
 
 
