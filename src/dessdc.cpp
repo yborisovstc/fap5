@@ -181,6 +181,7 @@ bool ASdc::SdcIap<T>::updateData()
     return res;
 }
 
+/*
 bool ASdc::SdcIapEnb::updateData()
 {
     if (mUpdated) return true;
@@ -215,7 +216,49 @@ bool ASdc::SdcIapEnb::updateData()
     mUpdated = true;
     return res;
 }
+*/
 
+bool ASdc::SdcIapEnb::updateData()
+{
+    if (mUpdated) return true;
+    bool res = false;
+    bool dbg = mHost->isLogLevel(EDbg);
+    Sdata<bool> old_data;
+    if (dbg) {
+	old_data = mCdt;
+    }
+    MDVarGet::TData data;
+    for (int i = 0; i < mInp->pairsCount(); i++) {
+        auto ifc = mInp->getPair(i)->lIft<MDVarGet>();
+        if (ifc) {
+            ifc->VDtGet(Sdata<bool>::TypeSig(), data);
+        }
+    }
+    bool first = true;
+    for (auto* delem : data) {
+        if (!delem) continue;
+        // TODO to avoid casting
+        const Sdata<bool>* delemb = reinterpret_cast<const Sdata<bool>*>(delem);
+        if (first) {
+            mCdt = *delemb;
+            first = false;
+        } else {
+            mCdt.mData &= delemb->mData;
+            mCdt.mValid &= delemb->mValid;
+        }
+        if (!mCdt.IsValid()) {
+            break;
+        }
+    }
+    if (dbg) {
+	if (mCdt != old_data) {
+	    LOGNN(mHost, EDbg, "[" + mName + "] Updated: [" + old_data.ToString() + "] -> [" + mCdt.ToString() + "]");
+	}
+    }
+    res = true;
+    mUpdated = true;
+    return res;
+}
 
 
 ASdc::ASdc(const string &aType, const string& aName, MEnv* aEnv): Node(aType, aName, aEnv),
@@ -291,6 +334,9 @@ MVert* ASdc::addOutput(const string& aName)
 void ASdc::update()
 {
     PFL_DUR_STAT_START(PEvents::EDurStat_ASdcUpdate);
+    if (mName == "SdcReposExtrSlot") {
+        LOGN(EDbg, "update");
+    }
     for (auto iap : mIaps) {
 	iap->updateData();
 	iap->mUpdated = true;

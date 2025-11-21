@@ -62,6 +62,9 @@ CpStateInp* TrBase::AddInput(const string& aName)
 
 void TrBase::onInpUpdated()
 {
+    if (mName == "SameColAsPair_Eq") {
+        LOGN(EErr, "onInpUpdated");
+    }
     // Redirect to call to pairs
     mCInv = true;
     for (auto pair : mPairs) {
@@ -454,8 +457,8 @@ void TrCmpVar::Construct()
 void TrCmpVar::Init(const string& aIfaceName)
 {
     TrVar::Init(aIfaceName);
-    if (mName == "IsOutput_Eq") {
-	    LOGN(EWarn, "");
+    if (mName == "SameColAsPair_Eq") {
+        LOGN(EDbg, "Init");
     }
     MDVarGet* inp1 = GetInp(Func::EInp1);
     MDVarGet* inp2 = GetInp(Func::EInp2);
@@ -760,6 +763,9 @@ void TrApndVar::Init(const string& aIfaceName)
     if (mFunc) {
 	delete mFunc;
 	mFunc = NULL;
+    }
+    if (mName == "VsEsPrev") {
+        LOGN(EDbg, "Init");
     }
     MDVarGet* inp = GetInp(Func::EInp1);
     if (inp) {
@@ -1218,9 +1224,11 @@ const DtBase* TrTuple::doVDtGet(const string& aType)
 
 void TrTuple::onOwnedAttached(MOwned* aOwned)
 {
-    auto cp = aOwned->lIft<MConnPoint>();
-    if (cp) {
-	cp->bind(&mInpsBp);
+    if (aOwned->ownedId() != K_InpInp) { // Inp inp binded in Construct
+        auto cp = aOwned->lIft<MConnPoint>();
+        if (cp) {
+            cp->bind(&mInpsBp);
+        }
     }
 }
 
@@ -1784,7 +1792,7 @@ const DtBase* TrHash::doVDtGet(const string& aType)
             MDVarGet::TData data;
 	    dget->VDtGet(string(), data);
             for (auto* dt : data) {
-		hash += dt->Hash();
+		hash += dt ? dt->Hash() : 0;
 	    }
 	}
 	mRes.mData = hash;

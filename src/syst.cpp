@@ -58,6 +58,10 @@ void CpSystExplorable::notifyMagChanged()
     }
 }
 
+void CpSystExplorable::onMagChanged()
+{
+    notifyMagChanged();
+}
 
 
 /// CpSystExploring

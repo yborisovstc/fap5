@@ -21,9 +21,16 @@ void SdoBase::InpBase::Construct()
 
 SdoBase::SdoBase(const string &aType, const string& aName, MEnv* aEnv): CpStateOutp(aType, aName, aEnv),
     mObrCp(this), mEagObs(this), mSue(nullptr), mCInv(true),
-    mExploringCp(MSystExploring::idHash(), MSystExplorable::idHash(), dynamic_cast<MDesInpObserver*>(this)),
-    mInpsBp(MDesInpObserver::idHash(), MDVarGet::idHash(), dynamic_cast<MDesInpObserver*>(this))
+    mExploringCp(MSystExploring::idHash(), MSystExplorable::idHash(), dynamic_cast<MSystExploring*>(this)),
+    mInpsBp(MDesInpObserver::idHash(), MDVarGet::idHash(), dynamic_cast<MDesInpObserver*>(this)),
+    mOutpBp(MDVarGet::idHash(), MDesInpObserver::idHash(), dynamic_cast<MDVarGet*>(this))
 {
+}
+
+void SdoBase::Construct()
+{
+    bool res = bind(&mOutpBp);
+    assert(res);
 }
 
 MIface* SdoBase::MNode_getLif(TIdHash aId)
@@ -288,6 +295,7 @@ SdoComp::SdoComp(const string &aType, const string& aName, MEnv* aEnv): Sdog<Sda
 
 void SdoComp::Construct()
 {
+    SdoBase::Construct();
     mInpName.Construct();
 }
 
@@ -427,6 +435,7 @@ SdoCompOwner::SdoCompOwner(const string &aType, const string& aName, MEnv* aEnv)
 
 void SdoCompOwner::Construct()
 {
+    SdoBase::Construct();
     mInpCompUri.Construct();
 }
 
@@ -472,6 +481,7 @@ SdoCompComp::SdoCompComp(const string &aType, const string& aName, MEnv* aEnv): 
 
 void SdoCompComp::Construct()
 {
+    SdoBase::Construct();
     mInpCompUri.Construct();
     mInpCompCompUri.Construct();
 }
@@ -527,6 +537,7 @@ SdoConn::SdoConn(const string &aType, const string& aName, MEnv* aEnv): Sdog<Sda
 
 void SdoConn::Construct()
 {
+    SdoBase::Construct();
     mInpVp.Construct();
     mInpVq.Construct();
 }
@@ -617,11 +628,15 @@ SdoPairsCount::SdoPairsCount(const string &aType, const string& aName, MEnv* aEn
 
 void SdoPairsCount::Construct()
 {
+    SdoBase::Construct();
     mInpVert.Construct();
 }
 
 const DtBase* SdoPairsCount::VDtGet(const string& aType)
 {
+    if (mName == "SdoPc") {
+        LOGN(EDbg, "VDtGet");
+    }
     if (mCInv) {
         mRes.mValid = false;
         DGuri verts;
@@ -639,7 +654,7 @@ const DtBase* SdoPairsCount::VDtGet(const string& aType)
                     MObservable* obl = mVertUe->lIf(obl);
                     if (obl) {
                         //res = obl->addObserver(&mObrCp);
-                        res = obl->addObserver(this, TNodeEventOwnedAttached::idHash);
+                        //res = obl->addObserver(this, TNodeEventOwnedAttached::idHash);
                         res = obl->addObserver(this, TNodeEventChanged::idHash);
                     }
                     if (!res || !obl) {
@@ -686,7 +701,7 @@ void SdoPairsCount::observingVertUeExst()
         if (mVertUeOwr) {
             MObservable* obl = mVertUeOwr->lIf(obl);
 	    //bool res = obl->rmObserver(&mObrCp);
-	    bool res = obl->rmObserver(this, TNodeEventChanged::idHash);
+	    bool res = obl->rmObserver(this, TNodeEventOwnedAttached::idHash);
             if (!res || !obl) {
                 LOGN(EErr, "Failed deattaching VertUeOwr from observable");
             }
@@ -694,7 +709,7 @@ void SdoPairsCount::observingVertUeExst()
         mVertUeOwr = owner;
         MObservable* obl = mVertUeOwr->lIf(obl);
         //bool res = obl ? obl->addObserver(&mObrCp) : false;
-        bool res = obl ? obl->addObserver(this, TNodeEventChanged::idHash) : false;
+        bool res = obl ? obl->addObserver(this, TNodeEventOwnedAttached::idHash) : false;
         if (!res || !obl) {
             LOGN(EErr, "Cannot attach VertUeOwr to observer");
         } else {
@@ -714,6 +729,7 @@ void SdoPairsCount::onObsChanged(MObservable* aObl)
     }
 }
 
+// TODO remove as not used anymore
 void SdoPairsCount::onObsOwnedAttached(MObservable* aObl, MOwned* aOwned)
 {
     MObservable* obl = mVertUeOwr ? mVertUeOwr->lIf(obl) : nullptr;
@@ -773,6 +789,12 @@ void SdoPairsCount::onObsEvent(MObservable* aObl, const MEvent* aEvent)
 		}
 	    }
 	}
+    } else if (TNodeEventChanged::idHash) {
+        MObservable* obl = mVertUe ? mVertUe->lIf(obl) : nullptr;
+        if (obl && aObl == obl) {
+            LOGN(EDbg, "VertUE changed");
+            NotifyInpsUpdated();
+        }
     }
     SdoBase::onObsEvent(aObl, aEvent);
 }
@@ -787,6 +809,7 @@ SdoPair::SdoPair(const string &aType, const string& aName, MEnv* aEnv): Sdog<DGu
 
 void SdoPair::Construct()
 {
+    SdoBase::Construct();
     mInpTarg.Construct();
 }
 
@@ -855,6 +878,7 @@ SdoTcPair::SdoTcPair(const string &aType, const string& aName, MEnv* aEnv): Sdog
 
 void SdoTcPair::Construct()
 {
+    SdoBase::Construct();
     mInpTarg.Construct();
     mInpTargComp.Construct();
 }
@@ -947,6 +971,7 @@ SdoTPairs::SdoTPairs(const string &aType, const string& aName, MEnv* aEnv): Sdog
 
 void SdoTPairs::Construct()
 {
+    SdoBase::Construct();
     mInpTarg.Construct();
 }
 

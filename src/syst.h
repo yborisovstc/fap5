@@ -26,7 +26,7 @@ class CpSystExplorable: public ConnPoint, public MSystExploring
 	// From MSystExploring
 	string MSystExploring_Uid() const override {return getUid<MSystExploring>();}
 	MIface* MSystExploring_getLif(TIdHash aId) override; 
-	void onMagChanged() override {}
+	void onMagChanged() override;
 	MNpc* getCp() override { return &mBcp;}
         // From MConnPoint
         MNpc* bP() override { return &mBcp;}

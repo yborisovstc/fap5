@@ -517,7 +517,7 @@ void State::setActivated()
 
 void State::update()
 {
-    if (mName == "St3") {
+    if (mName == "SelectedCrpPars_Dbg") {
         LOGN(EDbg, "update");
     }
     PFL_DUR_STAT_START(PEvents::EDurStat_StUpdate);
@@ -749,6 +749,16 @@ MIface* BState::MOwned_getLif(TIdHash aId)
     else res = TBase::MOwned_getLif(aId);
     return res;
 }
+
+MIface* BState::MVert_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMDVarGet));
+    else if (res = checkLif2(aId, mMDVarSet));
+    else res = TBase::MVert_getLif(aId);
+    return res;
+}
+
 
 bool BState::getContentId(int aIdx, string& aRes) const
 {
@@ -1861,6 +1871,9 @@ void DesCtxSpl::onOwnedDetached(MOwned* aOwned)
 
 bool DesCtxSpl::bindCtx(const string& aCtxId, MVert* aCtx)
 {
+    if (mName == "DrpCtx") {
+        LOGN(EDbg, "bindCtx");
+    }
     bool res = false;
     // TODO using extenders as context elements, consider redesign to pins, ref ds_vbcr_omb 
     MNode* ctsn =  getComp(aCtxId);
@@ -1957,7 +1970,10 @@ bool DesCtxCsm::bindAllCtx()
                 MVert* extd = compv->getExtd();
                 if (extd) {
                     res = spl->bindCtx(compod->ownedId(), compv);
-                    if (!res) break;
+                    if (!res) { 
+                        LOGN(EErr, "Failed binding context component [" + compod->ownedId() + "]");
+                        break;
+                    }
                 }
             }
         }
@@ -1972,7 +1988,10 @@ void DesCtxCsm::onConnected(MVert* aPair)
     if (mName == "DrpCtx") {
         LOGN(EDbg, "onConnected");
     }
-    bindAllCtx();
+    bool res = bindAllCtx();
+    if (!res) {
+        LOGN(EErr, "Failed binding to context supplier");
+    }
 }
 
 void DesCtxCsm::onDisconnected()
@@ -1981,6 +2000,9 @@ void DesCtxCsm::onDisconnected()
 
 void DesCtxCsm::confirm()
 {
+    if (mName == "VertCrpCtx") {
+        LOGN(EDbg, "confirm");
+    }
     if (!mBound) {
         MDesCtxCsm* csm = MDesCtxCsm::lIf(csm);
         MDesCtxBinder* owrdcb = owner() ? owner()->lIf(owrdcb) : nullptr;

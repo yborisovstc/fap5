@@ -58,7 +58,7 @@ const ProvDef::TFReg ProvDef::mReg ( {
         Item<Socket>(), Item<CpSystExplorable>(), Item<CpSystExploring>(), Item<ExtdSystExplorable>(), Item<ExtdSystExploring>(),
         /*Item<PinSystExplorable>(), Item<PinSystExploring>(),*/
         /* Extenders */
-        Item<Extd>(), Item<SocketExtd>(), 
+        Item<Extd>(), Item<SocketExtd>(), Item<SocketExtdInt>(), 
         /* DES constants */
         Item<SI_0>(), Item<SI_1>(), Item<SB_False>(), Item<SB_True>(),
         /* DES active subs */

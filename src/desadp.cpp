@@ -201,6 +201,16 @@ void DAdp::MagUriHandler::onInpUpdated()
     mHost->updateMag();
 }
 
+MIface* DAdp::MagUriHandler::MVert_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMDesInpObserver));
+    else res = CpStateInp::MVert_getLif(aId);
+    return res;
+}
+
+
+
 const string DAdp::KCpExplName = "CpExploring";
 const string K_DAdp_InpMagUri = "InpMagUri";
 const string K_DAdp_StMagUri = "StMagUri";
@@ -226,6 +236,7 @@ void DAdp::Construct()
     mStMagUri = addComp(BState::idStr(), K_DAdp_StMagUri);
     assert(mStMagUri);
     mStMagUri->lIft<MContentOwner>()->setContent("", "URI");
+    mStMagUri->lIft<MContentOwner>()->setContent("LogLevel", "Dbg"); // YB!!
     auto* stMagUriCp = mStMagUri->lIft<MConnPoint>();
     auto* stMagUriv = mStMagUri->lIft<MVert>();
     res = stMagUriCp->bind(inpMagUri->lIft<MConnPoint>()->bP());
@@ -294,6 +305,7 @@ void DAdp::onMagChanged()
     auto magBase = getMagBase();
     if (magBase != mMagBase) {
         mMagBase = magBase;
+        LOGN(EInfo, "Managed agent base changed [" + mMagBase->Uid() + "]");
         updateMag();
     }
 }

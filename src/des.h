@@ -161,6 +161,8 @@ class ExtdStateInp : public CpStateInp
         ExtdStateInp(const string &aType, const string& aName, MEnv* aEnv);
         virtual ~ExtdStateInp() {}
 	void Construct() override;
+        // From MVert
+        MVert* getExtd() override { return mInt;}
     public:
         CpStateOutp* mInt = nullptr;
     protected:
@@ -198,6 +200,8 @@ class ExtdStateOutp : public CpStateOutp
         ExtdStateOutp(const string &aType, const string& aName, MEnv* aEnv);
         virtual ~ExtdStateOutp() {}
 	void Construct() override;
+        // From MVert
+        MVert* getExtd() override { return mInt;}
     public:
         CpStateInp* mInt = nullptr;
     protected:
@@ -595,6 +599,7 @@ class BState: public ConnPoint, public MDesSyncable, public MDesInpObserver, pub
 	GUri parentUri() const override { return string(idStr());}
 	// From MVert
 	TDir getDir() const override { return EOut;}
+	MIface* MVert_getLif(TIdHash aId) override;
         // From MConnPoint
         //bool bind(MNpc* aPair) override;
 	// From MDesSyncable

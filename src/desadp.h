@@ -71,11 +71,13 @@ class DAdp: public Des, public MSystExploring
 	class MagUriHandler : public CpStateInp, public MDesInpObserver {
 	    public:
 	    MagUriHandler(const string& aName, MEnv* aEnv, DAdp* aHost): CpStateInp(string(), aName, aEnv), mHost(aHost) {};
+            MIface *MVert_getLif(TIdHash aId) override;
 	    // From MDesInpObserver
 	    string MDesInpObserver_Uid() const override {return getUid<MDesInpObserver>();}
 	    void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
 	    void onInpUpdated() override;
 	    DAdp* mHost;
+            MDesInpObserver* mMDesInpObserver = nullptr;
 	};
 	friend MagUriHandler;
     public:

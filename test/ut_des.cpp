@@ -515,6 +515,8 @@ void Ut_des::test_des_conn_1()
 
     CPPUNIT_ASSERT_MESSAGE("Ds1.St1 wrong data", getStateDstr("Launcher.Ds1.St1") == "SI 0");
     CPPUNIT_ASSERT_MESSAGE("Ds1.St2 wrong data", getStateDstr("Launcher.Ds1.St2") == "SI 1");
+    CPPUNIT_ASSERT_MESSAGE("Ds1.St3 wrong data", getStateDstr("Launcher.Ds1.St3") == "SI 7");
+    CPPUNIT_ASSERT_MESSAGE("Ds2.St2_1 wrong data", getStateDstr("Launcher.Ds2.St2_1") == "SI 0");
 
     delete mEnv;
 }

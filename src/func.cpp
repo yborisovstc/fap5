@@ -601,6 +601,7 @@ template <class T> const DtBase* FAtgPair<T>::FDtGet()
 	    LOGF(EWarn, "Index is exceeded: " + inds);
 	}
     }
+    LOGF(EDbg, "Inp [" + (inp ? inp->ToString(true) : "nil") + "], Idx [" + (ind ? ind->ToString(true) : "nil")  + "], res [" + mRes.ToString(true) + "]");
     return &mRes;
 }
 

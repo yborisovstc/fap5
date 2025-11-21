@@ -81,6 +81,7 @@ class Socket: public Verte, public MSocket
     protected:
         // Bind/connect, unbind/disconnect pins
         void bindPins(MSocket* aPair, bool aConnect, bool aUndo = false);
+        virtual MVert* checkPin(MOwned* aOwned);
     protected:
         // TODO consider adding binding point
         MVert* mMVert = nullptr;
@@ -102,10 +103,31 @@ class SocketExtd : public Socket
         // From MVert
         MVert* getExtd() override;
         // From MSocket
-        MVert* GetPin(int aInd) override;
+        MVert* GetPin(const string& aId) override;
+    protected:
+        MVert* checkPin(MOwned* aOwned) override;
     public:
 	static const string KUriInt;  /*!< Internal connpoint Uri */
 };
+
+/** @brief Socket extender int point
+ * */
+class SocketExtdInt : public Socket
+{
+    public:
+        inline static constexpr std::string_view idStr() { return "SocketExtdInt"sv;}
+	SocketExtdInt(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+        virtual ~SocketExtdInt() {}
+    public:
+	// From Node
+	void onOwnedAttached(MOwned* aOwned) override;
+	void onOwnedDetached(MOwned* aOwned) override;
+        // From MSocket
+        MVert* GetPin(const string& aId) override;
+    protected:
+        MVert* checkPin(MOwned* aOwned) override;
+};
+
 
 /** @brief Generic extender of CP, ref ds_vbcr_extd_ep
  * It is "universal" but less effective that specialized extender

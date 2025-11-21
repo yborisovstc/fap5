@@ -584,7 +584,16 @@
                 <sect4><title>Intro</title>
                     <simpara>
                         With this solution we have sockets connection operation performing pins connection and 
-                        sockets binding operation performing pins binding.
+                        sockets binding operation performing pins binding. This is necessary if we request
+                        that socket connection supports recursion, i.e. if socket can have its pin-socket.
+                    </simpara>
+                    <simpara>
+                        This condition can be met if we use extenders as socket pins. As for binding this condition means
+                        that pins needs to be simple CPs.
+                    </simpara>
+                    <simpara>
+                        This complicates Socket design - we need dedicated agents for Socket, SocketExtd, SocketExtdInt to
+                        handle differents pins specifics.
                     </simpara>
                 </sect4>
             </sect3>

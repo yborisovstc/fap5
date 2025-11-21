@@ -83,6 +83,7 @@ class SdoBase : public CpStateOutp, public MDVarGet, public MObserver, public MS
     public:
 	static const char* Type() { return "SdoBase";};
 	SdoBase(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+        void Construct() override;
     public:
 	// From MNode
 	MIface* MNode_getLif(TIdHash aId) override;
@@ -128,6 +129,7 @@ class SdoBase : public CpStateOutp, public MDVarGet, public MObserver, public MS
 	bool mCInv;              //!< Sign of data cache invalidated
 	NpcOnp mExploringCp;
         NpcOmnp mInpsBp;  /*!< Inputs binding point */
+	NpcOnp mOutpBp;   /*!< Output binding point */
 	MDVarGet* mMDVarGet = nullptr;
 	MObserver* mMObserver = nullptr;
 	MSystExploring* mMSystExploring = nullptr;

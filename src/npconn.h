@@ -141,7 +141,9 @@ class NpcBase : public MNpc
 {
     public:
         NpcBase(MIface::TIdHash aPifId, MIface::TIdHash aRifId, MIface* aPx):
-            mPifId(aPifId), mRifId(aRifId), mPx(aPx) {}
+            mPifId(aPifId), mRifId(aRifId), mPx(aPx) {
+                assert(mPx && mPx->id() == mPifId);
+           }
     public:
 	MIface* provided() override { return mPx;}
 	const MIface* provided() const override { return mPx;}

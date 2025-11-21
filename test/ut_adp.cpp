@@ -69,12 +69,11 @@ void Ut_adp::test_Dadp_1()
     CPPUNIT_ASSERT_MESSAGE("Phase1: CompExists failed", getStateDstr("test.Controller.ConnExists") == "SB true");
     CPPUNIT_ASSERT_MESSAGE("Phase1: PairsCount failed", getStateDstr("test.Controller.PairsCount") == "SI 1");
     CPPUNIT_ASSERT_MESSAGE("Phase1: DesIsIdle failed", getStateDstr("test.Controller.DesIsIdle") == "SB false");
-    CPPUNIT_ASSERT_MESSAGE("Phase1: VPair failed", getStateDstr("test.Controller.VPair") == "URI .testroot.test.Controller.Targets.Target5.Ext1.Int");
-    CPPUNIT_ASSERT_MESSAGE("Phase1: TcPair failed", getStateDstr("test.Controller.TcPair") == "URI .testroot.test.Controller.Targets.Target5.St1");
+    CPPUNIT_ASSERT_MESSAGE("Phase1: VPair failed", getStateDstr("test.Controller.VPair") == "URI Ext1.Int");
+    CPPUNIT_ASSERT_MESSAGE("Phase1: TcPair failed", getStateDstr("test.Controller.TcPair") == "URI St1");
     CPPUNIT_ASSERT_MESSAGE("Phase1: MagPairs failed", getStateDstr("test.Controller.MagPairs") == "VDU <ERR>");
-    CPPUNIT_ASSERT_MESSAGE("Phase1: TPairs failed", getStateDstr("test.Controller.TPairs") == "VDU (URI .testroot.test.Controller.Targets.Target5.Ext1.Int)");
-    CPPUNIT_ASSERT_MESSAGE("Phase1: MagEdges failed", getStateDstr("test.Controller.MagEdges") ==
-	    "VPDU (PDU (URI .testroot.test.Controller.Targets.Target5.Ext1.Int,URI .testroot.test.Controller.Targets.Target5.St1))");
+    CPPUNIT_ASSERT_MESSAGE("Phase1: TPairs failed", getStateDstr("test.Controller.TPairs") == "VDU (URI Ext1.Int)");
+    CPPUNIT_ASSERT_MESSAGE("Phase1: MagEdges failed", getStateDstr("test.Controller.MagEdges") == "VPDU (PDU (URI Ext1.Int,URI St1))");
 
 
     // Phase 2
@@ -87,7 +86,7 @@ void Ut_adp::test_Dadp_1()
     CPPUNIT_ASSERT_MESSAGE("Phase2: AddCompOutp_Dbg failed", getStateDstr("test.Controller.AddCompOutp_Dbg") == "SB false");
     //printf("test.Controller.CompsUri: %s\n", getStateDstr("test.Controller.CompsUri").c_str());
     CPPUNIT_ASSERT_MESSAGE("Phase2: CompsUri failed", getStateDstr("test.Controller.CompsUri") == "VDU (URI Cmp3_0,URI Cmp3_1,URI Cmp3_2,URI Cmp3_3)");
-    CPPUNIT_ASSERT_MESSAGE("Phase2: CompComp failed", getStateDstr("test.Controller.CompComp") == "URI .testroot.test.Controller.Targets.Target3.Cmp3_3.Cmp3_3_0");
+    CPPUNIT_ASSERT_MESSAGE("Phase2: CompComp failed", getStateDstr("test.Controller.CompComp") == "URI Cmp3_3.Cmp3_3_0");
     CPPUNIT_ASSERT_MESSAGE("Phase2: CompExists failed", getStateDstr("test.Controller.CompExists") == "SB true");
     CPPUNIT_ASSERT_MESSAGE("Phase2: CompExists failed", getStateDstr("test.Controller.ConnExists") == "SB <ERR>");
     CPPUNIT_ASSERT_MESSAGE("Phase2: PairsCount failed", getStateDstr("test.Controller.PairsCount") == "SI <ERR>");
