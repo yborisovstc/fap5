@@ -62,9 +62,6 @@ CpStateInp* TrBase::AddInput(const string& aName)
 
 void TrBase::onInpUpdated()
 {
-    if (mName == "SameColAsPair_Eq") {
-        LOGN(EErr, "onInpUpdated");
-    }
     // Redirect to call to pairs
     mCInv = true;
     for (auto pair : mPairs) {

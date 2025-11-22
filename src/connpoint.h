@@ -69,6 +69,7 @@ class Socket: public Verte, public MSocket
         bool unbind(MVert* aPair) override;
         // From MSocket
         string MSocket_Uid() const override  { return getUid<MSocket>();}
+        // TODO PinsCount, GetPinId and GetPin(int) aren't used. To rm from iface
         int PinsCount() const override;
         MVert* GetPin(int aInd) override;
         MVert* GetPin(const string& aId) override;
