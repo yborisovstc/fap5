@@ -3,6 +3,14 @@
 
 //// ConnPoint
 
+vector<GUri> ConnPoint::getParentsUri()
+{
+    auto p = Vert::getParentsUri();
+    p.insert(p.begin(), string(idStr()));
+    return p;
+}
+
+
 MIface* ConnPoint::MNode_getLif(TIdHash aId)
 {
     // TODO to reuse MOwned resolver?

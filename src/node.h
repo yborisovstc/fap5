@@ -15,7 +15,7 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 {
     public:
 	inline static std::string_view idStr() { return "Node"sv;}
-	inline static TIdHash idHash() { return 0x183c6ea2097bf7bf;}
+        static vector<GUri> getParentsUri();
 
     protected:
 	class NOwningNode : public NTnip<MOwned, MOwner> {
@@ -53,7 +53,8 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	GUri parentUri() const override { return string(idStr());}
 	void setCtx(MOwner* aContext) override;
 	void mutate(const ChromoNode& aMut, bool aChange /*EFalse*/, const MutCtx& aCtx, bool aTreatAsChromo = false, bool aLocal = false) override;
-	vector<GUri> parentsUris() const override { return vector(1, parentUri()); }
+	//vector<GUri> parentsUris() const override { return vector(1, parentUri()); }
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
 	TOwnerCp* ownerCp() override { return mOwsNode.binded();}
 	const TOwnerCp* ownerCp() const override { return const_cast<const TOwnerCp*>(const_cast<Node*>(this)->mOwsNode.binded());}
 	bool attachOwned(MNode* aOwned) override;

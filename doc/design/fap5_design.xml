@@ -980,7 +980,7 @@
     </sect1>
 
     <sect1 id="ds_desas"><title><xref linkend="gls_desas"/> improvement and bugfix</title>
-        <sect2><title>Deny Solution_2</title>
+        <sect2 id="ds_desas_ds2"><title>DesAs subs notifies inp observers on master system update phase - Deny Solution_2</title>
             <simpara>
                 Ref comment
                 <ulink url="../../../fap3/doc/design/index.html#ds_desas_nio_ric_swr"/>
@@ -989,8 +989,9 @@
         <sect2><title>History</title>
             <sect3><title>20250723 In the scope of FAP5: Discarded Solution_2</title>
                 Discarded Solution_2 because of
-                <xref linkend="ds_desas_nio_ric_swr"/>
-                    Applied Solution 1 with some modifications.
+                <ulink url="../../../fap3/doc/design/index.html#ds_desas_nio_ric_swr"/>
+                    Applied Solution 1 , ref
+                <ulink url="../../../fap3/doc/design/index.html#ds_desas_nio_do"/> with some modifications.
             </sect3>
         </sect2>
     </sect1>
@@ -1088,6 +1089,58 @@
             <simpara>
                 Do same opt as for ifaces id was done. Avoid using strings comparition.
             </simpara>
+        </sect2>
+    </sect1>
+
+    <sect1 id="ds_snue"><title>Design flaw: State isn't updated to Err even input is null.</title>
+        <sect2><title>Intro</title>
+            <simpara>
+                Some transitions (especially commutating, e.g. TrSwitchBool) return null data. E.g. TrSwitchBool returns null data in case
+                where selector is null or invalid. But State::update() seems doesn't handle this case correctly - state just ignores data and
+                don't set its data invalid.
+            </simpara>
+            <simpara>
+                This specific of state implementation causes some wrong behaviour. For instance dutil IdxItr index keeps 0 even InpCnt value is invalid.
+            </simpara>
+        </sect2>
+    </sect1>
+
+    <sect1 id="ds_csd"><title>Dynasystem creation problem: needs "compensate" sybsys delays</title>
+        <sect2 id="ds_csd_itr"><title>Intro</title>
+            <simpara>
+                When creating some model we often see the following pattern
+                <programlisting>
+                    S1--S2-(delay)-S3
+                      \-----------/ 
+                </programlisting>
+                    The example is fap5-vis 3def7810c6d39492 modules/avr2.chs: 
+                    S3 is .testroot.Test.Window.Scene.View.Model_syst1.Controller.CreateWdg
+                    S2 is testroot.Test.Window.Scene.View.Model_syst1.Controller.CpResolver
+                    S1 is .testroot.Test.Window.Scene.View.Model_syst1.Controller.CompsIter
+            </simpara>
+            <simpara>
+                InpRp (Input representation point) creation (CreateWdg) depends on S1 (gives name of widget) and S2 (gives parent of widget).
+                S2 gives the result on the input from S1 with delay, so when S3 gives output from S1 the output from S2 is "incorrect" meaning
+                that it doesn't the right result for S1 output.
+            </simpara>
+            <simpara>
+                Currently this problem is solved by using DesAs (DES active system) for delaying subsystem. But DesAs initial version has the problem, ref
+                <xref linkend="ds_desas_ds2"/>. DesAs2 was introduce to fix the problem.
+                But DesAs version 2 has one tick delay, so we need to add one tick adjusting delay for S1-to-S3 also that complicates the whole system.
+                Also it not simple to create subs based on DesAs2.
+            </simpara>
+        </sect2>
+        <sect2 id="ds_csd_s1"><title>Solution#1 Reset delaying subsystem.</title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    The idea is to invalidate S2 as soon as S1 output changed. Then S2 output will be kept invalid till the correct output is reached.
+                    In that case S3 will not changed having S2 output invalid.
+                    After that both S1 and S2 outputs gets valid S3 will perform the change.
+                </simpara>
+                <simpara>
+                    With this solution we don't need DesAs based subsystem.
+                </simpara>
+            </sect3>
         </sect2>
     </sect1>
 

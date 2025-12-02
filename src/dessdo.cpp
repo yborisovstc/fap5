@@ -248,6 +248,9 @@ SdoParents::SdoParents(const string &aType, const string& aName, MEnv* aEnv): Sd
 
 const DtBase* SdoParents::VDtGet(const string& aType)
 {
+    if (mName == "Parents") {
+        LOGN(EDbg, "VDtGet");
+    }
     if (mCInv) {
         mRes.mValid = false;
         mRes.mData.clear();

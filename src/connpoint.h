@@ -7,21 +7,26 @@
 #include "elem.h"
 #include "npconn.h"
 
-// TODO consider using prov/req ifaces id as arrts instead of template pars
-/** @brief Connection point in native treee.
- * In contrastof native connpoints (nconn.h) it is native tree node
+// TODO consider also adding CP with stating prov/req ifaces ids as props
+/** @brief Connection point abstract base in native treee.
+ * In contrast of native connpoints (nconn.h) it is native tree node
  * so can be managed via model mutation.
  * Connpoint proxies provided iface, set via binding operation
  * */
 class ConnPoint : public Vert, public MConnPoint
 {
     public:
+	inline static constexpr std::string_view idStr() { return "ConnPoint"sv;}
+    public:
+        static vector<GUri> getParentsUri();
         ConnPoint(const string &aType, const string &aName, MEnv* aEnv, MIface::TIdHash aPifId, MIface::TIdHash aRifId): Vert(aType, aName, aEnv),
             mPifId(aPifId), mRifId(aRifId) {}
         virtual ~ConnPoint() {}
         // From MNode
         MIface *MNode_getLif(TIdHash aId) override;
         MIface *MOwned_getLif(TIdHash aId) override;
+	GUri parentUri() const override { return string(idStr());}
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
         // From MConnPoint
         string MConnPoint_Uid() const override  { return getUid<MConnPoint>();}
         TIdHash idProvided() const override { return mPifId; }

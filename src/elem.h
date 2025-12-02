@@ -14,7 +14,7 @@ class Elem: public Node, public MElem
 	using TInhTreeNode = NTnnp<MChild, MParent>; 
     public:
 	inline static std::string_view idStr() { return "Elem"sv;}
-	inline static TIdHash idHash() { return 0x4cdcd9aec1483aff;}
+        static vector<GUri> getParentsUri();
 	Elem(const string &aType, const string &aName, MEnv* aEnv);
 	virtual ~Elem();
 	// From MNode.MIface
@@ -54,7 +54,6 @@ class Elem: public Node, public MElem
 	// Local
 	// TODO Should it be the method of MParent as attachChild is?
 	bool detachChild(MChild* aChild);
-        vector<GUri> getParentsUri();
     protected:
 	MChromo* mChromo;     /*!< Chromo */
 	TInhTreeNode mInode;  /*!< Inheritance tree node */

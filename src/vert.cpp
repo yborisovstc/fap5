@@ -2,6 +2,12 @@
 #include "vert.h"
 
 
+vector<GUri> Vert::getParentsUri()
+{
+    auto p = Node::getParentsUri();
+    p.insert(p.begin(), string(idStr()));
+    return p;
+}
 
 MIface* Vert::MNode_getLif(TIdHash aId)
 {
@@ -118,6 +124,13 @@ void Vert::onDisconnected()
 
 /// Verte
 
+
+vector<GUri> Verte::getParentsUri()
+{
+    auto p = Elem::getParentsUri();
+    p.insert(p.begin(), string(idStr()));
+    return p;
+}
 
 MIface* Verte::MNode_getLif(TIdHash aId)
 {

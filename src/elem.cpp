@@ -4,6 +4,14 @@
 #include "chromo.h"
 
 
+
+vector<GUri> Elem::getParentsUri()
+{
+    auto p = Node::getParentsUri();
+    p.insert(p.begin(), string(idStr()));
+    return p;
+}
+
 Elem::Elem(const string &aType, const string &aName, MEnv* aEnv): Node(aType, aName, aEnv), mInode(this, this)
 {
     mChromo = mEnv->provider()->createChromo();

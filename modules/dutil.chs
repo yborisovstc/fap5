@@ -16,6 +16,19 @@ DesUtils : Elem {
         )
         Outp.Int ~ TAnd
     }
+    IsChanged : Des {
+        # "Data change indicator"
+        SInp : ExtdStateInp
+        Outp : ExtdStateOutp
+        TCmp_Neq : TrCmpVar (
+            Inp ~ SInp.Int
+            Inp2 ~ Delay : State (
+                _@ < LogLevel = "Dbg"
+                Inp ~ SInp.Int
+            )
+        )
+        Outp.Int ~ TCmp_Neq
+    }
     BChangeCnt : Des {
         # "Boolean change counter"
         SInp : ExtdStateInp
@@ -418,10 +431,78 @@ DesUtils : Elem {
         Subsys.InpSsParents ~ InpParents.Int
         Subsys.InpMapping ~ InpMpg.Int
         OutpRes.Inp ~ OutpRes_Int : TrSwitchBool (
+            _@ < LogLevel = "Dbg"
             Inp1 ~ Subsys.Outp
             Inp2 ~ InpDefRes.Int
             Sel ~ NotFound
         )
+        # ">>> Parent mapping resolver"
+    }
+    PrntMappingResolverD : Des {
+        # ">>> Parent mapping resolver"
+        # "Finds data (URI) assosiated to parent"
+        # "Input: parents hierarchy (VDU)"
+        InpParents : ExtdStateInp
+        # "Input: Mapping parent to result"
+        InpMpg : ExtdStateInp
+        # "Input: Default result"
+        InpDefRes : ExtdStateInp
+        # "Input: reset"
+        InpRset : ExtdStateInp
+        # "Output: Resolved CRP URI"
+        OutpRes : ExtdStateOutp
+        # "System"
+        ParentsIter : VectIter (
+            _@ < LogLevel = "Dbg"
+            InpV ~ InpParents.Int
+            _ < InpDone ~ : SB_True
+            InpReset ~ InpRset.Int
+        )
+        FindMapped : TrFindByP (
+            Inp ~ InpMpg.Int
+            Sample ~ ParentsIter.OutV
+        )
+        ParentsIter.InpDone ~ : TrNegVar (
+            Inp ~ : TrIsValid (
+                Inp ~ FindMapped
+            )
+        )
+        Parents_Dbg : State (
+            _@ < LogLevel = "Dbg"
+            _@ < = "VDU"
+            Inp ~ InpParents.Int
+        )
+        NotFound : TrAndVar (
+            Inp ~ : TrIsValid (
+                Inp ~ InpMpg.Int
+            )
+            Inp ~ : TrIsValid (
+                Inp ~ InpParents.Int
+            )
+            Inp ~ : TrIsInvalid (
+                Inp ~ FindMapped
+            )
+        )
+        Res_Int : TrSwitchBool (
+            _@ < LogLevel = "Dbg"
+            Inp1 ~ FindMapped
+            Inp2 ~ InpDefRes.Int
+            Sel ~ NotFound
+        )
+        Res_Int2 : TrSwitchBool (
+            _@ < LogLevel = "Dbg"
+            Inp1 ~ Res_Int
+            Inp2 ~ : Const {
+                = "URI"
+            }
+            Sel ~ InpRset.Int
+        )
+        Res : State (
+            _@ < LogLevel = "Dbg"
+            _@ < = "URI"
+            Inp ~ Res_Int2
+        )
+        OutpRes.Int ~ Res
         # ">>> Parent mapping resolver"
     }
 }

@@ -26,8 +26,11 @@ class CpStateInp: public ConnPoint, public MDVarGet
         using TBase = ConnPoint;
     public:
 	inline static constexpr std::string_view idStr() { return "CpStateInp"sv;}
+        static vector<GUri> getParentsUri();
         CpStateInp(const string &aType, const string& aName, MEnv* aEnv);
         virtual ~CpStateInp() {}
+	GUri parentUri() const override { return string(idStr());}
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
         // From MVert
         MIface *MVert_getLif(TIdHash aId) override;
         // From MDVarGet
@@ -54,8 +57,11 @@ class CpStateOutp: public ConnPoint, public MDesInpObserver
 {
     public:
 	inline static constexpr std::string_view idStr() { return "CpStateOutp"sv;}
+        static vector<GUri> getParentsUri();
         CpStateOutp(const string &aType, const string& aName, MEnv* aEnv);
         virtual ~CpStateOutp() {}
+	GUri parentUri() const override { return string(idStr());}
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
         // From MVert
 	MIface* MVert_getLif(TIdHash aId) override;
 	// From MDesInpObserver
@@ -158,9 +164,12 @@ class ExtdStateInp : public CpStateInp
         using TBase = CpStateInp;
     public:
 	inline static constexpr std::string_view idStr() { return "ExtdStateInp"sv;}
+        static vector<GUri> getParentsUri();
         ExtdStateInp(const string &aType, const string& aName, MEnv* aEnv);
         virtual ~ExtdStateInp() {}
-	void Construct() override;
+        void Construct() override;
+	GUri parentUri() const override { return string(idStr()); }
+        vector<GUri> parentsUri() const override { return getParentsUri(); }
         // From MVert
         MVert* getExtd() override { return mInt;}
     public:
@@ -197,9 +206,12 @@ class ExtdStateOutp : public CpStateOutp
         using TBase = CpStateOutp;
     public:
 	inline static constexpr std::string_view idStr() { return "ExtdStateOutp"sv;}
+        static vector<GUri> getParentsUri();
         ExtdStateOutp(const string &aType, const string& aName, MEnv* aEnv);
         virtual ~ExtdStateOutp() {}
 	void Construct() override;
+        GUri parentUri() const override { return string(idStr()); }
+        vector<GUri> parentsUri() const override { return getParentsUri(); }
         // From MVert
         MVert* getExtd() override { return mInt;}
     public:
@@ -534,6 +546,7 @@ class DesLauncher: public Des, public MLauncher
  * Runs on master DES confirm, ds_desas_nio_ric
  * !! Blocked atm because design is wrong, ref ds_desas_nio_ric_swr
  * */
+// TODO to replace by DesAs2
 class DesAs: public DesLauncher
 {
     public:

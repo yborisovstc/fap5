@@ -11,10 +11,12 @@ class Vert : public Node, public MVert
 	using TPairs = vector<MVert*>;
     public:
 	inline static constexpr std::string_view idStr() { return "Vert"sv;}
+        static vector<GUri> getParentsUri();
         Vert(const string &aType, const string &aName, MEnv* aEnv): Node(aType, aName, aEnv) {}
         // From MNode
         MIface *MNode_getLif(TIdHash aId) override;
 	GUri parentUri() const override { return string(idStr());}
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
         // From MVert
         string MVert_Uid() const override { return getUid<MVert>();}
         MIface *MVert_getLif(TIdHash aId) override;
@@ -52,6 +54,7 @@ class Verte : public Elem, public MVert
 	using TPairs = vector<MVert*>;
     public:
 	inline static constexpr std::string_view idStr() { return "Verte"sv;}
+        static vector<GUri> getParentsUri();
         Verte(const string &aType, const string &aName, MEnv* aEnv): Elem(aType, aName, aEnv) {}
         // From MNode
         MIface *MNode_getLif(TIdHash aId) override;

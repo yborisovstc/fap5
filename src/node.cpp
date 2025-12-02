@@ -29,6 +29,13 @@ static const map<int, string> KLogLevelsStr = {
     { EAll, "All"}
 };
 
+
+vector<GUri> Node::getParentsUri()
+{
+    return vector<GUri>(1, string(idStr()));
+}
+
+
 Node::Node(const string &aType, const string &aName, MEnv* aEnv): mName(aName.empty() ? aType : aName), mEnv(aEnv), mOcp(this), mOwsNode(this, this),
     mLogLevel(EInfo), mExplorable(false), mControllable(false)
 {
@@ -572,6 +579,9 @@ MNode* Node::mutAddElem(const ChromoNode& aMut, bool aUpdOnly, const MutCtx& aCt
 {
     string sparent = aMut.Attr(ENa_Parent);
     string sname = aMut.Attr(ENa_Id);
+    if (sname == "CpResolver") {
+        LOGN(EDbg, "mutAddElem");
+    }
     bool res = false;
     //Log(EDbg2, TLog(this, aMut) + "Adding element [" + sname + "]"); // To LOGN
 

@@ -10,6 +10,14 @@
 
 /// CpStateInp
 
+vector<GUri> CpStateInp::getParentsUri()
+{
+    auto p = ConnPoint::getParentsUri();
+    p.insert(p.begin(), string(idStr()));
+    return p;
+}
+
+
 CpStateInp::CpStateInp(const string &aType, const string& aName, MEnv* aEnv):
     ConnPoint(aType, aName, aEnv, MDesInpObserver::idHash(), MDVarGet::idHash()),
     mBcp(mRifId, mPifId, dynamic_cast<MDVarGet*>(this))
@@ -99,6 +107,14 @@ void CpStateInp::VDtGet(const string& aType, MDVarGet::TData& aData)
 
 
 /// CpStateOutp
+
+vector<GUri> CpStateOutp::getParentsUri()
+{
+    auto p = ConnPoint::getParentsUri();
+    p.insert(p.begin(), string(idStr()));
+    return p;
+}
+
 
 CpStateOutp::CpStateOutp(const string &aType, const string& aName, MEnv* aEnv):
     ConnPoint(aType, aName, aEnv, MDVarGet::idHash(), MDesInpObserver::idHash()),
@@ -210,6 +226,13 @@ const DtBase* CpStateOutpPin::VDtGet(const string& aType)
 
 string ExtdStateInp::KIntName = "Int";
 
+vector<GUri> ExtdStateInp::getParentsUri()
+{
+    auto p = CpStateInp::getParentsUri();
+    p.insert(p.begin(), string(idStr()));
+    return p;
+}
+
 ExtdStateInp::ExtdStateInp(const string &aType, const string& aName, MEnv* aEnv): CpStateInp(aType, aName, aEnv)
 {
 }
@@ -281,6 +304,13 @@ MIface* ExtdStateInp::MVert_getLif(TIdHash aId)
 
 
 string ExtdStateOutp::KIntName = "Int";
+
+vector<GUri> ExtdStateOutp::getParentsUri()
+{
+    auto p = CpStateOutp::getParentsUri();
+    p.insert(p.begin(), string(idStr()));
+    return p;
+}
 
 ExtdStateOutp::ExtdStateOutp(const string &aType, const string& aName, MEnv* aEnv): CpStateOutp(aType, aName, aEnv)
 {
@@ -968,12 +998,16 @@ bool BState::updateWithContValue(const string& aData)
 
 DtBase* BState::VDtGet(const string& aType)
 {
-    // Enable getting base data
-    bool dataMatched = ((aType == mCdata->GetTypeSig()) || aType.empty());
-    if (!dataMatched) {
-        LOGN(EErr, "Requesting incompatible data [" + aType + "], supported [" + mCdata->GetTypeSig() + "]");
-    } 
-    return dataMatched ? mCdata : nullptr;
+    DtBase* res = nullptr;
+    if (mCdata) {
+        // Enable getting base data
+        bool dataMatched = ((aType == mCdata->GetTypeSig()) || aType.empty());
+        if (!dataMatched) {
+            LOGN(EErr, "Requesting incompatible data [" + aType + "], supported [" + mCdata->GetTypeSig() + "]");
+        } 
+        res =  dataMatched ? mCdata : nullptr;
+    }
+    return res;
 }
 
 void BState::notifyInpsUpdated()

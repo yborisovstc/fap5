@@ -24,8 +24,8 @@ class Ut_des : public Ut_fixture
     //CPPUNIT_TEST(test_des_asr_2);
     //CPPUNIT_TEST(test_des_tr_1);
     //CPPUNIT_TEST(test_des_tr_tres_1);
-    CPPUNIT_TEST(test_des_conn_1);
-    //CPPUNIT_TEST(test_des_utl_1);
+    //CPPUNIT_TEST(test_des_conn_1);
+    CPPUNIT_TEST(test_des_utl_1);
     // CPPUNIT_TEST(test_des_utl_2);
     //CPPUNIT_TEST(test_des_sp_1);
     CPPUNIT_TEST_SUITE_END();

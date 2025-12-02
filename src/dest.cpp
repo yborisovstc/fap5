@@ -653,12 +653,12 @@ const DtBase* TrAndVar::doVDtGet(const string& aType)
 	for (int i = 0; i < iccount; i++) {
 	    auto* dget = InpIc(EInp, i);
 	    const TData* arg = dget->DtGet(arg);
+            LOGN(EDbg, "Inp [" + dget->Uid() + "]: " + (arg ? arg->ToString() : "nil"));
 	    if (arg && arg->mValid) {
 		if (first) { mRes = *arg; first = false;
 		} else {
 		    mRes.mData = mRes.mData && arg->mData;
 		}
-		LOGN(EDbg, "Inp [" +dget->Uid() + "]: " + arg->ToString());
 	    } else {
 		mRes.mValid = false; break;
 	    }

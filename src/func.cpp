@@ -425,8 +425,8 @@ template <class T> const DtBase* FCmp<T>::FDtGet()
 		mRes.mValid = true;
 	    } else {
 		// Enable comparing invalid data
-		if (mFType == EEq) { mRes.mData = (*arg1 == *arg2); mRes.mValid = true;}
-		else if (mFType == ENeq) { mRes.mData = (*arg1 != *arg2); mRes.mValid = true;}
+		//if (mFType == EEq) { mRes.mData = (*arg1 == *arg2); mRes.mValid = true;}
+		//else if (mFType == ENeq) { mRes.mData = (*arg1 != *arg2); mRes.mValid = true;}
 	    }
 	}
     }

@@ -163,11 +163,15 @@ MyRoot : Elem {
                     _@ <  {
                         LogLevel = "Dbg"
                         Parents : SdoParents
-                        CpResolver : DesUtils.PrntMappingResolver (
+                        CpResolver : DesUtils.PrntMappingResolver2 (
                             InpParents ~ Parents
                             _@ <  {
-                                Mapping < = "VPDU ( PDU ( URI ExtdStateInp , URI SysCrpInp ) , PDU ( URI ExtdStateOutp , URI SysCrpOutp ) )"
-                                DefaultRes < = "URI SystCrpIo"
+                                InpMpg ~ : Const {
+                                    = "VPDU ( PDU ( URI ExtdStateInp , URI SysCrpInp ) , PDU ( URI ExtdStateOutp , URI SysCrpOutp ) )"
+                                }
+                                InpDefRes ~ : Const {
+                                    = "URI SystCrpIo"
+                                }
                             }
                         )
                     }
