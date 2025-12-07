@@ -912,6 +912,9 @@ bool ASdcConn::doCtl()
 		MChromo* chr = mEnv->provider()->createChromo();
 		TMut mut(ENt_Conn, ENa_P, mIapV1.mCdt.mData, ENa_Q, mIapV2.mCdt.mData);
 		chr->Root().AddChild(mut);
+                if (mName == "ConnectEdgeP") {
+                    LOGN(EDbg, "doCtl");
+                }
 		mMag->mutate(chr->Root(), false, mutctx, true);
 		delete chr;
 		string muts = mut.ToString();

@@ -111,6 +111,14 @@ bool ConnPoint::unbind(MVert* aPair)
 
 //// Socket
 
+
+vector<GUri> Socket::getParentsUri()
+{
+    auto p = Verte::getParentsUri();
+    p.insert(p.begin(), string(idStr()));
+    return p;
+}
+
 Socket::Socket(const string &aType, const string& aName, MEnv* aEnv): Verte(aType, aName, aEnv) {}
 
 MIface* Socket::MNode_getLif(TIdHash aId)
@@ -336,6 +344,14 @@ bool Socket::unbind(MVert* aPair)
 // SocketExtd 
 
 const string SocketExtd::KUriInt = "Int";  /*!< Internal connpoint */
+
+vector<GUri> SocketExtd::getParentsUri()
+{
+    auto p = Socket::getParentsUri();
+    p.insert(p.begin(), string(idStr()));
+    return p;
+}
+
 
 SocketExtd::SocketExtd(const string &aType, const string& aName, MEnv* aEnv): Socket(aType, aName, aEnv)
 {

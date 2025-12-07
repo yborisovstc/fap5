@@ -58,6 +58,8 @@ class Verte : public Elem, public MVert
         Verte(const string &aType, const string &aName, MEnv* aEnv): Elem(aType, aName, aEnv) {}
         // From MNode
         MIface *MNode_getLif(TIdHash aId) override;
+	GUri parentUri() const override { return string(idStr());}
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
         // From MVert
         string MVert_Uid() const override { return getUid<MVert>();}
         MIface *MVert_getLif(TIdHash aId) override;

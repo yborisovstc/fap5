@@ -53,6 +53,7 @@ bool AMntp::setContent(const string& aId, const string& aData)
     bool res = false;
     if (aId == KCntEnvVarId) {
         mCntEnvVar = aData;
+        onContentChanged(aId);
         res = true;
     } else {
         res = Syst::setContent(aId, aData);

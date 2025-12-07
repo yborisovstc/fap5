@@ -2034,7 +2034,7 @@ void DesCtxCsm::onDisconnected()
 
 void DesCtxCsm::confirm()
 {
-    if (mName == "VertCrpCtx") {
+    if (mName == "CpRpCtx") {
         LOGN(EDbg, "confirm");
     }
     if (!mBound) {

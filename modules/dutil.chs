@@ -502,7 +502,14 @@ DesUtils : Elem {
             _@ < = "URI"
             Inp ~ Res_Int2
         )
-        OutpRes.Int ~ Res
+        OutpRes.Int ~ Res_Outp : TrSwitchBool (
+            _@ < LogLevel = "Dbg"
+            Inp1 ~ Res
+            Inp2 ~ : Const {
+                = "URI"
+            }
+            Sel ~ InpRset.Int
+        )
         # ">>> Parent mapping resolver"
     }
 }

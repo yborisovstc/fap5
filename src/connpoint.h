@@ -59,8 +59,11 @@ class Socket: public Verte, public MSocket
 {
     public:
         inline static constexpr std::string_view idStr() { return "Socket"sv;}
+        static vector<GUri> getParentsUri();
         Socket(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
         // From MNode
+	GUri parentUri() const override { return string(idStr());}
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
         MIface* MNode_getLif(TIdHash aId) override;
         MIface *MOwned_getLif(TIdHash aId) override;
         //string parentName() const override { return Type(); }
@@ -100,10 +103,13 @@ class SocketExtd : public Socket
 {
     public:
         inline static constexpr std::string_view idStr() { return "SocketExtd"sv;}
+        static vector<GUri> getParentsUri();
 	SocketExtd(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
         virtual ~SocketExtd() {}
     public:
 	// From Node
+	GUri parentUri() const override { return string(idStr());}
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
 	void onOwnedAttached(MOwned* aOwned) override;
 	void onOwnedDetached(MOwned* aOwned) override;
         // From MVert

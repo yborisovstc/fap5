@@ -74,7 +74,10 @@ void TrBase::onInpUpdated()
 
 const DtBase* TrBase::VDtGet(const string& aType)
 {
-    if (mCInv) {
+    // Fix of BUG: if first time trans is not inited (this
+    // happens for instance if nil aType and trans inited by outp type only, TrAddVar for instance
+    // then next time init will be omitted
+    if (mCInv || !mResp) {
 	PFL_DUR_STAT_START(PEvents::EDurStat_Trans);
 	mResp = doVDtGet(aType);
 	mCInv = false;
@@ -551,6 +554,9 @@ void TrSwitchBool::Construct()
 
 const DtBase* TrSwitchBool::doVDtGet(const string& aType)
 {
+    if (mName == "RightVertColPos") {
+        LOGN(EDbg, "doVDtGet");
+    }
     const DtBase* res = nullptr;
     const Sdata<bool>* sel = GetInpData(mSel, sel);
     const DtBase* inp1 = GetInpData(mInp1, inp1);
