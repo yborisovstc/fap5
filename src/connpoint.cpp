@@ -157,13 +157,11 @@ bool Socket::isCompatible(const MVert* aPair, bool aExt) const
         for (auto it = self->ownerCp()->pairsBegin(); it != self->ownerCp()->pairsEnd(); it++) {
             MOwned* comp = (*it)->provided();
             MVert* pin = self->checkPin(comp);
-            if (pin) {
-                MVert* pairPin = const_cast<MSocket*>(pairSocket)->GetPin(comp->ownedId());
-                if (pin && pairPin) {
-                    res = pairPin->isCompatible(pin) && pin->isCompatible(pairPin);
-                } else {
-                    res = false;
-                }
+            MVert* pairPin = const_cast<MSocket*>(pairSocket)->GetPin(comp->ownedId());
+            if (pin && pairPin) {
+                res = pairPin->isCompatible(pin) && pin->isCompatible(pairPin);
+            } else {
+                res = false;
             }
             if (!res) break;
         }
@@ -218,12 +216,15 @@ MVert* Socket::checkPin(MOwned* aOwned)
 {
     MVert* res = nullptr;
     MVert* owdv = aOwned->lIft<MVert>();
+    /* ds_sock_mnpsd_sus
     MSocket* owds = aOwned->lIft<MSocket>();
     if (owds) {
         res = owdv;
     } else {
         res = owdv ? owdv->getExtd() : nullptr;
     }
+    */
+    res = owdv ? owdv->getExtd() : nullptr;
     return res;
 }
 
@@ -269,7 +270,7 @@ void Socket::bindPins(MSocket* aPair, bool aConnect, bool aUndo)
                     }
                 }
             } else {
-                LOGN(EErr, "Pin [" + pinId + "] is incompatible");
+                LOGN(EErr, string((aConnect ? "Connecting" : "Binding")) + ". Pin [" + pinId + "] is incompatible");
                 pin->isCompatible(pairPin);
             } 
         } else {

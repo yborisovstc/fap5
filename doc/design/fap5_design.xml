@@ -534,7 +534,7 @@
             <sect3 id="ds_sock_eos_sse"><title>Specialize socket extender</title>
                 <simpara>
                     Lets look at the simple extending
-                    <programming>
+                    <programlisting>
                         Sock1                   Sock2
 
                         {A B}---[ :A :B Int{A B}-]---{:A :B}
@@ -549,7 +549,7 @@
                         [] - extender, socket actually
                         A - connpoint
                         :A - CP compatible to A
-                    </programming>
+                    </programlisting>
                         Within socket extender the internal CP pins shall be connected to extender (actually socket) pins  
                 </simpara>
             </sect3>
@@ -596,6 +596,44 @@
                         handle differents pins specifics.
                     </simpara>
                 </sect4>
+            </sect3>
+        </sect2>
+        <sect2 id="ds_sock_mnpsd"><title>Fap5-vis modnav: discovered problem with socket design </title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    Currently (fap5 b560257a7306) the solution 
+                    <xref linkend="ds_sock_ses_s2"/> is implemented. UTs passed but the solution doesn't work
+                        with modnav. Particularly, the current sockets design doesn't support modnav2 topology of 
+                    <programlisting>
+                        Controller.CpAddDrp - Controller.CtrlCp.NavCtrl.MutAddWidget -- Controller.CtrlCp ~ Window.VrvCp -- VrvCp.NavCtrl.MutAddWidget - Window.Scene.VBox.ModelView.IoAddWidg
+                    </programlisting>
+                        The problem is that connecting top sockets (Controller.CtrlCp ~ Window.VrvCp) means that sub-sockets
+                        (Controller.CtrlCp.NavCtrl.MutAddWidget iVrvCp.NavCtrl.MutAddWidget) are also connected. But in that case the terminal connections
+                        (Controller.CpAddDrp - Controller.CtrlCp.NavCtrl.MutAddWidget) and VrvCp.NavCtrl.MutAddWidget - Window.Scene.VBox.ModelView.IoAddWidg)
+                        don't work - socket doesn't support two connections in extending mode.
+                </simpara>
+            </sect3>
+            <sect3 id="ds_sock_mnpsd_sus"><title>Solution: unify socket connection scheme.</title>
+                <simpara>
+                    Root-cause of the problem is that current socket design isn't consistent. For instance socket is allowed to be sub-socket.
+                    This leads to impossibility of creating connections chain like stated above.
+                </simpara>
+                <simpara>
+                    We need to unify the socket structure and connection scheme: socket pins needs to be extenders only, but socket extender/extender_int pins
+                    needs to be not-extender. This will allow to make sockets connection recursively. Also the complex conn chain will work.
+                </simpara>
+                <simpara>
+                    There is cons here: the structure of connection gets quire complex. For each socket we need to have socket itself, socket extender and socket extender int.
+                </simpara>
+            </sect3>
+            <sect3><title>Status</title>
+                <sect4><title>8-Dec-2025 Applied <xref linkned="ds_sock_mnpsd_sus"/> solution</title>
+                    <simpara> Added fap5 UT ut_des_sock_2 with conn chain (qute simple even). Passed. </simpara>
+                </sect4>
+            </sect3>
+        </sect2>
+        <sect2><title>History</title>
+            <sect3><title>7-Dec-2025 Problem <xref linkend="ds_sock_mnpsd"/> </title>
             </sect3>
         </sect2>
     </sect1>
