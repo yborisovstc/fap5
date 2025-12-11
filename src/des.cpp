@@ -547,7 +547,7 @@ void State::setActivated()
 
 void State::update()
 {
-    if (mName == "SelectedCrpPars_Dbg") {
+    if (mName == "St3") {
         LOGN(EDbg, "update");
     }
     PFL_DUR_STAT_START(PEvents::EDurStat_StUpdate);

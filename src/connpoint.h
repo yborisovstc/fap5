@@ -50,6 +50,31 @@ class ConnPoint : public Vert, public MConnPoint
         MConnPoint* mMConnPoint = nullptr;
 };
 
+#if 0
+
+/** @brief Extender internal point, ref ds_sock_extrd
+ * */
+class ExtdInt : public Vert, public MExtdInt, public MSocket
+{
+    public:
+        inline static constexpr std::string_view idStr() { return "ExtdInt"sv;}
+	ExtdInt(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+        // From MVert
+        MIface* MVert_getLif(TIdHash aId) override;
+        bool isCompatible(const MVert* aPair, bool aExt = false) const override;
+        // From MExtdInt
+	string MExtdInt_Uid() const override  { return getUid<MExtdInt>();}
+        MExtdInt::TBp* bP() override { return &mEbp;}
+        // From MSocket
+        string MSocket_Uid() const override  { return getUid<MSocket>();}
+	MVert* GetPin(const string& aId) override;
+	MVert* GetPin(const string& aId, bool aExtd) override;
+    protected:
+        MSocket* hostAsSocket();
+    protected:
+        NCpOnp<MVert, MVert> mEbp;  // Extended binding point
+};
+#endif
 
 
 /** @brief Socket, monolitic.
@@ -78,10 +103,10 @@ class Socket: public Verte, public MSocket
         // From MSocket
         string MSocket_Uid() const override  { return getUid<MSocket>();}
         // TODO PinsCount, GetPinId and GetPin(int) aren't used. To rm from iface
-        int PinsCount() const override;
-        MVert* GetPin(int aInd) override;
+        //int PinsCount() const override;
+        //MVert* GetPin(int aInd) override;
         MVert* GetPin(const string& aId) override;
-        string GetPinId(int aInd) const override;
+        //string GetPinId(int aInd) const override;
     protected:
         // From Vert
         void onConnected(MVert* aPair) override;
@@ -96,6 +121,8 @@ class Socket: public Verte, public MSocket
         MVert* mMVert = nullptr;
         MSocket* mMSocket = nullptr;
 };
+
+
 
 /** @brief Socket extender, ds_sock_eos_sse solution 
  * */
@@ -139,6 +166,53 @@ class SocketExtdInt : public Socket
     protected:
         MVert* checkPin(MOwned* aOwned) override;
 };
+
+
+/** @brief Socket as container of connpoint, ref ds_sock_extrd_ccse
+*/
+class Socket2: public Verte, public MSocket
+{
+    public:
+        inline static constexpr std::string_view idStr() { return "Socket2"sv;}
+        static vector<GUri> getParentsUri();
+        Socket2(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+        // From MNode
+	GUri parentUri() const override { return string(idStr());}
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
+        MIface* MNode_getLif(TIdHash aId) override;
+        MIface *MOwned_getLif(TIdHash aId) override;
+	void onOwnedAttached(MOwned* aOwned) override;
+        // From MVert
+        MIface* MVert_getLif(TIdHash aId) override;
+        bool isCompatible(const MVert* aPair, bool aExt = false) const override;
+        MVert* getExtd() override;
+        TDir getDir() const override;
+	bool isBound(const MVert* aBound) const override;
+	bool connect(MVert* aPair) override;
+        bool bind(MVert* aPair) override;
+        bool unbind(MVert* aPair) override;
+        // From MSocket
+        string MSocket_Uid() const override  { return getUid<MSocket>();}
+        MVert* GetPin(const string& aId) override;
+        TBp* bP() override { return &mEbp;}
+    protected:
+        // From Vert
+        void onConnected(MVert* aPair) override;
+        void onDisconnecting(MVert* aPair) override;
+        void onDisconnected() override;
+    protected:
+        // Bind/connect, unbind/disconnect pins
+        bool bindPins(MSocket* aPair, bool aConnect, bool aUndo = false);
+        //virtual MVert* checkPin(MOwned* aOwned);
+    protected:
+        NCpOnp<MVert, MVert> mEbp;  // Binding point to Int
+        // TODO consider adding binding point
+        MVert* mMVert = nullptr;
+        MSocket* mMSocket = nullptr;
+	static const string KUriInt;  /*!< Internal connpoint Uri */
+};
+
+
 
 
 /** @brief Generic extender of CP, ref ds_vbcr_extd_ep

@@ -55,7 +55,7 @@ const ProvDef::TFReg ProvDef::mReg ( {
         Item<TrHash>(), Item<TrPair>(),
         /* Connpoints */
         Item<CpStateInp>() /*, Item<CpStateInpPin>()*/, Item<CpStateOutp>() /*, Item<CpStateOutpPin>()*/, Item<ExtdStateInp>(), Item<ExtdStateOutp>(),
-        Item<Socket>(), Item<CpSystExplorable>(), Item<CpSystExploring>(), Item<ExtdSystExplorable>(), Item<ExtdSystExploring>(),
+        /*Item<ExtdInt>(),*/ Item<Socket>(), Item<Socket2>(), Item<CpSystExplorable>(), Item<CpSystExploring>(), Item<ExtdSystExplorable>(), Item<ExtdSystExploring>(),
         /*Item<PinSystExplorable>(), Item<PinSystExploring>(),*/
         /* Extenders */
         Item<Extd>(), Item<SocketExtd>(), Item<SocketExtdInt>(), 

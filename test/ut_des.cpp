@@ -25,7 +25,8 @@ class Ut_des : public Ut_fixture
     //CPPUNIT_TEST(test_des_tr_1);
     //CPPUNIT_TEST(test_des_tr_tres_1);
     //CPPUNIT_TEST(test_des_conn_1);
-    CPPUNIT_TEST(test_des_sock_2);
+    //CPPUNIT_TEST(test_des_sock_2);
+    CPPUNIT_TEST(test_des_sock_3);
     //CPPUNIT_TEST(test_des_utl_1);
     // CPPUNIT_TEST(test_des_utl_2);
     //CPPUNIT_TEST(test_des_sp_1);
@@ -48,6 +49,7 @@ class Ut_des : public Ut_fixture
     void test_des_tr_tres_1();
     void test_des_conn_1();
     void test_des_sock_2();
+    void test_des_sock_3();
     void test_des_utl_1();
     void test_des_utl_2();
     /*
@@ -539,6 +541,25 @@ void Ut_des::test_des_sock_2()
 
     delete mEnv;
 }
+
+/** @brief Test of sockets connection topology in DES:
+ * Socket extension solution ds_sock_extrd_ccse
+ * */
+void Ut_des::test_des_sock_3()
+{
+    cout << endl << "=== Test#3 of connection topology in DES, ds_sock_extrd_ccse ===" << endl;
+
+    MNode* root = constructSystem("ut_des_sock_3");
+
+    // Run
+    bool res = mEnv->RunSystem(4, 2);
+    CPPUNIT_ASSERT_MESSAGE("Failed running system", res);
+
+    CPPUNIT_ASSERT_MESSAGE("Ds1.St3 wrong data", getStateDstr("Launcher.Ds1.St3") == "SI 7");
+
+    delete mEnv;
+}
+
 
 
 

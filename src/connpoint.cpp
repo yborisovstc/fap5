@@ -109,8 +109,52 @@ bool ConnPoint::unbind(MVert* aPair)
 }
 
 
-//// Socket
+#if 0
+//// ExtdInt
 
+ExtdInt::ExtdInt(const string &aType, const string& aName, MEnv* aEnv): Vert(aType, aName, aEnv),
+    mEbp(this)
+{}
+
+MIface* ExtdInt::MVert_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLifn(aId, mEbp.mPair ? mEbp.mPair->provided() : nullptr));
+    else res = Vert::MVert_getLif(aId);
+    return res;
+}
+
+bool ExtdInt::isCompatible(const MVert* aPair, bool aExt) const
+{
+    bool res = false;
+    MVert* host = mEbp.mPair ? mEbp.mPair->provided() : nullptr;
+    res = host ? host->isCompatible(aPair, !aExt) : false;
+    return res;
+}
+
+MVert* ExtdInt::GetPin(const string& aId)
+{
+    auto* hosts = hostAsSocket();
+    return hosts ? hosts->GetPin(aId, true) : nullptr;
+}
+
+MVert* ExtdInt::GetPin(const string& aId, bool aExtd)
+{
+    assert(false);
+    return nullptr;
+}
+
+MSocket* ExtdInt::hostAsSocket()
+{
+    MVert* host = mEbp.mPair ? mEbp.mPair->provided() : nullptr;
+    return host ? host->lIft<MSocket>() : nullptr;
+}
+#endif
+
+
+
+
+//// Socket
 
 vector<GUri> Socket::getParentsUri()
 {
@@ -157,11 +201,13 @@ bool Socket::isCompatible(const MVert* aPair, bool aExt) const
         for (auto it = self->ownerCp()->pairsBegin(); it != self->ownerCp()->pairsEnd(); it++) {
             MOwned* comp = (*it)->provided();
             MVert* pin = self->checkPin(comp);
-            MVert* pairPin = const_cast<MSocket*>(pairSocket)->GetPin(comp->ownedId());
-            if (pin && pairPin) {
-                res = pairPin->isCompatible(pin) && pin->isCompatible(pairPin);
-            } else {
-                res = false;
+            if (pin) {
+                MVert* pairPin = const_cast<MSocket*>(pairSocket)->GetPin(comp->ownedId());
+                if (pairPin) {
+                    res = pairPin->isCompatible(pin) && pin->isCompatible(pairPin);
+                } else {
+                    res = false;
+                }
             }
             if (!res) break;
         }
@@ -183,6 +229,7 @@ MVert::TDir Socket::getDir() const
     return res;
 }
 
+/*
 int Socket::PinsCount() const
 {
     return ownerCp()->pcount();
@@ -196,6 +243,7 @@ MVert* Socket::GetPin(int aInd)
     res = owd ? owd->lIft<MVert>() : nullptr;
     return res;
 }
+*/
 
 MVert* Socket::GetPin(const string& aId)
 {
@@ -205,12 +253,14 @@ MVert* Socket::GetPin(const string& aId)
     return checkPin(owd);
 }
 
+/*
 string Socket::GetPinId(int aInd) const
 {
     assert(false);
     const MOwned* owd = ownerCp()->pairAt(aInd)->provided();
     return owd->ownedId();
 }
+*/
 
 MVert* Socket::checkPin(MOwned* aOwned)
 {
@@ -428,6 +478,215 @@ MVert* SocketExtdInt::GetPin(const string& aId)
 
 
 
+//// Socket2
+
+const string Socket2::KUriInt = "Int";  /*!< Internal connpoint */
+
+vector<GUri> Socket2::getParentsUri()
+{
+    auto p = Verte::getParentsUri();
+    p.insert(p.begin(), string(idStr()));
+    return p;
+}
+
+Socket2::Socket2(const string &aType, const string& aName, MEnv* aEnv): Verte(aType, aName, aEnv), mEbp(this)
+{}
+
+MIface* Socket2::MNode_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMVert));
+    else if (res = checkLif2(aId, mMSocket));
+    else res = Verte::MNode_getLif(aId);
+    return res;
+}
+
+MIface* Socket2::MOwned_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMVert)); 
+    else if (res = checkLif2(aId, mMSocket));
+    else res = Verte::MOwned_getLif(aId);
+    return res;
+}
+
+
+MIface* Socket2::MVert_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMSocket));
+    else res = Verte::MVert_getLif(aId);
+    return res;
+}
+
+bool Socket2::isCompatible(const MVert* aPair, bool aExt) const
+{
+    Socket2* self = const_cast<Socket2*>(this);
+    bool res = true;
+    const MSocket* pairSocket = aPair ? aPair->lIf(pairSocket) : nullptr;
+    if (pairSocket) {
+        for (auto it = self->ownerCp()->pairsBegin(); it != self->ownerCp()->pairsEnd(); it++) {
+            MOwned* comp = (*it)->provided();
+            auto pinId = comp->ownedId();
+            if (pinId == KUriInt) continue;
+            MVert* pin = self->GetPin(pinId);
+            if (pin) {
+                MVert* pairPin = const_cast<MSocket*>(pairSocket)->GetPin(comp->ownedId());
+                if (pairPin) {
+                    res = pairPin->isCompatible(pin) && pin->isCompatible(pairPin);
+                } else {
+                    res = false;
+                }
+            }
+            if (!res) break;
+        }
+    } else {
+        res = false;
+    }
+    return res;
+}
+
+MVert* Socket2::getExtd()
+{
+    //assert(false);
+    //return nullptr;
+    MVert* res = mEbp.mPair ? mEbp.mPair->provided() : nullptr ;
+    return res;
+}
+
+MVert::TDir Socket2::getDir() const
+{
+    TDir res = ERegular;
+    return res;
+}
+
+MVert* Socket2::GetPin(const string& aId)
+{
+    MVert* res = nullptr;
+    auto owdCp = ownerCp()->pairAt(aId);
+    MOwned* owd = owdCp ? owdCp->provided() : nullptr;
+    return owd ? owd->lIft<MVert>() : nullptr;
+}
+
+bool Socket2::bindPins(MSocket* aPair, bool aConnect, bool aUndo)
+{
+    bool res = true;
+    for (auto it = ownerCp()->pairsBegin(); it != ownerCp()->pairsEnd() && res; it++) {
+        MOwned* comp = (*it)->provided();
+        string pinId = comp->ownedId();
+        if (pinId == KUriInt) continue;
+        MVert* pin = GetPin(pinId);
+        if (pin == nullptr) continue;
+        MSocket* pinS = pin->lIft<MSocket>();
+        if (pin) {
+            auto pairPin = aPair->GetPin(pinId);
+            MSocket* pairPinS = pairPin->lIft<MSocket>();
+            if (pairPin) {
+                if (pin->isCompatible(pairPin)/* && pairPin->isCompatible(pin)*/) {
+                    if (aConnect) {
+                        if (aUndo) {
+                            bool res = pin->disconnect(pairPin);
+                            if (!res) {
+                                LOGN(EErr, "Failed disconnecting pin [" + pinId + "]");
+                            }
+                        } else {
+                            bool res = pin->connect(pairPin);
+                            if (!res) {
+                                LOGN(EErr, "Failed connecting pin [" + pinId + "]");
+                            }
+                        }
+                    } else {
+                        if (aUndo) {
+                            if (pin->isBound(pairPin)) {
+                                bool res = pin->unbind(pairPin);
+                                if (!res) {
+                                    LOGN(EErr, "Failed unbinding pins [" + pinId + "]");
+                                }
+                            }
+                        } else {
+                            if (!pin->isBound(pairPin)) {
+                                bool res = pin->bind(pairPin);
+                                if (!res) {
+                                    LOGN(EErr, "Failed binding pins [" + pinId + "]");
+                                    res = pin->bind(pairPin);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    LOGN(EErr, string((aConnect ? "Connecting" : "Binding")) + ". Pin [" + pinId + "] is incompatible");
+                    pin->isCompatible(pairPin);
+                } 
+            } else {
+                LOGN(EErr, "Pin [" + pinId + "] isn't valid");
+            }
+        }
+    }
+    return res;
+}
+
+void Socket2::onConnected(MVert* aPair)
+{
+    Verte::onConnected(aPair);
+    MSocket* sock = aPair->lIf(sock);
+    bindPins(sock, true, false);
+}
+
+void Socket2::onDisconnecting(MVert* aPair)
+{
+    Verte::onDisconnecting(aPair);
+    MSocket* sock = aPair->lIf(sock);
+    bindPins(sock, true, true);
+}
+
+void Socket2::onDisconnected()
+{
+    Verte::onDisconnected();
+}
+
+bool Socket2::isBound(const MVert* aPair) const
+{
+    return (mEbp.mPair != nullptr);
+}
+
+bool Socket2::connect(MVert* aPair)
+{
+    bool res = true;
+    // Disable connecting "pure" socket
+    if (const_cast<MVert*>(aPair)->getExtd()) {
+        res = Verte::connect(aPair);
+    } else {
+        LOGN(EErr, "Connecting -pure- socket is not allowed.");
+        res = false;
+    }
+    return res;
+}
+
+bool Socket2::bind(MVert* aPair)
+{
+    auto* pairs = aPair->lIft<MSocket>();
+    bool res = bindPins(pairs, false, false);
+    if (res) {
+        res = mEbp.connect(pairs->bP());
+    }
+    return res;
+}
+
+bool Socket2::unbind(MVert* aPair)
+{
+    assert(false);
+    return false;
+}
+
+void Socket2::onOwnedAttached(MOwned* aOwned)
+{
+    Verte::onOwnedAttached(aOwned);
+    auto* owdv = aOwned->lIft<MVert>();
+    if (owdv && aOwned->ownedId() == KUriInt) {
+        bind(owdv);
+    }
+}
+ 
 
 
 

@@ -623,12 +623,69 @@
                     needs to be not-extender. This will allow to make sockets connection recursively. Also the complex conn chain will work.
                 </simpara>
                 <simpara>
-                    There is cons here: the structure of connection gets quire complex. For each socket we need to have socket itself, socket extender and socket extender int.
+                    There is cons here: the structure of connection gets quite complex. For each socket we need to have socket itself, socket extender and socket extender int.
                 </simpara>
             </sect3>
             <sect3><title>Status</title>
                 <sect4><title>8-Dec-2025 Applied <xref linkned="ds_sock_mnpsd_sus"/> solution</title>
                     <simpara> Added fap5 UT ut_des_sock_2 with conn chain (qute simple even). Passed. </simpara>
+                </sect4>
+            </sect3>
+        </sect2>
+        <sect2 id="ds_sock_extrd"><title>Socket extender redesign</title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    Current (b4553bc21041 Dec 8 21:48:51 2025) solution (applied solution ds_sock_mnpsd_sus) still has a weakness indicated in 
+                    <xref linkend="ds_sock_mnpsd_sus"/>:
+                    <programlisting>
+                        the structure of connection gets quite complex. For each socket we need to have socket itself, socket extender and socket extender int.
+                    </programlisting>
+                        It hardens models design and complicates the models understanding.
+                </simpara>
+                <simpara>
+                    How can this weakness be avoided? One way is to use generic extender approach. It was already the attempt to implement it, see
+                    connpoint.h Extd
+                    <programlisting>
+                        @brief Generic extender of CP, ref ds_vbcr_extd_ep
+                        * It is "universal" but less effective that specialized extender
+                        * Extender doesnt act as iface implementor, i.e. doesn't propagate iface calls
+                        * So Internal CP has to be iface implementor itslef (i.e. be CpPin)
+                    </programlisting>
+                </simpara>
+            </sect3>
+            <sect3 id="ds_sock_extrd_uge"><title>Solution#1: using generic extenders</title>
+                <sect4><title>What extender to use: outer or inner?</title>
+                    <simpara>
+                        There are two options here. Option "outer" means that extender owns connpoint. 
+                        Option "inner" means that connpoint owns extender. 
+                    </simpara>
+                    <simpara>
+                        Seems inner extender is more convenient.
+                    </simpara>
+                </sect4>
+                <sect4><title>Status</title>
+                    <simpara>
+                        Tried to implement and test: it doesn't seem convenient. Embedded socks design seems even worse then
+                        current scheme
+                    </simpara>
+                </sect4>
+            </sect3>
+            <sect3 id="ds_sock_extrd_ccse"><title>Solution#2: socket as container of connpoints. Socket extender as system I/O.</title>
+                <sect4><title>Intro</title>
+                    <simpara>
+                        The key point of socket is that it has to play same role as simple extender: propagate connection from internals of system to
+                        outside of system. This idea was the base of current solution - here socket was a container of pins-extenders, so the role
+                        was played. But this solution requires quite complicated topology.
+                    </simpara>
+                    <simpara>
+                        The idea how to redesign is that we can use socket as container connpoints (not extenders) but use socket extender in that place
+                        where "old" sockets were used.
+                    </simpara>
+                </sect4>
+                <sect4><title>Status</title>
+                    <simpara>
+                        11-Dec-2025 Implemented as Socket2. UT ut_des_sock_3 passed.
+                    </simpara>
                 </sect4>
             </sect3>
         </sect2>
