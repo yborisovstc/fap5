@@ -14,7 +14,7 @@ MIface* CpSystExplorable::MOwned_getLif(TIdHash aId)
 MIface* CpSystExplorable::MVert_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
-    if (res = checkLifn(aId, mBcp.mPair->prov<MSystExplorable>()));
+    if (res = checkLifn(aId, mBcp.mPair ? mBcp.mPair->prov<MSystExplorable>() : nullptr));
     else (res = TBase::MVert_getLif(aId));
     return res;
 }
@@ -69,7 +69,7 @@ void CpSystExplorable::onMagChanged()
 MIface* CpSystExploring::MVert_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
-    if (res = checkLifn(aId, mBcp.mPair->prov<MSystExploring>()));
+    if (res = checkLifn(aId, mBcp.mPair ? mBcp.mPair->prov<MSystExploring>() : nullptr));
     else (res = TBase::MVert_getLif(aId));
     return res;
 }

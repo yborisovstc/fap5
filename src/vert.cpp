@@ -9,6 +9,17 @@ vector<GUri> Vert::getParentsUri()
     return p;
 }
 
+Vert::~Vert()
+{
+    disconnect();
+}
+
+void Vert::deleteOwned()
+{
+    //disconnect();
+    Node::deleteOwned();
+}
+
 MIface* Vert::MNode_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
@@ -121,6 +132,13 @@ void Vert::onDisconnected()
     notifyChanged();
 }
 
+void Vert::disconnect()
+{
+    while (pairsCount()) {
+        MVert::disconnect(this, getPair(0));
+    }   
+}  
+
 
 /// Verte
 
@@ -130,6 +148,17 @@ vector<GUri> Verte::getParentsUri()
     auto p = Elem::getParentsUri();
     p.insert(p.begin(), string(idStr()));
     return p;
+}
+
+Verte::~Verte()
+{
+    disconnect();
+}
+
+void Verte::deleteOwned()
+{
+    //disconnect();
+    Elem::deleteOwned();
 }
 
 MIface* Verte::MNode_getLif(TIdHash aId)
@@ -243,3 +272,12 @@ void Verte::onDisconnected()
 {
     notifyChanged();
 }
+
+void Verte::disconnect()
+{
+    while (pairsCount()) {
+        MVert::disconnect(this, getPair(0));
+    }   
+}  
+
+

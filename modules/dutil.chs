@@ -93,10 +93,15 @@ DesUtils : Elem {
         InpE : ExtdStateInp
         Outp : ExtdStateOutp
         Outp.Int ~ : TrSwitchBool (
-            Sel ~ Cmp_Neq : TrCmpVar (
-                Inp ~ InpD.Int
-                Inp2 ~ Delay : State (
+            Sel ~ : TrSvldVar (
+                Inp1 ~ Cmp_Neq : TrCmpVar (
                     Inp ~ InpD.Int
+                    Inp2 ~ Delay : State (
+                        Inp ~ InpD.Int
+                    )
+                )
+                Inp2 ~ : TrIsInvalid (
+                    Inp ~ Delay
                 )
             )
             Inp1 ~ InpE.Int

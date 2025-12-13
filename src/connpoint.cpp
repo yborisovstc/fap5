@@ -165,6 +165,7 @@ vector<GUri> Socket::getParentsUri()
 
 Socket::Socket(const string &aType, const string& aName, MEnv* aEnv): Verte(aType, aName, aEnv) {}
 
+
 MIface* Socket::MNode_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
@@ -340,7 +341,10 @@ void Socket::onDisconnecting(MVert* aPair)
 {
     Verte::onDisconnecting(aPair);
     MSocket* sock = aPair->lIf(sock);
-    bindPins(sock, true, true);
+    // TODO Analyze why -sock- is null when disconnect from node destructor
+    if (sock) {
+        bindPins(sock, true, true);
+    }
 }
 
 void Socket::onDisconnected()
@@ -636,7 +640,10 @@ void Socket2::onDisconnecting(MVert* aPair)
 {
     Verte::onDisconnecting(aPair);
     MSocket* sock = aPair->lIf(sock);
-    bindPins(sock, true, true);
+    // TODO Analyze why -sock- is null when disconnect from node destructor
+    if (sock) {
+        bindPins(sock, true, true);
+    }
 }
 
 void Socket2::onDisconnected()

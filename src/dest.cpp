@@ -767,17 +767,24 @@ void TrApndVar::Init(const string& aIfaceName)
 	delete mFunc;
 	mFunc = NULL;
     }
-    if (mName == "VsEsPrev") {
+    if (mName == "TLbpUri") {
         LOGN(EDbg, "Init");
     }
-    MDVarGet* inp = GetInp(Func::EInp1);
-    if (inp) {
-	string t_inp = inp->VarGetIfid();
-	if ((mFunc = FApnd<Sdata<string>>::Create(this, aIfaceName, t_inp)));
-	else if ((mFunc = FApnd<DGuri>::Create(this, aIfaceName, t_inp)));
-	else {
-	    LOGN(EWarn, "Failed init function");
-	}
+    string t_inp, t_inp1, t_inp2;
+    MDVarGet* inp1 = GetInp(Func::EInp1);
+    MDVarGet* inp2 = GetInp(Func::EInp2);
+    if (inp1) {
+        t_inp1 = inp1->VarGetIfid();
+    }
+    if (inp2) {
+        t_inp2 = inp2->VarGetIfid();
+    }
+    if (inp1) {
+        if ((mFunc = FApnd<Sdata<string>>::Create(this, aIfaceName, t_inp1)));
+        else if ((mFunc = FApnd<DGuri>::Create(this, aIfaceName, t_inp1)));
+    }
+    if (!mFunc) {
+        LOGN(EWarn, "Init failed, outp: " + aIfaceName + ", Inp1: " + (inp1 ? t_inp1 : "nil") + ", Inp2: " + (inp2 ? t_inp2 : "nil"));
     }
 }
 
@@ -834,8 +841,14 @@ const DtBase* TrSvldVar::doVDtGet(const string& aType)
 	    res = inp1;
 	    LOGN(EDbg, "Both inputs are invalid, res (inp1): " + res->ToString(true));
 	}
+    } else if (inp1) {
+        res = inp1;
+        LOGN(EDbg, "Inp2 is null, res (inp1): " + res->ToString(true));
+    } else if (inp2) {
+        res = inp2;
+        LOGN(EDbg, "Inp1 is null, res (inp2): " + res->ToString(true));
     } else {
-	LOGN(EErr, "Null input [" + (inp1 ? mInp2->name() : mInp1->name()) + "]");
+	LOGN(EErr, "Inp1 and Inp2 are null, res - null");
     }
     return res;
 }

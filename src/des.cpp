@@ -547,7 +547,7 @@ void State::setActivated()
 
 void State::update()
 {
-    if (mName == "St3") {
+    if (mName == "TestAlcW") {
         LOGN(EDbg, "update");
     }
     PFL_DUR_STAT_START(PEvents::EDurStat_StUpdate);
@@ -667,10 +667,14 @@ const bool State::VDtSet(const DtBase& aData)
     bool res = false;
     if (mCdata && mPdata) {
 	*mPdata = aData;
+        // TODO rdata doesn't renerate changed indicator on assignment
+        // Do we need to add the ind or get rid of such ind at all
+        bool changed = (*mCdata != aData);
 	*mCdata = aData;
-	if (mCdata->IsChanged()) {
+	if (changed) {
 	    notifyInpsUpdated();
 	}
+
     }
     return res;
 }
@@ -955,8 +959,11 @@ const bool BState::VDtSet(const DtBase& aData)
     bool res = false;
     if (mCdata && mPdata) {
 	*mPdata = aData;
+        // TODO rdata doesn't renerate changed indicator on assignment
+        // Do we need to add the ind or get rid of such ind at all
+        bool changed = (*mCdata != aData);
 	*mCdata = aData;
-	if (mCdata->IsChanged()) {
+	if (changed) {
 	    notifyInpsUpdated();
 	}
     }
@@ -1235,10 +1242,8 @@ void Des::setActivated()
 	if (obs) {
 	    obs->onActivated(this);
 	    mActNotified = true;
-	    // TODO Improve notification design, ref ds_obsi
 	    if (!mIsActive) {
 		mIsActive = true;
-		notifyChanged(); // TODO do we need it?
 	    }
 	}
     }
@@ -1270,7 +1275,7 @@ void Des::onActivated(MDesSyncable* aComp)
 	    assert(aComp != comp);
 	}
 #endif
-	mActive->push_back(aComp);
+        mActive->push_back(aComp);
     }
 }
 

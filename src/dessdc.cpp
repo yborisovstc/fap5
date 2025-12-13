@@ -417,6 +417,7 @@ void ASdc::setUpdated()
 
 void ASdc::onActivated(MDesSyncable* aComp)
 {
+    assert(false);
     if (!mActNotified) { // Notify owner
 	MDesObserver* obs = mSyncCp.pcount() == 1 ? mSyncCp.pairAt(0)->provided() : nullptr;
 	if (obs) {

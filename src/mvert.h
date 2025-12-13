@@ -50,7 +50,9 @@ class MVert: public MIface
             return (aA->isCompatible(aB) && aB->isCompatible(aA)) ? aA->connect(aB) && aB->connect(aA) : false;
         }
 	/** @brief Disonnects pairs, two-way, returns success indicator */
-	static bool disconnect(MVert* aSelf, MVert* aPair) { return aPair->disconnect(aSelf) ? aSelf->disconnect(aPair) : false;}
+	static bool disconnect(MVert* aSelf, MVert* aPair) {
+            return aPair->disconnect(aSelf) &&
+                aSelf->disconnect(aPair);}
 	/** @brief Indicates of connected to pair */
 	virtual bool isConnected(const MVert* aPair) const = 0;
 	virtual void vertGetUri(GUri& aUri, const MNode* aBase = nullptr) const = 0;
