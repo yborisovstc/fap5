@@ -169,7 +169,7 @@ class ExtdStateInp : public CpStateInp
         virtual ~ExtdStateInp() {}
         void Construct() override;
 	GUri parentUri() const override { return string(idStr()); }
-        vector<GUri> parentsUri() const override { return getParentsUri(); }
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
         // From MVert
         MVert* getExtd() override { return mInt;}
     public:
@@ -211,7 +211,7 @@ class ExtdStateOutp : public CpStateOutp
         virtual ~ExtdStateOutp() {}
 	void Construct() override;
         GUri parentUri() const override { return string(idStr()); }
-        vector<GUri> parentsUri() const override { return getParentsUri(); }
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
         // From MVert
         MVert* getExtd() override { return mInt;}
     public:
@@ -313,6 +313,7 @@ class State: public ConnPoint, public MDesSyncable, public MDesInpObserver, publ
         using TDesSyncCp = NCpOnp<MDesSyncable, MDesObserver>;  /*!< DES syncable connpoint */
     public:
 	inline static constexpr std::string_view idStr() { return "State"sv;}
+        static vector<GUri> getParentsUri();
 	State(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
 	virtual ~State();
 	// From Node.MIface
@@ -321,6 +322,7 @@ class State: public ConnPoint, public MDesSyncable, public MDesInpObserver, publ
 	void Construct() override;
 	MIface* MOwner_getLif(TIdHash aId) override;
 	GUri parentUri() const override { return string(idStr());}
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
 	// From MVert
 	MIface* MVert_getLif(TIdHash aId) override;
 	virtual TDir getDir() const override { return EOut;}

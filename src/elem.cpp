@@ -66,13 +66,6 @@ GUri Elem::parentUri() const
     return res;
 }
 
-vector<GUri> Elem::parentsUri() const
-{
-    auto p = Node::parentsUri();
-    p.insert(p.begin(), GUri(string(idStr())));
-    return p;
-}
-
 void Elem::notifyParentMutated(const TMut& aMut)
 {
 }

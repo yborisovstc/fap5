@@ -423,6 +423,13 @@ ExtdStateMnodeOutp::ExtdStateMnodeOutp(const string &aType, const string& aName,
 const string State::KCont_Value = "";
 const string State::KInpName = "Inp";
 
+vector<GUri> State::getParentsUri()
+{
+    auto p = ConnPoint::getParentsUri();
+    p.insert(p.begin(), string(idStr()));
+    return p;
+}
+
 State::State(const string &aType, const string& aName, MEnv* aEnv): ConnPoint(aType, aName, aEnv, MDVarGet::idHash(), MDesInpObserver::idHash()),
     mDesSyncCp(this), mPdata(NULL), mCdata(NULL), mUpdNotified(false), mActNotified(false), mStDead(false), mInp(nullptr),
     mInpBp(mRifId, mPifId, dynamic_cast<MDesInpObserver*>(this))

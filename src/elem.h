@@ -37,7 +37,6 @@ class Elem: public Node, public MElem
 	bool onChildRenaming(MChild* aChild, const string& aNewName) override;
 	MNode* createHeir(const string& aName) override;
 	bool attachChild(MChild* aChild) override;
-        vector<GUri> parentsUri() const override;
 	// From MChild
 	MIface* MChild_getLif(TIdHash aId) override;
 	void MChild_doDump(int aLevel, int aIdt, ostream& aOs) const override;

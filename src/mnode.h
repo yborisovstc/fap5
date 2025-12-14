@@ -103,8 +103,10 @@ class MNode: public MIface
 	// Local
 	virtual const string& name() const = 0;
         /** @brief Gets name of parent. It's intended mostly for SDO **/
+        // TODO consider using props instead direct progr APIs parentUri, parentsUris
 	virtual GUri parentUri() const = 0;
         /** @brief Gets the chain of native parents **/
+        // TODO There is MParent::parentsUri() method that causes mess with parentsUris() here. Consider to rename.
 	virtual vector<GUri> parentsUris() const = 0;
 	virtual MOwned* getOwned(const string& aId) const = 0;
 	virtual const MNode* getNode(const GUri& aUri) const = 0;
