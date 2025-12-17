@@ -703,30 +703,9 @@ void Node::onOwnedAttached(MOwned* aOwned)
 
 void Node::onOwnedDetached(MOwned* aOwned)
 {
-    /*
-    for (auto it = mOcp.pairsBegin(); it != mOcp.pairsEnd(); it++) {
-        (*it)->provided()->onObsOwnedDetached(this, aOwned);
-    }
-    */
     TNodeEventOwnedDetached event(aOwned);
     notifyObservers(&event);
 }
-
-/*
-void Node::onOwnerAttached()
-{
-    // Notify the observers
-    // Cache observers first to avoid iterating broked due to observers change
-    list<MObserver*> cache;
-    for (auto it = mOcp.pairsBegin(); it != mOcp.pairsEnd(); it++) {
-	auto* pair = *it;
-        cache.push_back(pair->provided());
-    }
-    for (auto obs : cache) {
-        obs->onObsOwnerAttached(this);
-    }
-}
-*/
 
 void Node::onOwnerAttached()
 {

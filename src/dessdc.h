@@ -35,11 +35,6 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
                 void startObserving(const GUri& aTargUri);
                 string MObserver_Uid() const override {return mHost->getUidC<MObserver>("NodeCreationObserver");}
                 MIface* MObserver_getLif(TIdHash aId) override { return nullptr;}
-                void onObsOwnerAttached(MObservable* aObl) override {}
-                void onObsOwnedAttached(MObservable* aObl, MOwned* aOwned) override;
-                void onObsOwnedDetached(MObservable* aObl, MOwned* aOwned) override { }
-                void onObsContentChanged(MObservable* aObl, const string& aId) override { }
-                void onObsChanged(MObservable* aObl) override { }
                 void onObsEvent(MObservable* aObl, const MEvent* aEvent) override;
 
                 TCp* observerCp() override { return &mOcp;}
@@ -165,19 +160,6 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
                 // From MObserver
                 virtual string MObserver_Uid() const { return mHost->getUidC<MObserver>("MagObs");}
                 virtual MIface* MObserver_getLif(TIdHash aId) override { return nullptr;}
-                virtual void onObsOwnerAttached(MObservable* aObl) override {}
-                virtual void onObsOwnedAttached(MObservable* aObl, MOwned* aOwned) override {
-                    //mHost->notifyMaps();
-                }
-                virtual void onObsOwnedDetached(MObservable* aObl, MOwned* aOwned) override {
-                    //mHost->notifyMaps();
-                }
-                virtual void onObsContentChanged(MObservable* aObl, const string& aCont) override {
-                    //mHost->notifyMaps();
-                }
-                virtual void onObsChanged(MObservable* aObl) override {
-                    //mHost->notifyMaps();
-                }
                 void onObsEvent(MObservable* aObl, const MEvent* aEvent) override {
                 }
                 TCp* observerCp() override { return &mOcp;}
@@ -207,17 +189,6 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
                 // From MObserver
                 virtual string MObserver_Uid() const {return mHost->getUidC<MObserver>(mNuo->name());}
                 virtual MIface* MObserver_getLif(TIdHash aId) override { return nullptr;}
-                virtual void onObsOwnerAttached(MObservable* aObl) override {}
-                virtual void onObsOwnedAttached(MObservable* aObl, MOwned* aOwned) override {
-                    //if (mMask & EO_ATCH) mHost->notifyOutp();
-                }
-                virtual void onObsOwnedDetached(MObservable* aObl, MOwned* aOwned) override;
-                virtual void onObsContentChanged(MObservable* aObl, const string& aCont) override {
-                    //if (mMask & EO_CNT) mHost->notifyOutp();
-                }
-                virtual void onObsChanged(MObservable* aObl) override {
-                    //if (mMask & EO_CHG) mHost->notifyOutp();
-                }
                 void onObsEvent(MObservable* aObl, const MEvent* aEvent) override {
                     if (aEvent->mId == TNodeEventChanged::idHash) {
                         mHost->notifyOutp();
@@ -260,11 +231,6 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
         // From MObserver
         virtual string MObserver_Uid() const {return getUid<MObserver>();}
         virtual MIface* MObserver_getLif(TIdHash aId) override;
-        virtual void onObsOwnerAttached(MObservable* aObl) override {}
-        virtual void onObsOwnedAttached(MObservable* aObl, MOwned* aOwned) override;
-        virtual void onObsOwnedDetached(MObservable* aObl, MOwned* aOwned) override;
-        virtual void onObsContentChanged(MObservable* aObl, const string& aCont) override;
-        virtual void onObsChanged(MObservable* aObl) override;
         void onObsEvent(MObservable* aObl, const MEvent* aEvent) override;
         MObserver::TCp* observerCp() override { return &mObrCp;}
         // From MDesInpObserver
@@ -364,8 +330,6 @@ class ASdcComp : public ASdc
         void onOwnerAttached() override;
         // From MObserver
         void onObsEvent(MObservable* aObl, const MEvent* aEvent) override;
-        void onObsOwnedAttached(MObservable* aObl, MOwned* aOwned) override;
-        void onObsOwnedDetached(MObservable* aObl, MOwned* aOwned) override;
     protected:
         ASdc::SdcIap<Sdata<string>> mIapName; /*!< "Name" input access point */
         ASdc::SdcIap<Sdata<string>> mIapParent; /*!< "Parent" input access point */
@@ -383,9 +347,6 @@ class ASdcCompT : public ASdc
         // From ASdc
         virtual bool getState(bool aConf = false) override;
         bool doCtl() override;
-        // From MObserver
-        virtual void onObsOwnedAttached(MObservable* aObl, MOwned* aOwned) override;
-        virtual void onObsOwnedDetached(MObservable* aObl, MOwned* aOwned) override;
     protected:
         ASdc::SdcIap<DGuri> mIapTarg; /*!< "Target" input access point */
         ASdc::SdcIap<Sdata<string>> mIapName; /*!< "Name" input access point */
@@ -405,9 +366,6 @@ class ASdcRm : public ASdc
         // From ASdc
         virtual bool getState(bool aConf = false) override;
         bool doCtl() override;
-        // From MObserver
-        virtual void onObsOwnedAttached(MObservable* aObl, MOwned* aOwned) override;
-        virtual void onObsOwnedDetached(MObservable* aObl, MOwned* aOwned) override;
     protected:
         ASdc::SdcIap<Sdata<string>> mIapName; /*!< "Name" input access point */
 };
@@ -488,7 +446,6 @@ class ASdcInsert2 : public ASdc
     protected:
         void Construct() override;
         // From MObserver
-        virtual void onObsChanged(MObservable* aObl) override;
         // From ASdc
         virtual bool getState(bool aConf = false) override;
         bool doCtl() override;
@@ -514,7 +471,6 @@ class ASdcInsert3 : public ASdc
         ASdcInsert3(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
     protected:
         // From MObserver
-        virtual void onObsChanged(MObservable* aObl) override;
         // From ASdc
         virtual bool getState(bool aConf = false) override;
         bool doCtl() override;
@@ -540,7 +496,6 @@ class ASdcInsertN : public ASdc
     protected:
         void Construct() override;
         // From MObserver
-        virtual void onObsChanged(MObservable* aObl) override;
         // From ASdc
         virtual bool getState(bool aConf = false) override;
         bool doCtl() override;

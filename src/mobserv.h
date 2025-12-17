@@ -25,11 +25,6 @@ class MObserver: public MIface
 	virtual MIface* MObserver_getLif(TIdHash aId) = 0;
 	// Local
 	virtual TCp* observerCp() = 0;
-	virtual void onObsOwnerAttached(MObservable* aObl) = 0;
-	virtual void onObsOwnedAttached(MObservable* aObl, MOwned* aOwned) = 0;
-	virtual void onObsOwnedDetached(MObservable* aObl, MOwned* aOwned) = 0;
-	virtual void onObsContentChanged(MObservable* aObl, const string& aId) = 0;
-	virtual void onObsChanged(MObservable* aObl) = 0;
 	virtual void onObsEvent(MObservable* aObl, const MEvent* aEvent) {}
 };
 

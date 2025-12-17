@@ -40,28 +40,6 @@ void ASdc::NodeCreationObserver::startObserving(const GUri& aTargUri)
     }
 }
 
-void ASdc::NodeCreationObserver::onObsOwnedAttached(MObservable* aObl, MOwned* aOwned)
-{
-    LOGNN(mHost, EDbg, "onObsOwnedAttached, owned: " + aOwned->Uid());
-    GUri owdUri = mTargUri.head(mTargOwrLevel + 1);
-    auto* targOwrOwd = mHost->mMag->getNode(owdUri);
-    MOwned* targOwd = targOwrOwd ? targOwrOwd->lIf(targOwd) : nullptr;
-    if (targOwd && aOwned == targOwd) {
-        LOGNN(mHost, EDbg, "[" + mTargOwr->getUriS(mHost->mMag) + "] owned [" + targOwrOwd->getUriS(mHost->mMag) + "] attached");
-        LOGNN(mHost, EDbg, "Targ URI: " + mTargUri.toString());
-        // Checking if target got attached
-        MNode* targ = mHost->mMag->getNode(mTargUri);
-        if (targ) {
-            // Yes, attached. Stop observing the attaching
-            LOGNN(mHost, EDbg, "Target [" + targ->getUriS(mHost->mMag) + "] got attached");
-            mHost->setActivated();
-        } else {
-            // Not attached yet, proceed
-            startObserving(mTargUri);
-        }
-    }
-}
-
 void ASdc::NodeCreationObserver::onObsEvent(MObservable* aObl, const MEvent* aEvent)
 {
     if (aEvent->mId == TNodeEventOwnedAttached::idHash) {
@@ -95,11 +73,6 @@ void ASdc::NodeCreationObserver::onObsEvent(MObservable* aObl, const MEvent* aEv
 
 const string K_CpUri_Enable = "Enable";
 const string K_CpUri_Outp = "Outp";
-
-void ASdc::MagDobs::onObsOwnedDetached(MObservable* aObl, MOwned* aOwned)
-{
-    if (mMask & EO_DTCH) mHost->notifyOutp();
-}
 
 void ASdc::MagDobs::updateNuo(MNode* aNuo)
 {
@@ -439,23 +412,6 @@ void ASdc::notifyOutp()
     mOutCInv = true;
 }
 
-void ASdc::onObsOwnedAttached(MObservable* aObl, MOwned* aOwned)
-{
-}
-
-void ASdc::onObsOwnedDetached(MObservable* aObl, MOwned* aOwned)
-{
-}
-
-void ASdc::onObsContentChanged(MObservable* aObl, const string& aId)
-{
-}
-
-void ASdc::onObsChanged(MObservable* aObl)
-{
-    UpdateMag();
-}
-
 void ASdc::onObsEvent(MObservable* aObl, const MEvent* aEvent) {
     if (aEvent->mId == TNodeEventChanged::idHash) {
 	UpdateMag();
@@ -705,17 +661,7 @@ bool ASdcComp::doCtl()
     return res;
 }
 
-void ASdcComp::onObsOwnedAttached(MObservable* aObl, MOwned* aOwned)
-{
-    //mOapOut.NotifyInpsUpdated();
-    notifyOutp();
-}
 
-void ASdcComp::onObsOwnedDetached(MObservable* aObl, MOwned* aOwned)
-{
-    notifyOutp();
-    //mOapOut.NotifyInpsUpdated();
-}
 
 /* SDC agent "Adding Component into target" */
 
@@ -772,17 +718,6 @@ bool ASdcCompT::doCtl()
     return res;
 }
 
-void ASdcCompT::onObsOwnedAttached(MObservable* aObl, MOwned* aOwned)
-{
-    //mOapOut.NotifyInpsUpdated();
-    notifyOutp();
-}
-
-void ASdcCompT::onObsOwnedDetached(MObservable* aObl, MOwned* aOwned)
-{
-    //mOapOut.NotifyInpsUpdated();
-    notifyOutp();
-}
 
 
 
@@ -829,18 +764,6 @@ bool ASdcRm::doCtl()
     LOGN(EInfo, "Managed agent is mutated  [" + muts + "]");
     res = true;
     return res;
-}
-
-void ASdcRm::onObsOwnedAttached(MObservable* aObl, MOwned* aOwned)
-{
-    //mOapOut.NotifyInpsUpdated();
-    notifyOutp();
-}
-
-void ASdcRm::onObsOwnedDetached(MObservable* aObl, MOwned* aOwned)
-{
-    //mOapOut.NotifyInpsUpdated();
-    notifyOutp();
 }
 
 
@@ -1260,14 +1183,6 @@ bool ASdcInsert2::doCtl()
     return res;
 }
 
-void ASdcInsert2::onObsChanged(MObservable* aObl)
-{
-    ASdc::onObsChanged(aObl);
-    //mOapOut.NotifyInpsUpdated();
-    notifyOutp();
-}
-
-
 #if 0
 
 // SDC agent "Insert node into list, ver. 3. DS_ISS_013 fixed.
@@ -1501,13 +1416,6 @@ bool ASdcInsertN::doCtl()
 	res = true;
     } while (0);
     return res;
-}
-
-void ASdcInsertN::onObsChanged(MObservable* aObl)
-{
-    ASdc::onObsChanged(aObl);
-    //mOapOut.NotifyInpsUpdated();
-    notifyOutp();
 }
 
 

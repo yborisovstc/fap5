@@ -129,24 +129,6 @@ void SdoBase::UpdateMag()
     }
 }
 
-void SdoBase::onObsOwnedAttached(MObservable* aObl, MOwned* aOwned)
-{
-}
-
-void SdoBase::onObsOwnedDetached(MObservable* aObl, MOwned* aOwned)
-{
-}
-
-void SdoBase::onObsContentChanged(MObservable* aObl, const string& aId)
-{
-}
-
-void SdoBase::onObsChanged(MObservable* aObl)
-{
-    mCInv = true;
-    UpdateMag();
-}
-
 void SdoBase::onObsEvent(MObservable* aObl, const MEvent* aEvent)
 {
     if (aEvent->mId == TNodeEventChanged::idHash) {
@@ -596,21 +578,7 @@ const DtBase* SdoConn::VDtGet(const string& aType)
     return &mRes;
 }
 
-/*
-void SdoConn::onObsChanged(MObservable* aObl)
-{
-    MObservable* op = mVpUe->lIf(op);
-    MObservable* oq = mVqUe->lIf(oq);
-    if (aObl == op || aObl == oq) {
-        NotifyInpsUpdated();
-    } else {
-        SdoBase::onObsChanged(aObl);
-    }
-}
-*/
-
 void SdoConn::onObsEvent(MObservable* aObl, const MEvent* aEvent) {
-    //if (aEvent->id() == MNodeEventOwnedAttached::idHash()) {
     if (aEvent->mId == TNodeEventChanged::idHash) {
 	MObservable* op = mVpUe ? mVpUe->lIf(op) : nullptr;
 	MObservable* oq = mVqUe ? mVqUe->lIf(oq) : nullptr;
@@ -721,48 +689,6 @@ void SdoPairsCount::observingVertUeExst()
     }
 }
 
-void SdoPairsCount::onObsChanged(MObservable* aObl)
-{
-    MObservable* obl = mVertUe ? mVertUe->lIf(obl) : nullptr;
-    if (obl && aObl == obl) {
-        LOGN(EDbg, "VertUE changed");
-        NotifyInpsUpdated();
-    } else {
-        SdoBase::onObsChanged(aObl);
-    }
-}
-
-// TODO remove as not used anymore
-void SdoPairsCount::onObsOwnedAttached(MObservable* aObl, MOwned* aOwned)
-{
-    MObservable* obl = mVertUeOwr ? mVertUeOwr->lIf(obl) : nullptr;
-    if (obl && aObl == obl) {
-        // VeruUE owner observable
-        LOGN(EDbg, "onObsOwnedAttached, owned: " + aOwned->Uid());
-        DGuri verts;
-        mInpVert.getData(verts);
-        GUri sueUri(verts.mData);
-        GUri owdUri = sueUri.head(mVertUeOwrLevel + 1);
-        auto* vertUeOwrOwd = mSue->getNode(owdUri);
-        MOwned* vueOwd = vertUeOwrOwd ? vertUeOwrOwd->lIf(vueOwd) : nullptr;
-        if (vueOwd && aOwned == vueOwd) {
-            LOGN(EDbg, "[" + mVertUeOwr->getUriS(mSue) + "] owned [" + vertUeOwrOwd->getUriS(mSue) + "] attached");
-            // Checking if VertUe got attached
-            MNode* vertUe = mSue->getNode(verts.mData);
-            if (vertUe) {
-                // Yes, attached. Stop observing the attaching
-                LOGN(EDbg, "VertUe [" + vertUe->getUriS(mSue) + "] got attached");
-                NotifyInpsUpdated();
-            } else {
-                // Not attached yet, proceed
-                observingVertUeExst();
-            }
-        }
-    } else {
-        SdoBase::onObsOwnedAttached(aObl, aOwned);
-    }
-}
-
 void SdoPairsCount::onObsEvent(MObservable* aObl, const MEvent* aEvent)
 {
     if (aEvent->mId == TNodeEventOwnedAttached::idHash) {
@@ -771,7 +697,7 @@ void SdoPairsCount::onObsEvent(MObservable* aObl, const MEvent* aEvent)
 	MObservable* obl = mVertUeOwr ? mVertUeOwr->lIf(obl) : nullptr;
 	if (obl && aObl == obl) {
 	    // VeruUE owner observable
-	    LOGN(EDbg, "onObsOwnedAttached, owned: " + aOwned->Uid());
+	    LOGN(EDbg, "TNodeEventOwnedAttached, owned: " + aOwned->Uid());
 	    DGuri verts;
 	    mInpVert.getData(verts);
 	    GUri sueUri(verts.mData);
@@ -860,17 +786,6 @@ const DtBase* SdoPair::VDtGet(const string& aType)
     return &mRes;
 }
 
-
-void SdoPair::onObsChanged(MObservable* aObl)
-{
-    MObservable* obl = mVertUe->lIf(obl);
-    if (aObl == obl) {
-        //LOGN(EDbg, "SdoPair::onObsChanged");
-        NotifyInpsUpdated();
-    } else {
-        SdoBase::onObsChanged(aObl);
-    }
-}
 
 ///  SDO "Single pair of targets comp"
 
