@@ -23,14 +23,13 @@ void ASdc::NodeCreationObserver::startObserving(const GUri& aTargUri)
 	LOGNN(mHost, EDbg, "Owner [" + targOwrUri.toString() + "] to be observing, level: " + to_string(mTargOwrLevel));
 	if (mTargOwr) {
 	    MObservable* obl = mTargOwr->lIf(obl);
-	    bool res = obl->rmObserver(&mOcp);
+	    bool res = obl->rmObserver(this, TNodeEventOwnedAttached::idHash);
 	    if (!res || !obl) {
 		LOGNN(mHost, EErr, "Failed deattaching VertUeOwr from observable");
 	    }
 	}
 	mTargOwr = owner;
 	MObservable* obl = mTargOwr->lIf(obl);
-	//bool res = obl ? obl->addObserver(&mOcp) : false;
 	bool res = obl ? obl->addObserver(this, TNodeEventOwnedAttached::idHash) : false;
 	if (!res || !obl) {
             LOGNN(mHost, EErr, "Cannot attach VertUeOwr to observer");
@@ -77,18 +76,9 @@ const string K_CpUri_Outp = "Outp";
 void ASdc::MagDobs::updateNuo(MNode* aNuo)
 {
     assert(aNuo);
-    /*
-       if (aNuo != mNuo) {
-       MObservable* nuo = mNuo ? mNuo->lIf(nuo) : nullptr;
-       if (nuo) nuo->rmObserver(&mOcp);
-       mNuo = aNuo;
-       nuo = mNuo->lIf(nuo);
-       if (nuo) nuo->addObserver(&mOcp);
-       }
-       */
     mOcp.disconnectAll();
     MObservable* nuo = aNuo->lIf(nuo);
-    if (nuo) nuo->addObserver(&mOcp);
+    if (nuo) nuo->addObserver(this, TNodeEventChanged::idHash);
 }
 
 ASdc::SdcIapb::SdcIapb(const string& aName, ASdc* aHost, const string& aInpUri):
@@ -440,7 +430,6 @@ void ASdc::onOwnerAttached()
     bool res = false;
     MObservable* obl = owner()->lIf(obl);
     if (obl) {
-	//res = obl->addObserver(&mObrCp);
 	res = obl->addObserver(this, TNodeEventChanged::idHash);
     }
     if (!res || !obl) {
@@ -1012,7 +1001,7 @@ const string K_CpUri_Insr2_Pname = "Pname"; // Name of node before which given n
 ASdcInsert2::ASdcInsert2(const string &aType, const string& aName, MEnv* aEnv): ASdc(aType, aName, aEnv),
     mIapName("Name", this, K_CpUri_Insr2_Name), mIapPrev("Prev", this, K_CpUri_Insr2_Prev), mIapNext("Next", this, K_CpUri_Insr2_Next),
     mIapPname("Pname", this, K_CpUri_Insr2_Pname),
-    mDobsNprev(this, MagDobs::EO_CHG)
+    mDobsNprev(this)
 { }
 
 void ASdcInsert2::Construct()
@@ -1276,7 +1265,7 @@ bool ASdcInsert3::getState(bool aConf)
 ASdcInsertN::ASdcInsertN(const string &aType, const string& aName, MEnv* aEnv): ASdc(aType, aName, aEnv),
     mIapName("Name", this, K_CpUri_Insr2_Name), mIapPrev("Prev", this, K_CpUri_Insr2_Prev), mIapNext("Next", this, K_CpUri_Insr2_Next),
     mIapPname("Pname", this, K_CpUri_Insr2_Pname),
-    mDobsNprev(this, MagDobs::EO_CHG)
+    mDobsNprev(this)
 { }
 
 void ASdcInsertN::Construct()

@@ -86,8 +86,6 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	string MObservable_Uid() const override { return getUid<MObservable>();}
 	MIface* MObservable_getLif(TIdHash aId) override {return nullptr;}
 	void MObservable_doDump(int aLevel, int aIdt, ostream& aOs) const override;
-	bool addObserver(MObserver::TCp* aObs) override;
-	bool rmObserver(MObserver::TCp* aObs) override;
 	bool addObserver(MObserver* aObs, TIdHash aEventId) override;
 	bool rmObserver(MObserver* aObs, TIdHash aEventId) override;
 	// From MParent

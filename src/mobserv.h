@@ -45,8 +45,6 @@ class MObservable: public MIface
 	void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MObservable_doDump(aLevel, aIdt, std::cout);}
 	virtual void MObservable_doDump(int aLevel, int aIdt, ostream& aOs) const = 0;
 	// Local
-	virtual bool addObserver(MObserver::TCp* aObs) = 0;
-	virtual bool rmObserver(MObserver::TCp* aObs) = 0;
 	virtual bool addObserver(MObserver* aObs, TIdHash aEventId) = 0;
 	virtual bool rmObserver(MObserver* aObs, TIdHash aEventId) = 0;
 };

@@ -149,42 +149,12 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
         };
 
 
-#if 0
-        /** @brief Managed agent observer
-         * */
-        // TODO seems not used anymore, remove?
-        class MagObs : public MObserver {
-            public:
-                MagObs(ASdc* aHost): mHost(aHost), mOcp(this) {}
-                virtual ~MagObs() { }
-                // From MObserver
-                virtual string MObserver_Uid() const { return mHost->getUidC<MObserver>("MagObs");}
-                virtual MIface* MObserver_getLif(TIdHash aId) override { return nullptr;}
-                void onObsEvent(MObservable* aObl, const MEvent* aEvent) override {
-                }
-                TCp* observerCp() override { return &mOcp;}
-            public:
-                TObserverCp mOcp;               /*!< Observer connpoint */
-            private:
-                ASdc* mHost;
-        };
-#endif
-
+        // TODO seems (see assert) this doesnt' work. To remove?
         /** @brief Mag data observer
          * */
         class MagDobs : public MObserver {
             public:
-                /** @brief Event to be observed */
-                enum EObs{
-                    EO_ATCH = 0x01,
-                    EO_DTCH = 0x02,
-                    EO_CNT = 0x04,
-                    EO_CHG = 0x08,
-                    EO_ALL = EO_ATCH | EO_DTCH | EO_CNT | EO_CHG,
-                };
-            public:
-                MagDobs(ASdc* aHost, int aMask = EO_ALL): mHost(aHost), mNuo(nullptr), mMask(aMask), mOcp(this) {}
-                virtual ~MagDobs() { }
+                MagDobs(ASdc* aHost): mHost(aHost), mNuo(nullptr), mOcp(this) {}
                 void updateNuo(MNode* aNuo);
                 // From MObserver
                 virtual string MObserver_Uid() const {return mHost->getUidC<MObserver>(mNuo->name());}
@@ -194,11 +164,9 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
                         mHost->notifyOutp();
                     }
                 }
-
                 TCp* observerCp() override { return &mOcp;}
             public:
                 MNode* mNuo;                   /*!< Node under observation */
-                int mMask;                     /*!< Events mask, EObs */
                 TObserverCp mOcp;               /*!< Observer connpoint */
             private:
                 ASdc* mHost;

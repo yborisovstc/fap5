@@ -417,22 +417,9 @@ void Node::onOwnedMutated(const MOwned* aOwned, const ChromoNode& aMut, const Mu
     }
 }
 
-
-bool Node::addObserver(MObserver::TCp* aObs)
-{
-    bool res = mOcp.connect(aObs);
-    return res;
-}
-
-bool Node::rmObserver(MObserver::TCp* aObs)
-{
-    bool res = mOcp.disconnect(aObs);
-    return res;
-}
-
 bool Node::addObserver(MObserver* aObs, TIdHash aEventId)
 {
-    bool res = true;
+    bool res = false;
     if (!mOcp.isConnected(aObs->observerCp())) {
 	res = mOcp.connect(aObs->observerCp());
     }
