@@ -10,6 +10,7 @@
 //#include "elem.h"
 #include "prof.h"
 #include "prof_ids.h"
+#include "workers.h"
 
 #define LOGIM(aLevel, aContent) \
     if (mHost.Logger()->MeetsLevel(aLevel)) {\
@@ -67,6 +68,7 @@ const PindCluster<PindDurStat>::Idata KPindDurStatIdata = {
     }
 };
 
+const int Env::KThreadsPoolSize = 2;
 
 
 ///// ImportsMgr
@@ -221,6 +223,8 @@ Env::Env(const string& aSpecFile, const string& aLogFileName): mRoot(NULL), mSpe
     // Profiler indicators
     mProf->addPind<PindCluster<PindDur>>(KPindDurIdata);
     mProf->addPind<PindCluster<PindDurStat>>(KPindDurStatIdata);
+    // Thread pool
+    mThreadPool = new ThreadPool(this, KThreadsPoolSize);
 #endif
 }
 

@@ -40,7 +40,7 @@ const string KChromRarg_Chs = "chs";
 /** Native agents factory registry */
 const ProvDef::TFReg ProvDef::mReg ( {
         Item<Node>(), Item<Elem>(), Item<Vert>(), Item<Verte>(), Item<Import>(), Item<Syst>(), Item<State>(), Item<BState>(), Item<Des>(),
-        Item<DesLauncher>(), Item<Const>(),
+        Item<DesLauncher>(), Item<Const>(), Item<Des2>(), Item<Des2Launcher>(),
         /* Transitions */
         Item<TrAddVar>(), Item<TrAdd2Var>(), Item<TrSub2Var>(), Item<TrSizeVar>(), Item<TrSwitchBool>(), Item<TrSwitchBool2>(), Item<TrMplVar>(),
         Item<TrDivVar>(), Item<TrMinVar>(), Item<TrMaxVar>(), Item<TrAndVar>(), Item<TrOrVar>(), Item<TrNegVar>(), 

@@ -1239,5 +1239,36 @@
         </sect2>
     </sect1>
 
+    <sect1 id="ds_dmt"><title>DES Mutly-threading</title>
+        <sect2><title>Intro</title>
+            <simpara>
+                Even fap5 is faster (at least 2 times) that fap3, single thread design has clear limitation for speed up models.
+                So it makes sense to create multi-threading solution.
+            </simpara>
+            <simpara>
+                How can we introduce parallelism into the model? Initial idea is to do update in parallel. But the fact is that on 
+                "heavy" models the most part of calculations is being done on confirm phase (sdcs mostly). Example ut_avr_syst_drp_1:
+                <programlisting>
+                    IFC_LNCH_UPD  0.24
+                    IFC_LNCH_CONF 0.82
+                </programlisting>
+            </simpara>
+        </sect2>
+        <sect2 id="ds_dmt_ucct"><title>Soluion#1 System update/confirm with concurrent threads</title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    Update/confirm phases seems to be the best candidate for concurrent actions.
+                </simpara>
+            </sect3>
+        </sect2>
+        <sect2><title>Soluion#2 System action in dedicate thread. Systems interconnecting via IPC.</title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    This solution follows the approach used for distributed systems, ref fap2-srv project.
+                </simpara>
+            </sect3>
+        </sect2>
+    </sect1>
+
 </article>
 

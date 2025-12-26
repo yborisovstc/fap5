@@ -9,6 +9,7 @@ ut_fap5_lib_SOURCES = \
 		       ut_desctx.cpp \
 		       ut_adp.cpp \
 		       ut_des.cpp \
+		       ut_des2.cpp \
 		       ut_node.cpp \
 		       ut_base.h \
 		       ut_base.cpp

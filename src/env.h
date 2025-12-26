@@ -62,6 +62,7 @@ class Env: public MEnv
 	virtual MImportMgr* ImpsMgr() override { return mImpMgr;}
 	virtual MNode* Root() const override;
 	virtual MLauncher* Launcher() const { return mLauncher;}
+        MThreadPool* threadPool() override { return mThreadPool;}
 	virtual bool RunSystem(int aCount = 0, int aIdleCount = 0) override;
 	virtual bool StopSystem() override;
 	bool addProvider(MProvider* aProv) override;
@@ -78,8 +79,10 @@ class Env: public MEnv
 	MLogRec* mLogger;
 	MLauncher* mLauncher = nullptr; /*!< Model's launcher */
 	ImportsMgr* mImpMgr;
+        MThreadPool* mThreadPool = nullptr;
 	map<string, string> mEVars;
 	DProf<EPiid_NUM>* mProf;
+        static const int KThreadsPoolSize;
 
 };
 

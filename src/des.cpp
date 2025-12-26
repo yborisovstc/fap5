@@ -4,6 +4,7 @@
 //#include "mlink.h"
 #include "des.h"
 #include "prof_ids.h"
+#include "workers.h"
 
 // Enable verification of DES active registry. !Affect system performance
 #define DES_RGS_VERIFY
@@ -584,6 +585,10 @@ void State::update()
 	}
     } else {
 	mInpValid = false;
+    }
+    MDesObserver* obs = desObserver();
+    if (obs) {
+        obs->onUpdateCompleted(this);
     }
     PFL_DUR_STAT_REC(PEvents::EDurStat_StUpdate);
 }
@@ -1506,6 +1511,53 @@ bool Des::bindDesCtx(MIface* aCtx)
 }
 
 
+
+//// Des2
+
+
+Des2::Des2(const string &aType, const string &aName, MEnv* aEnv): Des(aType, aName, aEnv)
+{
+}
+
+void Des2::update()
+{
+    ///LOGN(EDbg, "update, count: " + to_string(mActive->size()));
+    mActNotified = false;
+    mActiveCnt.store(0);
+    for (auto* active : *mActive) {
+        TUpdateJob* job = new TUpdateJob(this, active);
+        mEnv->threadPool()->takeJob(job);
+    }
+}
+
+void Des2::confirm()
+{
+    Des::confirm();
+}
+
+void Des2::onJobCompleted(const MJob* aJob)
+{
+}
+
+void Des2::onUpdateCompleted(MDesSyncable* aComp)
+{
+    mActiveCnt.store(mActiveCnt.load() + 1);
+    int cnt = mActiveCnt.load();
+    ///LOGN(EDbg, "onUpdateCompleted, comp: " + aComp->Uid() + ", cnt: " + to_string(cnt) + ", act_cnt: " + to_string(mActive->size()));
+    if (cnt == mActive->size()) {
+        // Swapping the lists
+        auto upd = mUpdated;
+        mUpdated = mActive;
+        mActive = upd;
+        mActive->clear();
+        MDesObserver* obs = desObserver();
+        if (obs) {
+            obs->onUpdateCompleted(this);
+        }
+    }
+}
+
+
 //// DesLauncher
 
 
@@ -1607,6 +1659,138 @@ void DesLauncher::outputCounter(int aCnt)
     }
 }
 */
+
+
+//// Des2Launcher
+
+
+Des2Launcher::Des2Launcher(const string &aType, const string& aName, MEnv* aEnv):
+    Des2(aType, aName, aEnv)
+{}
+
+bool Des2Launcher::Run(int aCount, int aIdleCount)
+{
+    bool res = true;
+    mCount = aCount;
+    mIdleCount = aIdleCount;
+    mCnt = 0;
+    mIdlecnt = 0;
+    LOGN(EInfo, "START");
+    PFL_DUR_STAT_START(PEvents::EDurStat_LaunchRun);
+    if (!mStop && (mCount == 0 || mCnt < mCount) && (mIdleCount == 0 || mIdlecnt < mIdleCount)) {
+        mCnt++;
+        if (!mActive->empty()) {
+            LOGN(EDbg, ">>> Update [" + to_string(mCnt) + "], count: " + to_string(countOfActive()) +
+                    ", dur: " + PFL_DUR_VALUE(PEvents::EDur_LaunchActive));
+            update();
+            mIdlecnt = 0;
+        } else {
+            if (mIdlecnt == 0) {
+                LOGN(EInfo, "IDLE");
+            }
+            OnIdle();
+            mIdlecnt++;
+        }
+        while (!mStop) {
+            this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        PFL_DUR_STAT_REC(PEvents::EDurStat_LaunchRun);
+    }
+    LOGN(EInfo, "END " + PFL_DUR_STAT_FIELD(PEvents::EDurStat_LaunchRun, PIndFId::EStat_SUM));
+    return res;
+}
+
+bool Des2Launcher::Continue()
+{
+    bool res = true;
+    LOGN(EInfo, "Continue, mCount: " + to_string(mCount) + ", mCnt: " + to_string(mCnt));
+    if (!mStop && (mCount == 0 || mCnt < mCount) && (mIdleCount == 0 || mIdlecnt < mIdleCount)) {
+        mCnt++;
+        if (!mActive->empty()) {
+            LOGN(EDbg, ">>> Update [" + to_string(mCnt) + "], count: " + to_string(countOfActive()) +
+                    ", dur: " + PFL_DUR_VALUE(PEvents::EDur_LaunchActive));
+            update();
+            mIdlecnt = 0;
+        } else {
+            if (mIdlecnt == 0) {
+                LOGN(EInfo, "IDLE");
+            }
+            //LOGN(EInfo, "Idle [" + to_string(idlecnt) + "]");
+            OnIdle();
+            mIdlecnt++;
+            mStop = true; // TODO to update:w
+        }
+    } else {
+        mStop = true;
+    }
+    return res;
+}
+
+bool Des2Launcher::Stop()
+{
+    mStop = true;
+    return true;
+}
+
+void Des2Launcher::OnIdle()
+{
+    this_thread::sleep_for(std::chrono::milliseconds(100));
+    //mStop = true;
+}
+
+MIface* Des2Launcher::MOwned_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMLauncher));
+    else res = Des::MOwned_getLif(aId);
+    return res;
+}
+
+MIface* Des2Launcher::MNode_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif2(aId, mMLauncher));
+    else res = Des::MNode_getLif(aId);
+    return res;
+}
+
+void Des2Launcher::updateCounter(int aCnt)
+{
+    MNode* ctrn = getNode(KUri_Counter);
+    if (ctrn) {
+        MContentOwner* cnto = ctrn ? ctrn->lIf(cnto) : nullptr;
+        if (cnto) {
+            cnto->setContent("", string("SS " + to_string(aCnt)));
+        }
+    }
+}
+
+void Des2Launcher::onUpdateCompleted(MDesSyncable* aComp)
+{
+    mActiveCnt.store(mActiveCnt.load() + 1);
+    int cnt = mActiveCnt.load();
+    ///LOGN(EDbg, "onUpdateCompleted, comp: " + aComp->Uid() + ", cnt: " + to_string(cnt) + ", act_cnt: " + to_string(mActive->size()));
+    if (cnt == mActive->size()) {
+        // Swapping the lists
+        auto upd = mUpdated;
+        mUpdated = mActive;
+        mActive = upd;
+        mActive->clear();
+        // Confirm now
+        if (isLogLevel(EDbg)) {
+            LOGN(EDbg, ">>> Confirm [" + to_string(mCnt) + "]");
+        }
+        confirm();
+        Continue();
+    }
+}
+
+
+
+
+
+
+
 
 
 #if 0

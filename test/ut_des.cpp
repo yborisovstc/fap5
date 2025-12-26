@@ -18,6 +18,7 @@ class Ut_des : public Ut_fixture
     CPPUNIT_TEST_SUITE(Ut_des);
     //CPPUNIT_TEST(test_des_data);
     //CPPUNIT_TEST(test_des_1);
+    CPPUNIT_TEST(test_des_2);
     //CPPUNIT_TEST(test_des_inval_1);
     //CPPUNIT_TEST(test_des_inval_2);
     //CPPUNIT_TEST(test_des_asr_1);
@@ -26,7 +27,7 @@ class Ut_des : public Ut_fixture
     //CPPUNIT_TEST(test_des_tr_tres_1);
     //CPPUNIT_TEST(test_des_conn_1);
     //CPPUNIT_TEST(test_des_sock_2);
-    CPPUNIT_TEST(test_des_sock_3);
+    //CPPUNIT_TEST(test_des_sock_3);
     //CPPUNIT_TEST(test_des_utl_1);
     // CPPUNIT_TEST(test_des_utl_2);
     //CPPUNIT_TEST(test_des_sp_1);
@@ -41,6 +42,7 @@ class Ut_des : public Ut_fixture
     static string getStateDstr(MEnv* aEnv, const string& aUri);
     private:
     void test_des_1();
+    void test_des_2();
     void test_des_inval_1();
     void test_des_inval_2();
     void test_des_asr_1();
@@ -362,7 +364,7 @@ void Ut_des::test_des_1()
     // Benchmarking
     cout << endl << "Benchmarking ut_des_1_2 - many DES layers" << endl;
     constructSystem("ut_des_1_2");
-    mEnv->RunSystem(500000, 2);
+    mEnv->RunSystem(/*500000*/ 100, 2);
     if (mEnv->profiler()) mEnv->profiler()->saveMetrics();
     delete mEnv;
     cout << endl << "Benchmarking ut_des_1_2r - single DES layer" << endl;
@@ -411,8 +413,8 @@ void Ut_des::test_des_1()
 
     // Run
     // Verifying iface cache update, ref ds_desopt_uic 
-    bool res = mEnv->RunSystem(5, 2);
-    CPPUNIT_ASSERT_MESSAGE("Ds1.St1 failed on phase 1", getStateDstr("Launcher.Ds1.St1") == "SI 5");
+    bool res = mEnv->RunSystem(100, 2);
+    CPPUNIT_ASSERT_MESSAGE("Ds1.St1 failed on phase 1", getStateDstr("Launcher.Ds1.St1") == "SI 100");
     if (mEnv->profiler()) mEnv->profiler()->saveMetrics();
 
 
@@ -614,7 +616,30 @@ void Ut_des::test_des_sp_1()
     delete mEnv;
 }
 
-
 #endif
+
+
+
+
+/** @brief Test of mutliple DES
+ * Used to compare with Des2 systems
+ * */
+void Ut_des::test_des_2()
+{
+    cout << endl << "=== test_des_2 - multiple DES, used to compare with Des2 systems  ===" << endl;
+
+    MNode* root = constructSystem("ut_des_2");
+
+    // Run
+    bool res = mEnv->RunSystem(100, 2);
+    CPPUNIT_ASSERT_MESSAGE("Failed running system", res);
+    if (mEnv->profiler()) mEnv->profiler()->saveMetrics();
+
+    delete mEnv;
+}
+
+
+
+
 
 

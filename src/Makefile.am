@@ -7,6 +7,8 @@ lib_LTLIBRARIES = libfap5.la
 libfap5_la_SOURCES = \
 		     mnt.h \
 		     mnt.cpp \
+		     workers.h \
+		     workers.cpp \
 		     desio.h \
 		     desio.cpp \
 		     dessdc.h \
@@ -89,6 +91,8 @@ libfap5_la_SOURCES = \
 		     miface.h
 
 include_HEADERS = \
+		   mworkers.h \
+		   workers.h \
 		   chromo2.h \
 		   desadp.h \
 		   vert.h \

@@ -122,7 +122,7 @@ class Socket: public Verte, public MSocket
         MSocket* mMSocket = nullptr;
 };
 
-
+// TODO To migrate to Socket2
 
 /** @brief Socket extender, ds_sock_eos_sse solution 
  * */

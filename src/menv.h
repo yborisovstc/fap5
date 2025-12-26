@@ -6,6 +6,7 @@
 #include "mlog.h"
 #include "mprof.h"
 #include "mlauncher.h"
+#include "mworkers.h"
 
 
 /** @brief Imprort manager interface
@@ -55,6 +56,7 @@ class MEnv : public MIface
 	virtual MNode* Root() const = 0;
 	/** @brief Gets root system launcher */
 	virtual MLauncher* Launcher() const = 0;
+        virtual MThreadPool* threadPool() = 0;
 	/** @brief Adds provider */
 	virtual bool addProvider(MProvider* aProv) = 0;
 	/** @brief Removes provider */

@@ -30,6 +30,7 @@ class MDesObserver: public MIface
 	virtual void onActivated(MDesSyncable* aComp) = 0;
 	/** @brief Notification that component was changed */
 	virtual void onUpdated(MDesSyncable* aComp) = 0;
+	virtual void onUpdateCompleted(MDesSyncable* aComp) {}
 };
 
 /** @brief Inputs Observer

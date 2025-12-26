@@ -1,6 +1,8 @@
 #ifndef __FAP5_DES_H
 #define __FAP5_DES_H
 
+#include <atomic>
+
 #include "mlog.h"
 #include "mdata.h"
 #include "mdes.h"
@@ -529,10 +531,10 @@ class DesLauncher: public Des, public MLauncher
 	// From MOwned
 	virtual MIface* MOwned_getLif(TIdHash aId) override;
 	// From MLauncher
-	virtual string MLauncher_Uid() const override {return getUid<MLauncher>();}
-	virtual bool Run(int aCount = 0, int aIdleCount = 0) override;
-	virtual bool Stop() override;
-	virtual int GetCounter() const override { return mCounter; }
+	string MLauncher_Uid() const override {return getUid<MLauncher>();}
+	bool Run(int aCount = 0, int aIdleCount = 0) override;
+	bool Stop() override;
+	int GetCounter() const override { return mCounter; }
 	// Local
 	virtual void OnIdle();
     protected:
@@ -543,6 +545,9 @@ class DesLauncher: public Des, public MLauncher
 	bool mStop;
 	MLauncher* mMLauncher = nullptr;
 };
+
+
+
 
 /** @brief Active subsystem of DES
  * Runs on master DES confirm, ds_desas_nio_ric
@@ -677,6 +682,58 @@ class BState: public ConnPoint, public MDesSyncable, public MDesInpObserver, pub
 };
 
 
+/** @brief DES with update/confirm parallelism
+ * */
+class Des2 : public Des, public MJobOwner
+{
+    public:
+	inline static constexpr std::string_view idStr() { return "Des2"sv;}
+	Des2(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+        // From MJobOwner
+	string MJobOwner_Uid() const override {return getUid<MJobOwner>();}
+	MIface* MJobOwner_getLif(TIdHash aId) override { return nullptr;}
+        void onJobCompleted(const MJob* aJob) override;
+        // From MDesSyncable
+	void update() override;
+	void confirm() override;
+	void onUpdateCompleted(MDesSyncable* aComp) override;
+    protected:
+        std::atomic<int> mActiveCnt{0};
+};
+
+
+/** @brief Launcher of DES2, ref ds_dmt_ucct
+ * */
+class Des2Launcher : public Des2, public MLauncher
+{
+    public:
+	inline static constexpr std::string_view idStr() { return "Des2Launcher"sv;}
+	Des2Launcher(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+	// From Node.MIface
+	virtual MIface* MNode_getLif(TIdHash aId) override;
+	// From MOwned
+	virtual MIface* MOwned_getLif(TIdHash aId) override;
+	// From MLauncher
+	string MLauncher_Uid() const override {return getUid<MLauncher>();}
+	bool Run(int aCount = 0, int aIdleCount = 0) override;
+	bool Stop() override;
+	int GetCounter() const override { return mCnt; }
+        // From MDesSyncable
+	void onUpdateCompleted(MDesSyncable* aComp) override;
+	// Local
+	virtual void OnIdle();
+    protected:
+	void updateCounter(int aCnt);
+	void outputCounter(int aCnt);
+        bool Continue();
+    protected:
+	int mCount = 0;
+        int mIdleCount = 0;
+        int mIdlecnt = 0;
+	int mCnt = 0;
+	bool mStop;
+	MLauncher* mMLauncher = nullptr;
+};
 
 
 
