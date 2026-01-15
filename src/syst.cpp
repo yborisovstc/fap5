@@ -382,7 +382,7 @@ void Syst::mutConnect(const ChromoNode& aMut, bool aUpdOnly, const MutCtx& aCtx)
 		res = MVert::connect(pv, qv);
 		if (!res) {
 		    LOGN(EErr, "Failed connecting [" + sp + "] to [" + sq + "]");
-		    //res = MVert::connect(pv, qv);
+		    res = MVert::connect(pv, qv);
 		} else {
 		    mEdges.push_back(TEdge(pv, qv));
 		}

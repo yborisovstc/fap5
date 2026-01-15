@@ -217,8 +217,8 @@ class ASdc : public Node, public MDesSyncable, public MDesObserver, public MObse
         bool registerPap(SdcPapb* aPap);
     protected:
         void Construct() override;
-        template<typename T> bool GetInpSdata(const string aInpUri, T& aRes);
-        template<typename T> bool GetInpData(const string aInpUri, T& aRes);
+        //template<typename T> bool GetInpSdata(const string aInpUri, T& aRes);
+        //template<typename T> bool GetInpData(const string aInpUri, T& aRes);
         void getOut(Sdata<bool>& aData);
         // Utilities
         MVert* addInput(const string& aName);

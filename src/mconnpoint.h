@@ -23,6 +23,9 @@ class MConnPoint : public MIface
         virtual TIdHash idProvided() const = 0;
         virtual TIdHash idRequired() const = 0;
         virtual MNpc* bP() = 0;
+        /** @brief Parent of bound peer 
+         * Used for creating bound peer in extender * */
+        virtual string bpeerPname() const = 0;
         // Binding
         virtual bool bind(MNpc* aPair) = 0;
         virtual bool unbind(MNpc* aPair) = 0;
@@ -50,6 +53,7 @@ class MSocket: public MIface
 	virtual MVert* GetPin(const string& aId) = 0;
 	//virtual MVert* GetPin(const string& aId, bool aExtd) { return nullptr;}
         virtual TBp* bP() { return nullptr;} // TODO make abstract
+        virtual bool createBindPeer(MVert* aPeer, const string& aName) = 0;
 };
 
 /** @brief Extender internal point interface

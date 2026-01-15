@@ -60,6 +60,7 @@ class MVert: public MIface
 	virtual bool isBound(const MVert* aPair) const = 0;
         virtual bool bind(MVert* aPair) = 0;
         virtual bool unbind(MVert* aPair) = 0;
+        // TODO do we need on* in iface? onConnect is defined in vertex impl
 	virtual void onBound(MVert* aPair) = 0;
 	virtual void onUnbinding(MVert* aPair) = 0;
 	virtual void onUnbound(MVert* aPair) = 0;

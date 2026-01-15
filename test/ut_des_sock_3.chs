@@ -3,33 +3,23 @@ MyRoot : Elem {
         About = "DES connecting, generic socket extending, ds_sock_extrd_uge"
         # "Doesnt improve main use-cases, denied"
         LogLevel = "Dbg"
-        ESock : Socket2 {
+        ESock : Socket3 {
             Pin1 : CpStateOutp
+            BPeer = "ESockP"
         }
-        ESockP : Socket2 {
+        ESockP : Socket3 {
             Pin1 : CpStateInp
         }
-        ESockExtd : ESock {
-            Int : ESockP
+        ESockExtd : Socket3Extd {
+            Pin1 : CpStateOutp
         }
-        ESockPExtd : ESockP {
-            Int : ESock
-        }
-        Sock1 : Socket2 {
+        Sock1Extd : Socket3Extd {
             Pin1 : CpStateOutp
             Pin2 : CpStateOutp
             Pin3 : ESock
-        }
-        Sock1p : Socket2 {
-            Pin1 : CpStateInp
-            Pin2 : CpStateInp
-            Pin3 : ESockP
-        }
-        Sock1Extd : Sock1 {
-            Int : Sock1p
-        }
-        Sock1pExtd : Sock1p {
-            Int : Sock1
+            Pin4 : Socket3 {
+                Pin1 : CpStateOutp
+            }
         }
         Ds1 : Des {
             S1 : Sock1Extd (
@@ -41,15 +31,11 @@ MyRoot : Elem {
                     = "SI 7"
                 }
             )
-            ES1 ~ S1.Int.Pin3
-            # "Test -pure- socket connection failed"
-            ESock1 : ESock
-            ESock1p : ESockP
-            ESock1 ~ ESock1p
+            ES1 ~ S1.Int.Pin4
             S1E : Sock1Extd
             S1E.Int ~ S1
             ES2 : ESockExtd
-            ES2.Int ~ S1E.Pin3
+            ES2.Int ~ S1E.Pin4
             St1 : State (
                 _@ <  {
                     = "SI"

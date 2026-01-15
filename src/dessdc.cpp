@@ -144,43 +144,6 @@ bool ASdc::SdcIap<T>::updateData()
     return res;
 }
 
-/*
-bool ASdc::SdcIapEnb::updateData()
-{
-    if (mUpdated) return true;
-    bool res = false;
-    bool dbg = mHost->isLogLevel(EDbg);
-    Sdata<bool> old_data;
-    if (dbg) {
-	old_data = mCdt;
-    }
-    bool first = true;
-    for (int i = 0; i < mInp->pairsCount(); i++) {
-	auto ifc = mInp->getPair(i)->lIft<MDVarGet>();
-	const Sdata<bool>* st = ifc ? ifc->DtGet(st) : nullptr;
-	if (st) {
-	    if (first) mCdt = *st;
-	    else {
-		mCdt.mData &= st->mData;
-		mCdt.mValid &= st->mValid;
-	    }
-	    first = false;
-	    res = true;
-	    if (!st->IsValid()) {
-		break;
-	    }
-	}
-    }
-    if (dbg) {
-	if (mCdt != old_data) {
-	    LOGNN(mHost, EDbg, "[" + mName + "] Updated: [" + old_data.ToString() + "] -> [" + mCdt.ToString() + "]");
-	}
-    }
-    mUpdated = true;
-    return res;
-}
-*/
-
 bool ASdc::SdcIapEnb::updateData()
 {
     if (mUpdated) return true;
@@ -471,6 +434,7 @@ void ASdc::UpdateMag()
 }
 
 
+/*
 template<typename T> bool ASdc::GetInpSdata(const string aInpUri, T& aRes)
 {
     bool res = false;
@@ -482,7 +446,9 @@ template<typename T> bool ASdc::GetInpSdata(const string aInpUri, T& aRes)
     }
     return res;
 }
+*/
 
+/*
 template<typename T> bool ASdc::GetInpData(const string aInpUri, T& aRes)
 {
     bool res = false;
@@ -494,6 +460,7 @@ template<typename T> bool ASdc::GetInpData(const string aInpUri, T& aRes)
     }
     return res;
 }
+*/
 
 bool ASdc::registerIap(SdcIapb* aIap)
 {

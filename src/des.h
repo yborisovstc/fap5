@@ -41,6 +41,7 @@ class CpStateInp: public ConnPoint, public MDVarGet
 	void VDtGet(const string& aType, MDVarGet::TData& aData) override;
         // From ConnPoint
         MNpc* bP() override { return &mBcp;}
+        string bpeerPname() const override;
     protected:
         // From ConnPoint
 	void onConnected(MVert* aPair) override;
@@ -70,6 +71,7 @@ class CpStateOutp: public ConnPoint, public MDesInpObserver
 	void onInpUpdated() override;
         // From ConnPoint
         MNpc* bP() override { return &mBcp;}
+        string bpeerPname() const override;
     protected:
         NpcOnp mBcp;
 };
@@ -740,6 +742,7 @@ class IDesEmbHost
  * @parem Th  type of host
  * */
 // TODO seems not used anymore. Remove?
+#if 0
 class DesEIbb: public MDesInpObserver, public MDesSyncable
 {
     public:
@@ -865,8 +868,9 @@ template <typename T> void DesEIbs<T>::update()
 	LOGEMB(TLogRecCtg::EDbg, (TLog(TP::mHost) + "Cannot get input [" + this->mUri + "]"));
     } else { this->mActivated = false; this->setUpdated(); }
 }
+#endif
 
-
+#if 0
 /** @brief Output state - embedded pseudo-state "connnected" to host output
  * */
 class DesEOstb: public MDVarGet {
@@ -956,71 +960,6 @@ void DesEOst<T>::updateInvalid()
 	NotifyInpsUpdated();
     }
 }
-
-#if 0
-// Seems not used anymore
-
-/** @brief Input access point base
- * */
-class DesIapb : public MDesInpObserver
-{
-    public:
-        DesIapb(const string& aName): mName(aName) {}
-        void Construct(CpStateInp* aInp);
-        virtual bool updateData() = 0;
-	// From MDesInpObserver
-	string MDesInpObserver_Uid() const override {return mName + Ifu::KUidSep + string(MDesInpObserver::idStr());}
-	void MDesInpObserver_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
-    public:
-        string mName;    /*!< Iap name */
-        //bool mUpdated = false;
-        Vert* mInp = nullptr;
-};
-
-/** @brief Input access point operating with DtBase
- * @param  T  data type 
- * */
-template <class T>
-class DesIap: public DesIapb {
-    public:
-        DesIap(const string& aName): DesIapb(aName) {}
-        // Local
-        virtual bool updateData() override;
-	void onInpUpdated() override {
-            auto vget = mInp->mPairs.empty() ? nullptr : mInp->mPairs.at(0)->lIft<MDVarGet>();
-            if (vget) {
-                const DtBase* pdata = vget->VDtGet(T::TypeSig());
-                if (pdata) {
-                    //mUpdated = mData != *pdata;
-                    mData = *pdata;
-                }
-            }
-        }
-    public:
-        T mData;
-};
-#endif
-
-
-
-
-
-#if 0
-
-/** @brief DES affecting Parameter base (not completed)
- * */
-class DesEParb
-{
-    public:
-        DesEParb(MNode* aHost, const string& aUri): mHost(aHost), mUri(aUri) { eHost()->registerPar(this);}
-    protected:
-        IDesEmbHost* eHost() { return dynamic_cast<IDesEmbHost*>(mHost);}
-	void updatePar(const MContent* aCont);
-    protected:
-	MNode* mHost;
-	const string mUri;  //!< Paremeter's URI
-};
-
 #endif
 
 

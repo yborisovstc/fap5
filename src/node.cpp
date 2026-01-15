@@ -419,7 +419,7 @@ void Node::onOwnedMutated(const MOwned* aOwned, const ChromoNode& aMut, const Mu
 
 bool Node::addObserver(MObserver* aObs, TIdHash aEventId)
 {
-    bool res = false;
+    bool res = true;
     if (!mOcp.isConnected(aObs->observerCp())) {
 	res = mOcp.connect(aObs->observerCp());
     }
@@ -732,21 +732,6 @@ const MParent* Node::parent() const
 
 
 /// Observable
-
-#if 0
-void Node::notifyObservers(const MEvent* aEvent)
-{
-    auto range = mObservers.equal_range(aEvent->id());
-    // Cache observers first to avoid iterating broked due to observers change
-    list<MObserver*> cache;
-    for (auto it = range.first; it != range.second; it++) {
-        cache.push_back(it->second);
-    }
-    for (auto obs : cache) {
-        obs->onObsEvent(this, aEvent);
-    }
-}
-#endif
 
 void Node::notifyObservers(const MEvent* aEvent)
 {

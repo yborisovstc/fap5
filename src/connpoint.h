@@ -43,6 +43,7 @@ class ConnPoint : public Vert, public MConnPoint
         bool bind(MNpc* aPair) override;
         bool unbind(MNpc* aPair) override;
 	bool isBound(const MNpc* aPair) const;
+        string bpeerPname() const override { return string(); }
     protected:
         MIface::TIdHash mPifId;
         MIface::TIdHash mRifId;
@@ -107,6 +108,7 @@ class Socket: public Verte, public MSocket
         //MVert* GetPin(int aInd) override;
         MVert* GetPin(const string& aId) override;
         //string GetPinId(int aInd) const override;
+        bool createBindPeer(MVert* aPeer, const string& aName) override { return false;}
     protected:
         // From Vert
         void onConnected(MVert* aPair) override;
@@ -195,6 +197,7 @@ class Socket2: public Verte, public MSocket
         string MSocket_Uid() const override  { return getUid<MSocket>();}
         MVert* GetPin(const string& aId) override;
         TBp* bP() override { return &mEbp;}
+        bool createBindPeer(MVert* aPeer, const string& aName) override { return false;}
     protected:
         // From Vert
         void onConnected(MVert* aPair) override;
@@ -207,6 +210,108 @@ class Socket2: public Verte, public MSocket
     protected:
         NCpOnp<MVert, MVert> mEbp;  // Binding point to Int
         // TODO consider adding binding point
+        MVert* mMVert = nullptr;
+        MSocket* mMSocket = nullptr;
+	static const string KUriInt;  /*!< Internal connpoint Uri */
+};
+
+/** @brief Socket2 improvement, ref ds_sock_extrd_s2i
+*/
+class Socket3: public Verte, public MSocket
+{
+    public:
+        inline static constexpr std::string_view idStr() { return "Socket3"sv;}
+        static vector<GUri> getParentsUri();
+        Socket3(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+        // From MNode
+	GUri parentUri() const override { return string(idStr());}
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
+        MIface* MNode_getLif(TIdHash aId) override;
+        MIface *MOwned_getLif(TIdHash aId) override;
+	void onOwnedAttached(MOwned* aOwned) override;
+        // From MVert
+        MIface* MVert_getLif(TIdHash aId) override;
+        bool isCompatible(const MVert* aPair, bool aExt = false) const override;
+        MVert* getExtd() override;
+        TDir getDir() const override;
+	bool isBound(const MVert* aBound) const override;
+	bool connect(MVert* aPair) override;
+        bool bind(MVert* aPair) override;
+        bool unbind(MVert* aPair) override;
+        TBp* bP() override { return &mEbp;}
+	void onBound(MVert* aPair) override;
+        // From MSocket
+        string MSocket_Uid() const override  { return getUid<MSocket>();}
+        MVert* GetPin(const string& aId) override;
+	// From Node.MContentOwner
+	int contCount() const override;
+	bool getContentId(int aIdx, string& aRes) const override;
+	bool getContent(const string& aId, string& aRes) const override;
+	bool setContent(const string& aId, const string& aData) override;
+        // Local
+        bool createBindPeer(MVert* aPeer, const string& aName);
+        bool createBindPinsPeers(MVert* aPair);
+    protected:
+        // From Vert
+        void onConnected(MVert* aPair) override;
+        void onDisconnecting(MVert* aPair) override;
+        void onDisconnected() override;
+    protected:
+        bool bindPin(MSocket* aPair, const string& aPinId);
+        bool connectPin(MSocket* aPair, const string& aPinId);
+        bool connectdPin(MSocket* aPair, const string& aPinId);
+        bool bindPins(MSocket* aPair);
+        bool connectPins(MSocket* aPair);
+    protected:
+        NCpOnp<MVert, MVert> mEbp;
+        MVert* mMVert = nullptr;
+        MSocket* mMSocket = nullptr;
+        MContentOwner* mMContentOwner = nullptr;
+        string mCntBPeer;
+        static const string KContBPeer;
+};
+
+
+/** @brief Socket3 Extender internal node, ref ds_sock_extrd_s2i
+*/
+class Socket3ExtdInt: public Socket3
+{
+    public:
+        inline static constexpr std::string_view idStr() { return "Socket3ExtdInt"sv;}
+        static vector<GUri> getParentsUri();
+        Socket3ExtdInt(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+        // From MNode
+	GUri parentUri() const override { return string(idStr());}
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
+	void onOwnedAttached(MOwned* aOwned) override;
+	void onBound(MVert* aPair) override;
+};
+
+
+
+/** @brief Socket3 Extender, ref ds_sock_extrd_s2i
+*/
+class Socket3Extd: public Socket3
+{
+    public:
+        inline static constexpr std::string_view idStr() { return "Socket3Extd"sv;}
+        static vector<GUri> getParentsUri();
+        Socket3Extd(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
+        void Construct() override;
+        // From MNode
+	GUri parentUri() const override { return string(idStr());}
+        vector<GUri> parentsUris() const override { return getParentsUri(); }
+	void onOwnedAttached(MOwned* aOwned) override;
+        // From MVert
+        MVert* getExtd() override;
+        TDir getDir() const override;
+        // From MSocket
+        MVert* GetPin(const string& aId) override;
+    protected:
+        bool bindPins(MSocket* aPair);
+        bool connectPins(MSocket* aPair);
+    protected:
+        Socket3ExtdInt* mInt = nullptr;
         MVert* mMVert = nullptr;
         MSocket* mMSocket = nullptr;
 	static const string KUriInt;  /*!< Internal connpoint Uri */
@@ -227,6 +332,7 @@ class Extd: public Vert
 	Extd(const string &aType, const string& aName = string(), MEnv* aEnv = NULL);
         // From MOwner
         MIface *MOwner_getLif(TIdHash aId) override;
+	void onOwnedAttached(MOwned* aOwned) override {}
 	// From MVert
 	bool isCompatible(const MVert* aPair, bool aExt = false) const override;
 	MVert* getExtd() override;

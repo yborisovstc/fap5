@@ -105,6 +105,10 @@ void CpStateInp::VDtGet(const string& aType, MDVarGet::TData& aData)
     }
 }
 
+string CpStateInp::bpeerPname() const
+{
+    return string(CpStateOutp::idStr());
+}
 
 /// CpStateOutp
 
@@ -140,6 +144,10 @@ void CpStateOutp::onInpUpdated()
     }
 }
 
+string CpStateOutp::bpeerPname() const
+{
+    return string(CpStateInp::idStr());
+}
 
 #if 0
 
@@ -554,7 +562,7 @@ void State::setActivated()
 
 void State::update()
 {
-    if (mName == "TestAlcW") {
+    if (mName == "St3") {
         LOGN(EDbg, "update");
     }
     PFL_DUR_STAT_START(PEvents::EDurStat_StUpdate);
@@ -1225,7 +1233,7 @@ void Des::confirm()
     }
     if (mIsActive && !mActNotified) {
 	mIsActive = false;
-        notifyChanged(); // TODO do we need it?
+        //notifyChanged(); // TODO do we need it?
     }
     mUpdNotified = false;
 }
