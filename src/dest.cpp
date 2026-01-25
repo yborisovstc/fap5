@@ -168,6 +168,9 @@ const DtBase* TrVar::doVDtGet(const string& aType)
 	Init(aType);
     }
     if (mFunc) {
+        if (mName == "AddAlcX") {
+            LOGN(EDbg, "doVDtGet");
+        }
 	res = mFunc->FDtGet();
     } else {
 	LOGN(EErr, "Failed initializing");

@@ -503,6 +503,8 @@ bool Node::setContent(const string& aId, const string& aData)
         if (it != KLogLevels.end()) {
             mLogLevel = it->second;
             res = true;
+        } else {
+            LOGN(EErr, "Incorrect log level [" + aData + "]");
         }
     } else if (aId == KContentAbout) {
         mAbout = aData;

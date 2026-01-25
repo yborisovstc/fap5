@@ -63,6 +63,7 @@ template<class T> const DtBase* FAddDt<T>::FDtGet()
         dget->VDtGet(T::TypeSig(), data);
         for (auto* dt : data) {
             const T* arg = reinterpret_cast<const T*>(dt);
+            LOGF(EDbg, "Inp [" + (arg ? arg->ToString(true) : "nil") + "]");
             if (arg) { // ds_hinv_sls_s1
                 if (arg->mValid) {
                     if (first) { mRes.mData = arg->mData; first = false;
@@ -83,6 +84,7 @@ template<class T> const DtBase* FAddDt<T>::FDtGet()
         for (auto* dt : data) {
             const T* arg = reinterpret_cast<const T*>(dt);
             if (arg) { // ds_hinv_sls_s1
+                LOGF(EDbg, "InpN [" + (arg ? arg->ToString(true) : "nil") + "]");
                 if (arg->mValid) {
                     if (resSet) {
                         mRes.mData = mRes.mData - arg->mData;

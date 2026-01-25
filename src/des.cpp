@@ -89,7 +89,15 @@ string CpStateInp::VarGetIfid() const
 const DtBase* CpStateInp::VDtGet(const string& aType)
 {
     const DtBase* res = nullptr;
-    auto* pair = (mPairs.size() == 1) ? mPairs.at(0) : nullptr; 
+    MVert* pair = nullptr;
+    if (mPairs.size() == 1) {
+        pair = mPairs.at(0);
+    } else if (mPairs.size() > 1) {
+        LOGN(EErr, "Input has multiple pairs:");
+        for (int i = 0; i < mPairs.size(); i++) {
+            LOGN(EErr, mPairs.at(i)->Uid());
+        }
+    }
     MDVarGet* pairDget = pair ? pair->lIft<MDVarGet>() : nullptr;
     res = pairDget ? pairDget->VDtGet(aType) : nullptr;
     return res;

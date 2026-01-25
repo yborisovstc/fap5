@@ -22,11 +22,10 @@
 
     </articleinfo>
 
-    <bibliolist>
-	<title>References</title>
+    <bibliolist><title>References</title>
 
 	<biblioentry id="ref_incr_mut"> <abbrev>INCR_MUT</abbrev>
-	    <productname><ulink url="../../../fap-doc/doc_incr_syst_creation/index.html "/></productname>
+            <productname><ulink url="../../../fap-doc/doc_incr_syst_creation/index.html"/></productname>
 	    <title>Y.Borisov. Using incremental mutation process for systems modeling</title> </biblioentry>
 
 	<biblioentry id="ref_rfc_3986"> <abbrev>RFC_3986_URI</abbrev>
@@ -109,7 +108,12 @@
 		    </para></glossdef>
 	</glossentry>
 
-
+	<glossentry id="gls_gpgpu"><glossterm>GPGPU</glossterm> <acronym>GPGPU</acronym>
+	    <glossdef> <para>
+                General-purpose computing on graphics processing units.
+                    <ulink url="https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units"/>
+		    </para></glossdef>
+	</glossentry>
 
 	<glossentry id="gls_ssp"><glossterm>SSP</glossterm>
 	    <glossdef><para>
@@ -270,15 +274,26 @@
 		    <ulink url="https://www.service-architecture.com/articles/object-oriented-databases/"/>.
 	</para></glossdef> </glossentry>
 
+        <glossentry id="gls_opencl"><glossterm>OpenCL</glossterm> <acronym>OpenCL</acronym>
+            <glossdef> <para>
+                Open Computing Language) is a framework for writing programs that execute across heterogeneous platforms consisting of central processing units (CPUs),
+                graphics processing units (GPUs), digital signal processors (DSPs), field-programmable gate arrays (FPGAs) and other processors or hardware accelerators.
+                OpenCL specifies a programming language (based on C99) for programming these devices and application programming interfaces (APIs) to control the platform
+                and execute programs on the compute devices.
+                OpenCl implements 
+                    <xref linkend="gls_gpgpu"/> technik.
+                        Ref
+                    <ulink url="https://ru.wikipedia.org/wiki/OpenCL"/>
+        </para></glossdef> </glossentry>
 
-	<glossentry id="gls_orm"><glossterm>ORM</glossterm> <acronym>ORM</acronym>
-	    <glossdef> <para>
-		Object–relational mapping (ORM, O/RM, and O/R mapping tool) in computer science is a programming technique
-		for converting data between a relational database and the heap of an object-oriented programming language.
-		This creates, in effect, a virtual object database that can be used from within the programming language.
-		    <ulink url="https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping"/> and
-		    <ulink url="https://www.service-architecture.com/articles/object-oriented-databases/object-relational-mapping.html"/>.
-	</para></glossdef> </glossentry>
+        <glossentry id="gls_orm"><glossterm>ORM</glossterm> <acronym>ORM</acronym>
+            <glossdef> <para>
+                Object–relational mapping (ORM, O/RM, and O/R mapping tool) in computer science is a programming technique
+                for converting data between a relational database and the heap of an object-oriented programming language.
+                This creates, in effect, a virtual object database that can be used from within the programming language.
+                    <ulink url="https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping"/> and
+                    <ulink url="https://www.service-architecture.com/articles/object-oriented-databases/object-relational-mapping.html"/>.
+        </para></glossdef> </glossentry>
 
 	<glossentry id="gls_mae"><glossterm>MAE</glossterm>
 	    <glossdef> <para>
@@ -720,8 +735,9 @@
                     </sect5>
                 </sect4>
                 <sect4><title>Status</title>
-                    <sect5><title>15-Jan-2026 Added Socket3, Socket3Extd, Socket3ExtdInt</title>
-                        <simpara>Supports auto-creating pins in Int node of extender.</simpara>
+                    <sect5><title>25-Jan-2026 Added Socket3, Socket3Extd, Socket3ExtdInt</title>
+                        <simpara>Supports auto-creating pins in Int node of extenderSupports auto-creating pins in Int node of extender..</simpara>
+                        <simpara>Migrated UT and modnav to Socket3. UT passed, modnav works ok.</simpara>
                     </sect5>
                 </sect4>
             </sect3>
@@ -1274,6 +1290,25 @@
                 </simpara>
             </sect3>
         </sect2>
+    </sect1>
+
+    <sect1 id="ds_pigp"><title>Performance improvement with <xref linkend="gls_gpgpu"/></title>
+        <sect2><title>Refs</title>
+            <biblioentry id="ref_pc_gpuws"> <abbrev>PC_GPUWS</abbrev>
+                <productname><ulink url="https://www.stat.berkeley.edu/~scf/paciorek-gpuWorkshop.html"/></productname>
+                <title>Chris Paciorek. An Introduction to Using GPUs for Computation.</title>
+            </biblioentry>
+            <biblioentry id="ref_wk_opencl"> <abbrev>WK_OPENCL</abbrev>
+                <productname><ulink url="https://ru.wikipedia.org/wiki/OpenCL"/></productname>
+                <title>Wikipedia. OpenCL.</title>
+            </biblioentry>
+        </sect2>
+    </sect1>
+
+    <sect1 id="ds_ibc"><title>Tracking: Design items to be handed</title>
+        <sect2><title><xref linkend="ds_pigp"/></title>
+        </sect2>
+
     </sect1>
 
 </article>

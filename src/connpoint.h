@@ -259,9 +259,11 @@ class Socket3: public Verte, public MSocket
     protected:
         bool bindPin(MSocket* aPair, const string& aPinId);
         bool connectPin(MSocket* aPair, const string& aPinId);
+        bool disconnectPin(MSocket* aPair, const string& aPinId);
         bool connectdPin(MSocket* aPair, const string& aPinId);
         bool bindPins(MSocket* aPair);
         bool connectPins(MSocket* aPair);
+        bool disconnectPins(MSocket* aPair);
     protected:
         NCpOnp<MVert, MVert> mEbp;
         MVert* mMVert = nullptr;

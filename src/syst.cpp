@@ -63,6 +63,12 @@ void CpSystExplorable::onMagChanged()
     notifyMagChanged();
 }
 
+string CpSystExplorable::bpeerPname() const
+{
+    return string(CpSystExploring::idStr());
+}
+
+
 
 /// CpSystExploring
 
@@ -112,6 +118,12 @@ MNode* CpSystExploring::getMag()
     }
     return res;
 }
+
+string CpSystExploring::bpeerPname() const
+{
+    return string(CpSystExplorable::idStr());
+}
+
 
 
 

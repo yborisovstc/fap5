@@ -832,6 +832,27 @@ bool Socket3::connectPin(MSocket* aPair, const string& aPinId)
     return res;
 }
 
+bool Socket3::disconnectPin(MSocket* aPair, const string& aPinId)
+{
+    bool res = false;
+    MVert* pin = GetPin(aPinId);
+    if (pin) {
+        auto* pairPin = aPair->GetPin(aPinId);
+        if (pin->isConnected(pairPin)) {
+            res = pin->disconnect(pairPin);
+            if (!res) {
+                LOGN(EErr, "Failed disconnecting pins [" + aPinId + "]");
+                //res = pin->disconnect(pairPin);
+            }
+        } else {
+            LOGN(EErr, "Disconnecting pins [" + aPinId + "]: not connected");
+        }
+    } else {
+        LOGN(EErr, "Disconnecting pins, failed getting pin [" + aPinId + "]");
+    }
+    return res;
+}
+
 bool Socket3::bindPins(MSocket* aPair)
 {
     bool res = true;
@@ -855,6 +876,18 @@ bool Socket3::connectPins(MSocket* aPair)
     return res;
 }
 
+bool Socket3::disconnectPins(MSocket* aPair)
+{
+    bool res = true;
+    for (auto it = ownerCp()->pairsBegin(); it != ownerCp()->pairsEnd() && res; it++) {
+        MOwned* comp = (*it)->provided();
+        string pinId = comp->ownedId();
+        if (!GetPin(pinId)) continue;
+        res = disconnectPin(aPair, pinId);
+    }
+    return res;
+}
+
 void Socket3::onConnected(MVert* aPair)
 {
     Verte::onConnected(aPair);
@@ -871,7 +904,10 @@ void Socket3::onDisconnecting(MVert* aPair)
     MSocket* sock = aPair->lIf(sock);
     // TODO Analyze why -sock- is null when disconnect from node destructor
     if (sock) {
-//        bindPins(sock, true, true);
+        bool res = disconnectPins(sock);
+        if (!res) {
+            LOGN(EErr, "Failed disconnected pins, pair [" + aPair->Uid() + "]");
+        }
     }
 }
 

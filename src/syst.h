@@ -30,6 +30,7 @@ class CpSystExplorable: public ConnPoint, public MSystExploring
 	MNpc* getCp() override { return &mBcp;}
         // From MConnPoint
         MNpc* bP() override { return &mBcp;}
+        string bpeerPname() const override;
     protected:
         // From ConnPoint
 	void onConnected(MVert* aPair) override;
@@ -68,6 +69,7 @@ class CpSystExploring: public ConnPoint, public MSystExplorable
 	void onUnbound(MVert* aPair) override;
         // From MConnPoint
         MNpc* bP() override { return &mBcp;}
+        string bpeerPname() const override;
         // From MSystExplorable
 	string MSystExplorable_Uid() const override  {return getUid<MSystExplorable>();}
 	MIface* MSystExplorable_getLif(TIdHash aId) override { return nullptr; }

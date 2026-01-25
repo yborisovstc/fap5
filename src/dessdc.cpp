@@ -415,6 +415,9 @@ MSystExplorable* ASdc::getExplorable()
 
 void ASdc::UpdateMag()
 {
+    if (mName == "CreateStSeg") {
+        LOGN(EDbg, "UpdateMag");
+    }
     // Attempt Explorable on owner first
     MSystExplorable* desa = getExplorable();
     MNode* mag = nullptr;
@@ -1128,6 +1131,7 @@ bool ASdcInsert2::doCtl()
 	    LOGN(EErr, "Failed connecting [" + prevv->Uid() + "] - [" + pnode_next->Uid() + "]");
 	    break;
 	}
+
 	cres = MVert::connect(nextv, mCpPair);
 	if (!cres) {
 	    LOGN(EErr, "Failed connecting [" + nextv->Uid() + "] - [" + mCpPair->Uid() + "]");
