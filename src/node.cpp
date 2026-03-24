@@ -373,7 +373,7 @@ MOwned* Node::getOwned(const GUri& aUri, const MOwned* aReq) const
 	} else {
 	    if (aUri.isAbsolute()) {
 		if (owner()) {
-		    res = owner()->getOwned(aUri, this);
+		    res = owner()->getOwned(aUri, aReq);
                 } else {
                     // Root
                     if (aUri.size() > 2) {
