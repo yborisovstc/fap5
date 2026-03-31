@@ -7,6 +7,9 @@
 #include "factr.h"
 #include "prof.h"
 
+#include "mprov.h"
+#include "mlog.h"
+#include "mprof.h"
 
 class Logrec;
 class Env;

@@ -18,6 +18,7 @@ class Provider: public MProvider
     public:
 	typedef pair<string, MNode*> TRegVal;
 	typedef map<string, MNode*> TReg;
+	typedef map<string, MIface*> TIReg;
     public:
 	static const char* Type() { return "Provider";};
 	Provider(const string& aName, MEnv* aEnv);
@@ -38,6 +39,7 @@ class Provider: public MProvider
     protected:
 	MEnv* mEnv;
 	TReg mReg;
+	TIReg mIReg;
 	string mName;
 };
 

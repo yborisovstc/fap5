@@ -8,6 +8,7 @@
 
 class MChild;
 class MParent;
+class MChromo;
 
 /** @brief Interface of mutable agent
  *

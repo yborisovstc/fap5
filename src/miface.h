@@ -26,6 +26,14 @@ class MIface
 	template <class T> const T* lIf(T* aInst) const { MIface* self = const_cast<MIface*>(this); return aInst = reinterpret_cast<T*>(self->getLif(T::idHash()));}
 	template <class T> T* lIft() {return reinterpret_cast<T*>(getLif(T::idHash()));}
 	template <class T> const T* lIft() const {return reinterpret_cast<T*>(getLif(T::idHash()));}
+	virtual MIface* getLif(const string& aTSid) { return nullptr;}
+        /** @brief Remote proc call of iface method
+         * @param aSpec - call spec
+         * @param aRes - result as string data
+         * @param aIres - result as iface ptr
+         * */
+        virtual void call(const string& aSpec, string& aRes, MIface*& aIres) {}
+
 	/** @brief outputs dump
 	 * @param aInt  indentation level
 	 * */

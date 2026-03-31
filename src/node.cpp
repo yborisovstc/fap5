@@ -1,5 +1,7 @@
 
 #include <list>
+
+#include "mprov.h"
 #include "node.h"
 #include "prof_ids.h"
 

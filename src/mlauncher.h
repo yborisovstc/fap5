@@ -1,7 +1,7 @@
 #ifndef __FAP5_MLAUNCHER_H
 #define __FAP5_MLAUNCHER_H
 
-#include <miface.h>
+#include "miface.h"
 
 /** @brief Model launcher interface
  * */

@@ -101,6 +101,12 @@
 		    <xref linkend="ds_dcs"/> for desing details </para></glossdef>
 	</glossentry>
 
+	<glossentry id="gls_dmn"><glossterm>DMN</glossterm> <acronym>DMN</acronym>
+	    <glossdef> <para>
+			DES distributed model over network services nodes.
+		    <xref linkend="ds_dmn"/> for desing details </para></glossdef>
+	</glossentry>
+
 	<glossentry id="gls_dctx"><glossterm>DCTX</glossterm> <acronym>DCTX</acronym>
 	    <glossdef> <para>
                 DES context, the mechanism of propagating data between system and its subsystem. 
@@ -1302,6 +1308,44 @@
                 <productname><ulink url="https://ru.wikipedia.org/wiki/OpenCL"/></productname>
                 <title>Wikipedia. OpenCL.</title>
             </biblioentry>
+        </sect2>
+    </sect1>
+
+    <sect1 id="ds_dmn"><title>DES Distributed model over network service nodes (<xref linkend="gls_dmn"/>).</title>
+        <sect2><title>Intro</title>
+            <simpara>
+                Initially DES distributed model (
+                <xref linkend="gls_dmn"/>) was implemneted in the scope of separated fap2-srv project. After further analysis it 
+                    made clear that implement it in the scope of main project (fap*) is more convenient. This is because
+                    distibuted model requires low level modification of the model design component, even low-level.
+            </simpara>
+            <simpara>
+                Main reason of moving DDM to fap is that there is the idea of getting rid special "adapter" Renv and Renvu to keep distributed
+                model same as original. With that idea the systemi (actually Node) that "distributes" its owneds shall be specificaly adapted to DDM.
+                Particularly, it should create different onwed for local and distributed models, normal Node for local and distributed model binding point
+                (DDBP, that covers Renv functionality) in case of distributed model.
+            </simpara>
+            <simpara>
+                So, it makes sense to create the implementation of fap5 distributed model in the scope of fap5 project.  We will use abbreviation
+                <xref linkend="gls_dmn"/> for this design solution.
+            </simpara>
+        </sect2>
+        <sect2><title>How to design the provider of proxies?</title>
+            <sect3><title>Intro</title>
+                <simpara>
+                    Currently (fap2-srv) provider iface is defined (MIpxProv) and provider is implemented (ADaaPxProv) as native hier node. This allows
+                    proxy manager to resolve it. But proxy manager uses mEnv->Root()... access to resolve ADaaPxProv node that is not right for Root access
+                    if for debugging purposes only so will be closed.
+                </simpara>
+                <simpara>
+                    Does it makes sense to extend MProv iface with some method that create proxy? It does but not for creating proxy (this would make base
+                    provider "knowing" of proxy). We could extend MProv iface with some generic method, createIfi() for instance (create iface implementation).
+                </simpara>
+            </sect3>
+        </sect2>
+        <sect2><title>ToDo</title>
+            <sect3><title>Introduce IcSpec class instead of using Ifu::ParseIcSpec().</title>
+            </sect3>
         </sect2>
     </sect1>
 

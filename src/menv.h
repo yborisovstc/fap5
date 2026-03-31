@@ -2,10 +2,11 @@
 #define __FAP5_MENV_H
 
 #include "miface.h"
-#include "mprov.h"
-#include "mlog.h"
-#include "mprof.h"
-#include "mlauncher.h"
+#include <vector>
+//#include "mprov.h"
+//#include "mlog.h"
+//#include "mprof.h"
+//#include "mlauncher.h"
 
 
 /** @brief Imprort manager interface
@@ -22,6 +23,12 @@ class MImportMgr
 
 
 class GUri;
+class MLauncher;
+class MLogRec;
+class MProfiler;
+class MProvider;
+class MImportMgr;
+class MNode;
 
 /** @brief Execution environment interface
  * */

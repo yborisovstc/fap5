@@ -7,6 +7,7 @@
 #include "minh.h"
 #include "menv.h"
 #include "mecont.h"
+#include "mlog.h"
 #include "ifu.h"
 #include "prof.h"
 

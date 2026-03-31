@@ -8,6 +8,10 @@ AC_CONFIG_FILES([
 		 src/Makefile
 		 test/Makefile
 		 clm/Makefile
+		 server/Makefile
+		 client/Makefile
+		 dmas/Makefile
+		 ddm_test/Makefile
 		 ])
 
 
