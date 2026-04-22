@@ -81,3 +81,6 @@ clm/fapm5
 compile
 *.csv
 *.dump
+ddm_test/.libs
+ddm_test/ut-fap5srv-lib
+

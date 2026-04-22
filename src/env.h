@@ -50,16 +50,18 @@ class Env: public MEnv
 {
     public:
 	static const char* Type() { return "Env";};
-	Env(const string& aSpecFile, const string& aLogFileName = string());
+	Env(const string& aSpecFileName, const string& aLogFileName = string());
+	Env(bool aOpt, const string& aSpec, const string& aLogFileName = string());
 	//Env(const string& aSpec, const string& aLogFileName, bool aOpt);
 	virtual ~Env();
 	// From MEnv.MIface
 	virtual string MEnv_Uid() const override { return Type();}
 	virtual MIface* MEnv_getLif(const char *aType) override { return nullptr;}
+        virtual void MEnv_call(const string& aSpec, string& aRes, MIface*& aIres) override;
 	virtual void MEnv_doDump(int aLevel, int aIdt, ostream& aOs) const override {}
 	// From MEnv
 	virtual MProvider* provider() const override {return mProvider;}
-	virtual void constructSystem() override;
+	virtual bool constructSystem() override;
 	virtual MLogRec* Logger() override;
 	inline virtual MProfiler *profiler() override { return mProf;}
 	virtual MImportMgr* ImpsMgr() override { return mImpMgr;}

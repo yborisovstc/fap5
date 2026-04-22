@@ -17,7 +17,7 @@ class Ut_des : public Ut_fixture
 {
     CPPUNIT_TEST_SUITE(Ut_des);
     //CPPUNIT_TEST(test_des_data);
-    //CPPUNIT_TEST(test_des_1);
+    CPPUNIT_TEST(test_des_1);
     //CPPUNIT_TEST(test_des_inval_1);
     //CPPUNIT_TEST(test_des_inval_2);
     //CPPUNIT_TEST(test_des_asr_1);
@@ -26,7 +26,7 @@ class Ut_des : public Ut_fixture
     //CPPUNIT_TEST(test_des_tr_tres_1);
     //CPPUNIT_TEST(test_des_conn_1);
     //CPPUNIT_TEST(test_des_sock_2);
-    CPPUNIT_TEST(test_des_sock_3);
+    //CPPUNIT_TEST(test_des_sock_3);
     //CPPUNIT_TEST(test_des_utl_1);
     // CPPUNIT_TEST(test_des_utl_2);
     //CPPUNIT_TEST(test_des_sp_1);

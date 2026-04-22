@@ -416,7 +416,7 @@ protected:
 #define PFLC_DUR_STAT_F(FUN, ID, FID) PROF_DUR_##FUN(PFLC(), PROF_DUR_STAT, ID, FID)
 #define PFLC_DUR(FUN, ID) PROF_DUR_##FUN(PFLC(), PROF_DUR, ID)
 
-#define LOG(...) mEnv->Logger()->WriteFormat(__VA_ARGS__)
+//#define LOG(...) mEnv->Logger()->WriteFormat(__VA_ARGS__)
 
 template <typename T> inline T* ProfBase::Pfi(PindItem::TId aId) { return getPind<PindCluster<T>>().getItem(aId);}
 

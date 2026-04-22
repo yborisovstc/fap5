@@ -14,6 +14,7 @@ class ProvDef: public ProvBase
 	virtual ~ProvDef();
 	// From ProvBase
 	virtual const TFReg& FReg() const override {return mReg;}
+	virtual const TIfiFReg& FIfiReg() const override {return mIfiReg;}
 	virtual const TDtFReg& FDtReg() const override {return mDtReg;}
 	// From MProvider
 	virtual void getNodesInfo(vector<string>& aInfo);
@@ -23,6 +24,7 @@ class ProvDef: public ProvBase
 	virtual MChromo* createChromo(const string& aRargs = string());
     private:
 	static const TFReg mReg;
+	static const TIfiFReg mIfiReg;
 	static const TDtFReg mDtReg;
 };
 

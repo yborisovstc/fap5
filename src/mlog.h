@@ -28,37 +28,7 @@ enum TLogRecCtg {
     ECtg_Max
 };
 
-/** @brief Log record structure
- * */
-class TLog
-{
-    public:
-	static const int KPrecision;
-	TLog(int aCtg, const MNode* aAgt);
-	TLog(int aCtg, const MNode* aAgt, const string& aArg);
-	TLog(int aCtg, const MNode* aAgt, const ChromoNode& aMut);
-	TLog(const MNode* aAgt);
-	TLog(const MNode* aAgt, const ChromoNode& aMut);
-	TLog(const string& aString);
-	TLog& operator +(const string& aString);
-	operator string() const;
-	string TimestampS() const;
-	string NodeUriS() const;
-	int MutId() const;
-	int Ctg() const { return mCtg;}
-	string MutIdS() const;
-	string CtgS() const;
-	string Content() const { return mContent;};
-	void SetCtg(int aCtg);
-    protected:
-	int mCtg;
-	string mTimestampS;
-	string mCtgS;
-	string mNodeUriS;
-	string mMutIdS;
-	string mContent;
-};
-
+class TLog;
 
 /** @brief Log recorder interface
  * */

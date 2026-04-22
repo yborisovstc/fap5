@@ -8,19 +8,13 @@
  * This class provides mechanisms for managing distributed models across multiple nodes.
  * It handles synchronization, state propagation, and model updates in a distributed environment.
  */
-class SysDM : public Syst
+class SystDm : public Syst
 {
 public:
-    /** @brief Constructor
-     * Initializes the distributed model system with default parameters.
-     */
-    SysDM(const string &aType, const string &aName, MEnv *aEnv);
-
-    /** @brief Destructor
-     * Cleans up resources associated with the distributed model system.
-     */
-    virtual ~SysDM();
-
+    inline static constexpr std::string_view idStr() { return "SystDm"sv;}
+public:
+    SystDm(const string &aType, const string &aName, MEnv *aEnv);
+    virtual ~SystDm();
     /** @brief Override mutAddElem
      * Custom implementation for adding elements in distributed model system.
      * @param aMut Mutation node representing the element to add

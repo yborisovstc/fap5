@@ -4,10 +4,13 @@ lib_LTLIBRARIES = libfap5da.la
 
 libfap5da_la_SOURCES = \
     mproxy.h \
+    mrenvadp.h \
     daaproxy.h \
     daaproxy.cpp \
     daaprov.h \
     daaprov.cpp \
+    renvadp.h \
+    renvadp.cpp \
     sysdm.cpp \
     sysdm.h
 

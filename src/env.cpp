@@ -207,6 +207,20 @@ void ImportsMgr::ImportToNode(MNode* aNode, const ChromoNode& aMut)
 	Logger()->Write(rec);\
     }\
 
+#define LOGENV2(aLevel) (Logger()->MeetsLevel(aLevel)) && TLog(aLevel, "Env", mLogger).ContentStream()
+
+
+MEnv::EIfu MEnv::mIfu;
+
+// Ifu static initialisation
+MEnv::EIfu::EIfu()
+{
+    RegMethod("Root", 0);
+    RegMethod("constructSystem", 0);
+    RegMethod("setEVar", 2);
+    RegMethod("getEVar", 1);
+}
+
 
 
 Env::Env(const string& aSpecFile, const string& aLogFileName): mRoot(NULL), mSpecFile(aSpecFile), mLogger(nullptr),
@@ -222,6 +236,11 @@ Env::Env(const string& aSpecFile, const string& aLogFileName): mRoot(NULL), mSpe
     mProf->addPind<PindCluster<PindDur>>(KPindDurIdata);
     mProf->addPind<PindCluster<PindDurStat>>(KPindDurStatIdata);
 #endif
+}
+
+Env::Env(bool aOpt, const string& aSpec, const string& aLogFileName): Env(string(), aLogFileName)
+{
+    mSpec = aSpec;
 }
 
 Env::~Env()
@@ -242,16 +261,53 @@ Env::~Env()
     */
 }
 
-void Env::constructSystem()
+void Env::MEnv_call(const string& aSpec, string& aRes, MIface*& aIres)
 {
+    MIface* res = NULL;
+    string name, sig;
+    vector<string> args;
+    Ifu::ParseIcSpec(aSpec, name, sig, args);
+    bool name_ok = MEnv::mIfu.CheckMname(name);
+    if (!name_ok)
+	throw (runtime_error("Wrong method name"));
+    bool args_ok = MEnv::mIfu.CheckMpars(name, args.size());
+    if (!args_ok)
+	throw (runtime_error("Wrong arguments number"));
+    if (name == "Root") {
+        res = Root();
+        if (res == nullptr) {
+            throw (runtime_error("Cannot find root node"));
+        }
+    } else if (name == "constructSystem") {
+        bool res = constructSystem();
+        if (!res) {
+            throw (runtime_error("Failed constructing system"));
+        }
+    } else if (name == "getEVar") {
+        bool rres = getEVar(args.at(0), aRes);
+        if (!rres) {
+            throw (runtime_error("Cannot find env variable"));
+        }
+    } else if (name == "setEVar") {
+        // Ignore return val, it's always true
+        setEVar(args.at(0), args.at(1));
+    } else {
+        throw (runtime_error("Unhandled method: " + name));
+    }
+    aIres = res;
+}
+
+bool Env::constructSystem()
+{
+    bool res = false;
     // Create root system
     MChromo* mChromo = mProvider->createChromo();
     if (mSpecFile.empty() && mSpec.empty()) {
-	// TODO to add provider method createRoot. Env shouldn't know of model types.
-	//mRoot = mProvider->createNode(Elem::Type(), "Root", this);
-	mRoot = mProvider->createNode("Elem", "Root", this);
+        // TODO to add provider method createRoot. Env shouldn't know of model types.
+        //mRoot = mProvider->createNode(Elem::Type(), "Root", this);
+        mRoot = mProvider->createNode("Elem", "Root", this);
     } else {
-	PROF_DUR_START(mProf, PROF_DUR, PEvents::EDur_EnvSetChromo);
+        PROF_DUR_START(mProf, PROF_DUR, PEvents::EDur_EnvSetChromo);
 	if (!mSpecFile.empty()) {
 	    mChromo->SetFromFile(mSpecFile);
 	} else {
@@ -261,11 +317,9 @@ void Env::constructSystem()
 	if (mChromo->IsError()) {
 	    const CError& cerr = mChromo->Error();
 	    if (!mSpecFile.empty()) {
-		//Logger()->Write(EErr, NULL, "Chromo [%s] error [pos %d]: %s", mSpecFile.c_str(), cerr.mPos.operator streamoff(), cerr.mText.c_str());
-                LOGENV(EErr, "Chromo [" + mSpecFile + "] error [pos " + to_string(cerr.mPos.operator streamoff()) + "]: " + cerr.mText);
+                LOGENV2(EErr) << "Chromo file [" << mSpecFile << "] error, pos: " << cerr.mPos << ", err: " << cerr.mText;
 	    } else {
-		//Logger()->Write(EErr, NULL, "Chromo error [pos %d]: %s", cerr.mPos.operator streamoff(), cerr.mText.c_str());
-                LOGENV(EErr, "Chromo error [pos " + to_string(cerr.mPos.operator streamoff()) + "]: " + cerr.mText);
+                LOGENV2(EErr) << "Chromo spec error, pos: " << cerr.mPos << ", err: " << cerr.mText;
 	    }
 	} else {
 	    /*
@@ -280,7 +334,7 @@ void Env::constructSystem()
 	    MNode* parent = mProvider->provGetNode(sparent);
 	    mRoot = mProvider->createNode(sparent, root.Attr(ENa_Id), this);
 	    if (mRoot != nullptr) {
-                LOGENV(EInfo, "Started of creating system, spec [" + mSpecFile + "], loaded: " + PROF_FIELD(mProf, PROF_DUR, PEvents::EDur_EnvSetChromo, PIndFId::EInd_VAL));
+                LOGENV2(EInfo) << "Started of creating system, spec [" << mSpecFile << "], loaded: " << PROF_FIELD(mProf, PROF_DUR, PEvents::EDur_EnvSetChromo, PIndFId::EInd_VAL);
 		PROF_DUR_START(mProf, PROF_DUR, PEvents::EDur_Construct);
 		MutCtx mc(mRoot);
 		// Adding Modules node for imports
@@ -299,14 +353,15 @@ void Env::constructSystem()
 		}
 		PROF_DUR_REC(mProf, PROF_DUR, PEvents::EDur_Construct);
                 auto ncnt = mRoot->ownerCp()->bpcount(true);
-		//Logger()->Write(EInfo, mRoot, "Completed of creating system, nodes: %d, time: %s", ncnt,
-                 //       PROF_FIELD(mProf, PROF_DUR, PEvents::EDur_Construct, PIndFId::EInd_VAL).c_str());
-                LOGENV(EInfo, "Completed creating of system, nodes: " + to_string(ncnt) + ", time: " + PROF_FIELD(mProf, PROF_DUR, PEvents::EDur_Construct, PIndFId::EInd_VAL));
+                //LOGENV(EInfo, "Completed creating of system, nodes: " + to_string(ncnt) + ", time: " + PROF_FIELD(mProf, PROF_DUR, PEvents::EDur_Construct, PIndFId::EInd_VAL));
+                LOGENV2(EInfo) << "Completed creating of system, nodes: " << ncnt << ", time: " + PROF_FIELD(mProf, PROF_DUR, PEvents::EDur_Construct, PIndFId::EInd_VAL);
+                res = true;
 	    } else {
 		LOGENV(EErr, "Env: cannot create root elem");
 	    }
 	}
     }
+    return res;
 }
 
 MLogRec* Env::Logger()

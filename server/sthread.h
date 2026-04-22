@@ -1,6 +1,7 @@
-#ifndef _sessionthread_h_
-#define _sessionthread_h_
-#include <iostream>
+#ifndef _SESSIONTHREAD_H_
+#define _SESSIONTHREAD_H_
+
+
 #include <string>
 #include <pthread.h>
 #include <unistd.h>
@@ -14,11 +15,15 @@ class SessionThread {
     private:
         static pthread_mutex_t sMutex;
     public:
-        SessionThread();
+        SessionThread(const string& aOwrId);
         int Create(void *Callback, void *args);
         int Join();
         static int InitMutex();
-        static int LockMutex(const char *identifier);
-        static int UnlockMutex(const char *identifier);
+        static int LockMutex(const string& aId);
+        static int UnlockMutex(const string& aId);
+    protected:
+        string getId() const;
+    protected:
+        string mOwrId;
 };
 #endif

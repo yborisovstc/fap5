@@ -1,7 +1,47 @@
 #ifndef __FAP5_LOG_H
 #define __FAP5_LOG_H
 
+#include <sstream>
+
 #include "mlog.h"
+
+/** @brief Log record structure
+ * */
+class TLog
+{
+    public:
+	static const int KPrecision;
+	TLog(int aCtg, const string& aId);
+	TLog(int aCtg, const string& aId, const string& aContent);
+	TLog(int aCtg, const string& aId, MLogRec* aRecorder): TLog(aCtg, aId) { mRecorder = aRecorder;}
+	TLog(int aCtg, const string& aId, const ChromoNode& aMut);
+	TLog(const string& aId);
+	TLog(const string& aId, const ChromoNode& aMut);
+	//TLog(const string& aString);
+        ~TLog();
+	TLog& operator +(const string& aString);
+	operator string() const;
+	string TimestampS() const;
+	//string NodeUriS() const;
+	int MutId() const;
+	int Ctg() const { return mCtg;}
+	string MutIdS() const;
+	string CtgS() const;
+	string Content() const { return mContent;};
+	ostream& ContentStream() { return mCntStream;};
+	void SetCtg(int aCtg);
+    protected:
+	int mCtg;
+	string mTimestampS;
+	string mCtgS;
+	string mId;
+	string mMutIdS;
+	string mContent;
+        ostringstream mCntStream;
+        MLogRec* mRecorder = nullptr;
+};
+
+
 
     /** Log recorder
      * */

@@ -5,6 +5,9 @@
 #include <stdexcept> 
 #include <stdarg.h> 
 #include <iomanip>
+#include <sys/types.h>
+#include <unistd.h>
+
 
 #include "log.h"
 #include "guri.h"
@@ -36,7 +39,7 @@ string TLogGetField(const string& aPack, size_t& aBeg, bool aESep = true)
     return res;
 }
 
-TLog::TLog(int aCtg, const MNode* aAgt): mCtg(aCtg)
+TLog::TLog(int aCtg, const string& aId): mCtg(aCtg)
 {
     stringstream ssn;
     struct timespec ts;
@@ -46,28 +49,24 @@ TLog::TLog(int aCtg, const MNode* aAgt): mCtg(aCtg)
     ssn << setfill('0') << setw(9) << ts.tv_nsec;
     mTimestampS = string(buff) + "." + ssn.str().substr(0, KPrecision);
     mCtgS = CtgText(mCtg);
-    if (aAgt != NULL) {
-	GUri uri;
-	aAgt->getUri(uri);
-	mNodeUriS = uri.toString();
-    }
+    mId = aId;
 }
 
-TLog::TLog(int aCtg, const MNode* aAgt, const string& aContent): TLog(aCtg, aAgt)
+TLog::TLog(int aCtg, const string& aId, const string& aContent): TLog(aCtg, aId)
 {
     mContent = aContent;
 }
 
-TLog::TLog(const MNode* aAgt): TLog(EAll, aAgt) {}
+//TLog::TLog(const string& aId): TLog(EAll, aAgt) {}
 
-TLog::TLog(int aCtg, const MNode* aAgt, const ChromoNode& aMut): TLog(aCtg, aAgt)
+TLog::TLog(int aCtg, const string& aId, const ChromoNode& aMut): TLog(aCtg, aId)
 {
     stringstream ss;
     ss << aMut.LineId();
     mMutIdS = ss.str();
 }
 
-TLog::TLog(const MNode* aAgt, const ChromoNode& aMut): TLog(EAll, aAgt, aMut) {}
+TLog::TLog(const string& aId, const ChromoNode& aMut): TLog(EAll, aId, aMut) {}
 
 TLog::TLog(const string& aString)
 {
@@ -75,13 +74,23 @@ TLog::TLog(const string& aString)
     mTimestampS = TLogGetField(aString, beg);
     mCtgS = TLogGetField(aString, beg);
     mMutIdS = TLogGetField(aString, beg);
-    mNodeUriS = TLogGetField(aString, beg);
+    mId = TLogGetField(aString, beg);
     mContent = TLogGetField(aString, beg);
+}
+
+TLog::~TLog()
+{
+    if (mRecorder) {
+        mContent = mCntStream.str();
+        mRecorder->Write(*this);
+    }
 }
 
 TLog::operator string() const
 {
-    return mTimestampS + KFieldSep + mCtgS + KFieldSep + mMutIdS + KFieldSep + mNodeUriS + KFieldSep + mContent;
+    ostringstream oss;
+    oss << mTimestampS << KFieldSep << mCtgS << KFieldSep << mMutIdS << setw(5) << getpid() << KFieldSep << setw(5) << gettid() << KFieldSep << mId << KFieldSep << mContent;
+    return oss.str();
 }
 
 TLog& TLog::operator +(const string& aString)
@@ -101,10 +110,10 @@ string TLog::TimestampS() const
     return mTimestampS;
 }
 
-string TLog::NodeUriS() const
-{
-    return mNodeUriS;
-}
+//string TLog::NodeUriS() const
+//{
+//    return mNodeUriS;
+//}
 
 string TLog::MutIdS() const
 {

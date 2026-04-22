@@ -4,13 +4,21 @@
 #include "requests.h"
 #include <stdlib.h>
 #include <unistd.h>
-#include "../src/guri.h"
-#include "../src/env.h"
 #include <sstream>
 //#include "../dmas/daaprov.h"
 //#include "../dmas/mcobspx.h"
 
+#include "../src/guri.h"
+#include "../src/env.h"
+#include "../src/log.h"
+
 using namespace std;
+
+
+extern Logrec gLogrec;
+
+#define LOG(aLevel) gLogrec.MeetsLevel(aLevel) && TLog(aLevel, getId(), &gLogrec).ContentStream()
+
 
 
 const int KBufSize = 2048;
@@ -34,12 +42,12 @@ CSessionBase::TCtx CSessionBase::mSCtx; // Shared Context
 //Actually allocate sClients
 vector<CSessionBase*> CSessionBase::sClients;
 
-CSessionBase::CSessionBase(): mEnv(NULL), mAttached(NULL)
+CSessionBase::CSessionBase(const string& aOwrId): mEnv(NULL), mAttached(NULL), mOwrId(aOwrId)
 {
     AddContext("MEnvProvider", this);
 }
 
-CSessionBase::CSessionBase(int sock): mSock(sock), mEnv(NULL), mAttached(NULL)
+CSessionBase::CSessionBase(int sock, const string& aOwrId): mSock(sock), mEnv(NULL), mAttached(NULL), mOwrId(aOwrId)
 {
     AddContext("MEnvProvider", this);
 }
@@ -59,8 +67,15 @@ void CSessionBase::SetId(int id) {
     mId = ss.str();
 }
 
+string CSessionBase::getId() const
+{
+    return mOwrId + ".CS-" + mId;
+}
+
+
 void CSessionBase::HandleMessage(const string& aMsg) {
-    cout << "Session [" << mId << "] received: " << aMsg << endl;
+    //cout << "Session [" << mId << "] received: " << aMsg << endl;
+    LOG(EDbg) << "Received message: " << aMsg;
     size_t ctxid_beg = 0;
     size_t ctxid_end = aMsg.find_first_of(RequestIPC::REQ_SEPARATOR, ctxid_beg); 
     if (ctxid_end == ctxid_beg) {
@@ -87,17 +102,17 @@ void CSessionBase::HandleMessage(const string& aMsg) {
 	    try {
 		ctx->call(cspec, cres, new_ctx);
 	    } catch (exception& e) {
-		cout << "Session [" << mId << "]" << " --> ERR, " << e.what() << endl;
+		LOG(EErr) << " --> ERR, " << e.what();
 		Send(RequestIPC::RES_ERROR, e.what());
 		return;
 	    }
 	    if (new_ctx != NULL) {
 		string uid = new_ctx->Uid();
 		AddContext(uid, new_ctx);
-		cout << "Session [" << mId << "]"  << " --> OK, " << uid << endl;
+		LOG(EDbg) <<  " --> OK, " << uid;
 		Send(RequestIPC::RES_OK, uid);
 	    } else {
-		cout << "Session [" << mId << "]"  << " --> OK, " << (cres.empty() ? RequestIPC::RES_OK_NONE : cres) << endl;
+		LOG(EDbg) << " --> OK, " << (cres.empty() ? RequestIPC::RES_OK_NONE : cres);
 		Send(RequestIPC::RES_OK, cres.empty() ? RequestIPC::RES_OK_NONE : cres);
 	    }
 	}
@@ -123,7 +138,7 @@ void CSessionBase::CreateEnv(const string& aChromo)
     }
     string name("Env~");
     name.append(mId);
-    mEnv = new Env(aChromo, name+".log");
+    mEnv = new Env(true, aChromo, name+".log");
     if (mEnv == NULL) {
 	throw(runtime_error("Failed creating env"));
     }
@@ -272,17 +287,12 @@ void CSessionBase::DumpCtx() const
     }
 }
 
-string CSessionBase::Uid() const
+string CSessionBase::MEnvProvider_Uid() const
 {
     return Ifu::KUidSep + string(MEnvProvider::idStr());
 }
 
-string CSessionBase::Mid() const
-{
-    return string();
-}
-
-MIface* CSessionBase::Call(const string& aSpec, string& aRes)
+void CSessionBase::MEnvProvider_call(const string& aSpec, string& aRes, MIface*& aIres)
 {
     MIface* res = NULL;
     string name, sig;
@@ -309,7 +319,7 @@ MIface* CSessionBase::Call(const string& aSpec, string& aRes)
     } else {
 	throw (runtime_error("Unhandled method: " + name));
     }
-    return res;
+    aIres = res;
 }
 
 // Static
@@ -319,20 +329,6 @@ CSessionBase* CSessionBase::GetSession(const string& aId)
     FindSessionById(aId, res);
     return res;
 }
-
-/*
-void CSessionBase::CreateAgtObserver()
-{
-    if (mAgtObs != NULL) {
-	throw(runtime_error("Agent observer already created"));
-    }
-    mAgtObs = new AgtObserver();
-    if (mAgtObs == NULL) {
-	throw(runtime_error("Failed creating agent observer"));
-    }
-    AddContext(mAgtObs->Uid(), mAgtObs);
-}
-*/
 
 
 

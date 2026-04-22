@@ -32,7 +32,10 @@ class MIface
          * @param aRes - result as string data
          * @param aIres - result as iface ptr
          * */
-        virtual void call(const string& aSpec, string& aRes, MIface*& aIres) {}
+        // TODO How to get status of the call (ok/err). Maybe return bool status?
+        virtual void call(const string& aSpec, string& aRes, MIface*& aIres) {
+            throw (runtime_error("Unimplemented rmt call"));
+        }
 
 	/** @brief outputs dump
 	 * @param aInt  indentation level

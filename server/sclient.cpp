@@ -7,23 +7,30 @@
 #include <sstream>
 //#include "../dmas/daaprov.h"
 
+#include "../src/log.h"
+
 using namespace std;
 
 const int KBufSize = 2048;
 
+extern Logrec gLogrec;
 
-SessionClient::SessionClient(): CSessionBase()  {
+#define LOG(aLevel) gLogrec.MeetsLevel(aLevel) && TLog(aLevel, getId(), &gLogrec).ContentStream()
+
+
+
+SessionClient::SessionClient(const string& aOwrId): CSessionBase(aOwrId)  {
 }
 
-SessionClient::SessionClient(int sock): CSessionBase(sock), mThread(NULL)
+SessionClient::SessionClient(int sock, const string& aOwrId): CSessionBase(sock, aOwrId), mThread(NULL)
 {
-    mThread = new SessionThread();
     // Adding client in Static sClients registry (Critical section!)
-    SessionThread::LockMutex(mId.c_str());
+    SessionThread::LockMutex(mId);
     SetId(sClients.size());
-    cout << "Adding client with id: " << mId << endl;
+    LOG(EDbg) << "Adding client" << endl;
+    mThread = new SessionThread(getId());
     sClients.push_back(this);
-    SessionThread::UnlockMutex(mId.c_str());
+    SessionThread::UnlockMutex(mId);
     mThread->Create((void*) RunSession, this);
 }
 
@@ -58,18 +65,18 @@ bool SessionClient::Run()
 	n = recv(mSock, buffer, sizeof buffer, 0);
 	//SessionClient disconnected?
 	if (n == 0) {
-	    cout << "SessionClient [" << mId << "] disconnected" << endl;
+	    LOG(EDbg) << "Client session [" << mId << "] disconnected";
 	    close(mSock);
 	    //Remove client in Static sClients <vector> (Critical section!)
 	    SessionThread::LockMutex(mId.c_str());
 	    index = FindSessionIndex(this);
-	    cout << "Removed client session, id: " << sClients[index]->mId << endl;
+	    LOG(EDbg) << "Removed client session, id: " << sClients[index]->mId;
 	    sClients.erase(sClients.begin() + index);
 	    SessionThread::UnlockMutex(mId.c_str());
 	    delete this;
 	    break;
 	} else if (n < 0) {
-	    cerr << "Error while receiving message from client: " << mId << endl;
+	    LOG(EErr) << "Error while receiving message from client: " << mId;
 	} else {
 	    //Message received.
 	    HandleMessage(string(buffer));
@@ -78,4 +85,3 @@ bool SessionClient::Run()
     return false;
 }
 
-//#endif

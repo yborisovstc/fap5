@@ -41,7 +41,7 @@ class MProvider: public MIface
 	virtual bool isProvided(const MNode* aElem) const = 0;
 	/* @brief Create iface instance
 	*/
-	virtual MIface* createIfi(const string& aType, const string& aName, MEnv* aEnv) { return nullptr;} 
+	virtual MIface* createIfi(const string& aType, const string& aName, MEnv* aEnv) = 0;
 	/** @brief Sets chromo resolution arguments
 	 * Just one argument, chromo spec file extension is used
 	 * */

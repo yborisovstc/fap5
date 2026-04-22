@@ -45,6 +45,12 @@ class Ifu
         template<typename TArg1, typename TArg2, typename TArg3> static string PackMethod(const string& aName, TArg1 aAgr1, TArg2 aArg2, TArg3 aArg3);
         template<typename TArg1, typename TArg2, typename TArg3, typename TArg4>
             static string PackMethod(const string& aName, TArg1 aAgr1, TArg2 aArg2, TArg3 aArg3, TArg4 aArg4);
+        // Converting
+	static bool ToBool(const string& aString);
+	static string FromBool(bool aBool);
+	static int ToInt(const string& aString);
+	static string FromInt(int aInt);
+	static void ToStringArray(const string& aString, vector<string>& aRes);
         // UID
         static void ParseUid(const string& aUid, string& aOid, string& aType);
         static void CombineUid(const string& aOid, const string& aType, string& aUid);
@@ -58,6 +64,7 @@ class Ifu
         static char KUidSep;
         static char KUidSepIc;  /*!< UID separator of internal component (not native hier) */
         static char KRinvSep;
+	static string KArraySep;
         static int  KDumpIndent;
         static string K_SpName_Ns;
         static string K_SpName_Nil;

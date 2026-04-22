@@ -4,7 +4,7 @@
 #include <pthread.h>
 #include <iomanip>
 #include "prof.h"
-#include "mlog.h"
+#include "log.h"
 
 // PindBase
 

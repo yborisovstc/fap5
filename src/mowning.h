@@ -45,6 +45,7 @@ class MOwner : public MIface
 	// TODO to return MParent?
 	virtual MNode* getParent(const GUri& aUri) = 0;
 	virtual bool isOwned(const MOwned* mOwned) const = 0;
+	virtual bool  owrAttachOwned(MOwned* aOwned) = 0;
 };
 
 

@@ -48,6 +48,9 @@ class MEnvProvider: public MIface
 	TIdHash id() const override { return idHash();}
 	virtual string MEnvProvider_Uid() const = 0;
 	string Uid() const override { return MEnvProvider_Uid();}
+        void call(const string& aSpec, string& aRes, MIface*& aIres) override { MEnvProvider_call(aSpec, aRes, aIres);}
+        virtual void MEnvProvider_call(const string& aSpec, string& aRes, MIface*& aIres) = 0;
+        // Local
 	virtual void CreateEnv(const string& aChromo) = 0;
 	virtual void AttachEnv(const string& aSessionId) = 0;
 	virtual void GetId(string& aSessionId) = 0;
@@ -66,29 +69,16 @@ class CSessionBase : public MEnvProvider
 	// Context: key, pointer to iface
 	typedef map<TCtxKey, MIface*> TCtx;
     public:
-	static vector<CSessionBase*> sClients;
-	static TCtx mSCtx; // Shared Context
-	string mId;
-	//Socket stuff
-	int mSock;
-	MEnv* mEnv;
-	TCtx mCtx; // Context
-	CSessionBase* mAttached;
-	//AgtObserver* mAgtObs;
-    public:
-        CSessionBase();
-        CSessionBase(int sock);
+        CSessionBase(const string& aOwrId);
+        CSessionBase(int sock, const string& aOwrId);
 	virtual ~CSessionBase();
 	// From MEnvProvider
-        string MEnvProvider_Uid() const override { return string();}
+        string MEnvProvider_Uid() const override;
 	virtual void CreateEnv(const string& aChromo);
 	virtual void AttachEnv(const string& aSessionId);
 	virtual void GetId (string& aSessionId);
 	virtual MEnv* GetEnv();
-	//virtual void CreateAgtObserver();
-	virtual MIface* Call(const string& aSpec, string& aRes);
-	virtual string Uid() const;
-	virtual string Mid() const;
+        virtual void MEnvProvider_call(const string& aSpec, string& aRes, MIface*& aIres);
         static void FindSessionById(const string& mId, CSessionBase *&c);
 	// TODO [YB] Shouldn't we avoid passing aHandle via using aPtr::Uid() instead for registry key
 	static void AddSContext(const string& aHandle, MIface* aPtr);
@@ -102,9 +92,21 @@ class CSessionBase : public MEnvProvider
         static int FindSessionIndex(CSessionBase *c);
 	void AddContext(const string& aHandle, MIface* aPtr);
 	MIface* GetContext(const string& aHandle, bool aShared = false);
+        string getId() const;
 	// Debug
 	void DumpCtx() const;
 	static CSessionBase* GetSession(const string& aId);
+    public:
+	static vector<CSessionBase*> sClients;
+	static TCtx mSCtx; // Shared Context
+	string mId;
+	//Socket stuff
+	int mSock;
+	MEnv* mEnv;
+	TCtx mCtx; // Context
+	CSessionBase* mAttached;
+    protected:
+        const string mOwrId;
 };
 
 #endif

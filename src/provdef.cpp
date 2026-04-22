@@ -96,6 +96,12 @@ const ProvDef::TFReg ProvDef::mReg ( {
 #endif
 });
 
+
+/** Iface impl factory registry */
+const ProvDef::TIfiFReg ProvDef::mIfiReg ( {
+});
+
+
 /** Data factory registry */
 const ProvDef::TDtFReg ProvDef::mDtReg ( {
 	DItem<DGuri>(), 

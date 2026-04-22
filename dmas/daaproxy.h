@@ -37,7 +37,7 @@ class RenvClient
 
 class MProxyMgrOwner {
     public:
-        string getOid() const;
+        virtual string getOid() const = 0;
 };
 
 
@@ -50,21 +50,22 @@ class DaaProxy;
 class DaaPxMgr: public MProxyMgr
 {
     public:
-	typedef map<string, DaaProxy*> TPxs;
+	typedef map<string, MProxy*> TPxs;
     public:
 	DaaPxMgr(MEnv* aEnv, MProxyMgrOwner* aOwner, RenvClient& aRenvClient);
 	virtual ~DaaPxMgr();
     public:
 	// From MProxyMgr
-	virtual MProxy* CreateProxy(const string& aId, const string& aContext);
-	virtual bool Request(const string& aContext, const string& aReq, string& aResp);
-	virtual string Oid() const;
-	virtual void OnProxyDeleting(const MProxy* aProxy);
+	MProxy* CreateProxy(const string& aId, const string& aContext) override;
+	bool Request(const string& aContext, const string& aReq, string& aResp) override;
+	string Oid() const override;
+	void OnProxyDeleting(const MProxy* aProxy) override;
+	void RegisterProxy(MProxy* aProxy) override;
     protected:
-	void RegProxy(DaaProxy* aProxy);
-	void UnregProxy(const DaaProxy* aProxy);
+	void RegProxy(MProxy* aProxy);
+	void UnregProxy(const MProxy* aProxy);
 	bool IsCached(const string& aContext) const;
-	DaaProxy* GetProxy(const string& aContext) const;
+	MProxy* GetProxy(const string& aContext) const;
 	inline MLogRec* Logger() const;
     protected:
 	MEnv* mEnv;
@@ -85,6 +86,7 @@ class DaaProxy : public MProxy
 	DaaProxy(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
 	virtual ~DaaProxy();
 	// From MProxy
+	bool setContext(const string& aContext) override;
 	virtual const string& GetContext() const;
 	virtual MIface* GetIface(const string& aName);
 	virtual const MIface* GetIface(const string& aName) const;

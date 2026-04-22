@@ -61,30 +61,35 @@ void Ut_base::tearDown()
 
 void Ut_base::test_Connect()
 {
-    printf("\n === Test of connecting to server\n");
+    cout << endl << "=== test_Connect: Start." << endl;
     if (fork() != 0) {
-	printf("\n === Child process\n");
+	cout << "=== test_Connect: Client process" << endl;
 	// Create client
 	BaseClient* client = new BaseClient();
+	CPPUNIT_ASSERT_MESSAGE("test_Connect: Client process. Failed creating client", client);
 	// Wait until server run
 	bool srv_run = WaitSrv();
-	CPPUNIT_ASSERT_MESSAGE("Server isn't running", srv_run);
+	CPPUNIT_ASSERT_MESSAGE("test_Connect: Server isn't running", srv_run);
 	try {
 	    client->Connect("");
 	} catch (exception& e) {
-	    CPPUNIT_ASSERT_MESSAGE("Error connecting to server", false);
+	    CPPUNIT_ASSERT_MESSAGE("test_Connect: Error connecting to server", false);
 	}
-	printf("Client connected to the server\n");
+	cout << "test_Connect: Client process. Client connected to the server" << endl;
+        delete client;
+        // Kill server
+	int sstatus = system("kill $(pidof fap5srv)");
+	cout << "test_Connect: Server killed by client side" << endl;
     } else {
-	printf("\n === Starting server\n");
+	cout << endl << "=== test_Connect: Starting server" << endl;
 	int exit_status = system("../server/fap5srv");
-	printf("\n === Server exited, status: %i\n", exit_status);
+        cout << endl << "=== test_Connect: Server exited, status: " << exit_status << endl;
 	exit(0);
     }
+    cout << endl << "=== test_Connect: Finish." << endl;
 }
 
 
-#if 0
 
 /* Test suite to verify creating model in remote environment
  * Run fap2 server before launching test
@@ -110,76 +115,86 @@ void Ut_CreateEnv::setUp()
 
 void Ut_CreateEnv::tearDown()
 {
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("tearDown", 0, 0);
+    cout << endl << "=== test_CreateModel: tearDown" << endl;
+    int sstatus = system("kill $(pidof fap5srv)");
 }
 
 
-const string KChromo_1 = "<node id=\"Root\" parent=\"Elem\"></node>";
+const string KChromo_1 = "Root : Elem { }";
 const string KMeth_CreateEnv = "CreateEnv";
 
 // Test of request "Create model"
+// Please, run DMN server first, then run TC
 void Ut_CreateEnv::test_CreateModel()
 {
-    printf("\n === Test of creating model in remote env\n");
+    cout << endl << "=== test_CreateModel: Test of creating model in remote env" << endl;
+    cout << "=== test_CreateModel: Client process" << endl;
     BaseClient* client = new BaseClient();
     // Wait until server run
     bool srv_run = WaitSrv();
     CPPUNIT_ASSERT_MESSAGE("Server isn't running", srv_run);
     try {
-	client->Connect("");
+        client->Connect("");
     } catch (exception& e) {
-	CPPUNIT_ASSERT_MESSAGE("Error connecting to server", false);
+        CPPUNIT_ASSERT_MESSAGE("Error connecting to server", false);
     }
-    printf("Client connected to the server\n");
+    cout << "test_CreateModel: Client connected to the server" << endl;
     string resp;
     string cenv;
     // Issue request for creating env
-    bool res = client->Request("EnvProvider", KMeth_CreateEnv + ",1," + KChromo_1, cenv);
-    printf("Create model -- Response: %s\n", cenv.c_str());
+    bool res = client->Request("MEnvProvider", KMeth_CreateEnv + ",1," + KChromo_1, cenv);
+    cout << "test_CreateModel: Create model, res: " << (res ? "OK" : "ERR") << ", Response: " << cenv << endl;
     CPPUNIT_ASSERT_MESSAGE("Creating remote env failed: " + cenv, res);
     // Issue request for creating model
-    res = client->Request(cenv, "ConstructSystem", resp);
-    printf("Constructing system -- Response: %s\n", resp.c_str());
+    res = client->Request(cenv, "constructSystem", resp);
+    cout << "test_CreateModel: Constructing system, res: " << (res ? "OK" : "ERR") << ", Response: " << resp << endl;
     CPPUNIT_ASSERT_MESSAGE("Constructing system failed: " + resp, res);
     // Issue request for root
     res = client->Request(cenv, "Root", resp);
-    printf("Getting root -- Response: %s\n", resp.c_str());
+    cout << "test_CreateModel: Getting root, res: " << (res ? "OK" : "ERR") << ", Response: " << resp << endl;
     CPPUNIT_ASSERT_MESSAGE("Request -get root- failed", res);
     // Issue request for root name
     res = client->Request(resp, "Name", resp);
-    printf("Getting root name -- Response: %s\n", resp.c_str());
+    cout << "test_CreateModel: Getting root name, res: " << (res ? "OK" : "ERR") << ", Response: " << resp << endl;
     CPPUNIT_ASSERT_MESSAGE("Request -get root name- failed", res);
     client->Disconnect();
     delete client;
+    cout << endl << "=== test_CreateModel: Finish." << endl;
 }
 
 
 /* Test suite to verify MElem iface requests
- * Run fap2 server before launching test
+ * !! Run fap5 server before launching test
  */
 class Ut_ExecMagt : public CPPUNIT_NS::TestFixture
 {
     CPPUNIT_TEST_SUITE(Ut_ExecMagt);
-    CPPUNIT_TEST(test_Melem);
+    CPPUNIT_TEST(test_Mnode);
     CPPUNIT_TEST_SUITE_END();
-public:
+    public:
     virtual void setUp();
     virtual void tearDown();
-private:
-    void test_Melem();
+    private:
+    void test_Mnode();
+    private:
+    static string KChromo_1; 
 };
 
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(Ut_ExecMagt, "Ut_ExecMagt");
 
+string Ut_ExecMagt::KChromo_1 = "Root : Node { }";
 
 void Ut_ExecMagt::setUp() { }
 
-void Ut_ExecMagt::tearDown() { }
+void Ut_ExecMagt::tearDown() {
+    cout << endl << "=== test_ExecMagt: tearDown" << endl;
+    int sstatus = system("kill $(pidof fap5srv)");
+}
 
 // Test of request "Exec Melem iface methods"
-void Ut_ExecMagt::test_Melem()
+void Ut_ExecMagt::test_Mnode()
 {
-    printf("\n === Test of Exec Melem iface methods\n");
+    cout << "test_Mnode, === Test of Exec Melem iface methods" << endl;
     BaseClient* client = new BaseClient();
     // Wait until server run
     bool srv_run = WaitSrv();
@@ -189,52 +204,53 @@ void Ut_ExecMagt::test_Melem()
     } catch (exception& e) {
 	CPPUNIT_ASSERT_MESSAGE("Error connecting to server", false);
     }
-    printf("Client connected to the server\n");
+    cout << "Client connected to the server" << endl;
     string resp;
     string sid;
-    bool res = client->Request("EnvProvider", "GetId", sid);
+    bool res = client->Request("MEnvProvider", "GetId", sid);
     CPPUNIT_ASSERT_MESSAGE("Request -GetId- failed", res);
-    printf("Getting session1 id -- Response: %s\n", sid.c_str());
+    cout << "test_Mnode, Getting session1 id, res: " << (res ? "OK" : "ERR") << ", Response: " << sid << endl;
     // Creating env
     string cenv;
-    res = client->Request("EnvProvider", KMeth_CreateEnv + ",1," + KChromo_1, cenv);
-    printf("Create model -- Response: %s\n", cenv.c_str());
-    CPPUNIT_ASSERT_MESSAGE("Request -create_model- failed", res);
+    res = client->Request("MEnvProvider", KMeth_CreateEnv + ",1," + KChromo_1, cenv);
+    cout << "test_Mnode, Create env, res: " << (res ? "OK" : "ERR") << ", Response: " << sid << endl;
+    CPPUNIT_ASSERT_MESSAGE("Request -create_env- failed", res);
     // Creating model
-    res = client->Request(cenv, "ConstructSystem", resp);
-    printf("Constructing model: %s\n", resp.c_str());
+    res = client->Request(cenv, "constructSystem", resp);
+    cout << "test_Mnode, Construct system, res: " << (res ? "OK" : "ERR") << ", Response: " << resp << endl;
     CPPUNIT_ASSERT_MESSAGE("Constructing model failed: " + resp, res);
     // Getting root
     string root;
     res = client->Request(cenv, "Root", root);
-    printf("Getting root -- Response: %s\n", root.c_str());
+    cout << "test_Mnode, Getting root, res: " << (res ? "OK" : "ERR") << ", Response: " << root << endl;
     CPPUNIT_ASSERT_MESSAGE("Request -get root- failed", res);
     // Checking root name
-    res = client->Request(root, "Name", resp);
-    printf("Getting root name -- Response: %s\n", resp.c_str());
+    res = client->Request(root, "name", resp);
+    cout << "test_Mnode, Getting root name, res: " << (res ? "OK" : "ERR") << ", Response: " << resp << endl;
     CPPUNIT_ASSERT_MESSAGE("Request -get root name- failed", res);
     // Mutating
-    res = client->Request(root, "Mutate,1,<node><node id=\"node_1\" parent=\"Elem\"></node></node>,false,true,true", resp);
-    printf("Mutating root -- Response: %s\n", resp.c_str());
+    res = client->Request(root, "mutate,1,{ Node1 : Node },false", resp);
+    cout << "test_Mnode, Mutating root, res: " << (res ? "OK" : "ERR") << ", Response: " << resp << endl;
     CPPUNIT_ASSERT_MESSAGE("Request -mutating root- failed", res);
     // Checking new node
     string node_1;
-    res = client->Request(root, "GetNode,1,./node_1,false", node_1);
-    printf("Getting node_1 -- Response: %s\n", node_1.c_str());
-    CPPUNIT_ASSERT_MESSAGE("Checking new node, gettin node failed", res);
-    res = client->Request(node_1, "Name", resp);
-    printf("Node_1 name -- Response: %s\n", resp.c_str());
-    CPPUNIT_ASSERT_MESSAGE("Checking new node, gettin node name failed", res);
+    res = client->Request(root, "getNode,1,Node1", node_1);
+    cout << "test_Mnode, Getting Node1, res: " << (res ? "OK" : "ERR") << ", Response: " << node_1 << endl;
+    CPPUNIT_ASSERT_MESSAGE("Checking new node, getting node failed", res);
+    res = client->Request(node_1, "name", resp);
+    cout << "test_Mnode, Getting Node1 name, res: " << (res ? "OK" : "ERR") << ", Response: " << resp << endl;
+    CPPUNIT_ASSERT_MESSAGE("Checking new node, getting node name failed", res);
 
     // Checking attaching to model
     BaseClient* client2 = new BaseClient();
     try {
 	client2->Connect("");
-	printf("Client2 connected to the server\n");
+	printf("test_Mnode, Client2 connected to the server\n");
     } catch (exception& e) {
 	CPPUNIT_ASSERT_MESSAGE("Error connecting to server", false);
     }
-    res = client2->Request("EnvProvider", "AttachEnv,1," + sid, resp);
+    res = client2->Request("MEnvProvider", "AttachEnv,1," + sid, resp);
+    cout << "test_Mnode, Attaching session2 to session1 env, res: " << (res ? "OK" : "ERR") << ", Response: " << resp << endl;
     CPPUNIT_ASSERT_MESSAGE("Attaching session2 to session1 env failed: " + resp, res);
     // Getting root via attachment
     string root2;
@@ -251,57 +267,63 @@ void Ut_ExecMagt::test_Melem()
 
 
 
-/* Test suite to verify remote env agent
+/* Test suite to verify simple distributed model using SystDm and PpxMOwd
 */
-class Ut_Renva : public CPPUNIT_NS::TestFixture
+class Ut_Systdm : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE(Ut_Renva);
-    CPPUNIT_TEST(test_Renva_Cre);
+    CPPUNIT_TEST_SUITE(Ut_Systdm);
+    CPPUNIT_TEST(test_Systdm);
     CPPUNIT_TEST_SUITE_END();
     public:
     virtual void setUp();
     virtual void tearDown();
+    MNode* constructSystem(const string& aSpecn);
     private:
-    void test_Renva_Cre();
+    void test_Systdm();
     private:
-    Env* iEnv;
+    Env* mEnv;
 };
 
-CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(Ut_Renva, "Ut_Renva");
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(Ut_Systdm, "Ut_Systdm");
 
 
-void Ut_Renva::setUp()
+void Ut_Systdm::setUp()
 {
 }
 
-void Ut_Renva::tearDown() { }
+void Ut_Systdm::tearDown() {
+    if (mEnv != nullptr) {
+        delete mEnv;
+    }
+}
 
-/* Test of request "Exec Melem iface methods"
- * Actually this schema is not working, there is no sense
- * to create remote model because there is no means of remote
- * model communicating to local primary model
- * So this test is for very limited purpose only: to verify
- * of functioning of primary remote agent and MElem proxy
- * TODO [YB] Currently this test in not working because design of Renv agent
- * required that the primary environment is also in server context
- */
-void Ut_Renva::test_Renva_Cre()
+MNode* Ut_Systdm::constructSystem(const string& aSpecn)
 {
-    printf("\n === Test of Creating remote env agent\n");
+    string ext = "chs";
+    string spec = aSpecn + string(".") + "chs";
+    string log = aSpecn + "_" + ext + ".log";
+    mEnv = new Env(spec, log);
+    CPPUNIT_ASSERT_MESSAGE("Fail to create Env", mEnv != 0);
+    mEnv->ImpsMgr()->ResetImportsPaths();
+    mEnv->ImpsMgr()->AddImportsPaths("../modules");
+    DaaProv* dmprov = new DaaProv("DmProv", mEnv);
+    mEnv->addProvider(dmprov);
+    mEnv->constructSystem();
+    MNode* root = mEnv->Root();
+    MElem* eroot = root ? root->lIf(eroot) : nullptr;
+    CPPUNIT_ASSERT_MESSAGE("Fail to get root", root && eroot);
+    return root;
+}
+
+
+/* @brief Simple distributed model with SystDm
+ */
+void Ut_Systdm::test_Systdm()
+{
+    cout << endl << "=== Test of Creating simple distributed model" << endl;
     // Create model
-    iEnv = new Env("ut_renva_cre.xml", "ut_renva_cre.txt");
-    CPPUNIT_ASSERT_MESSAGE("Fail to create Env", iEnv != 0);
-    iEnv->ImpsMgr()->ResetImportsPaths();
-    // TODO [YB] To correct modules path
-    //iEnv->ImpsMgr()->AddImportsPaths("../modules");
-    // Dinamic async agents specific nodes provider
-    DaaProv* daaprov = new DaaProv("DaaProv", iEnv);
-    iEnv->AddProvider(daaprov);
-    iEnv->SetEVar("SID", "mock_server");
-    iEnv->SetEVar("EID", "Env_0");
-    iEnv->ConstructSystem();
-    Elem* root = iEnv->Root();
-    CPPUNIT_ASSERT_MESSAGE("Fail to get local root", root != 0);
+    constructSystem("ut_systdm_cre");
+#if 0
     // Getting local remote env agent
     MElem* renv = root->GetNode("./Renv"); 
     CPPUNIT_ASSERT_MESSAGE("Fail to get Renv", renv != 0);
@@ -319,23 +341,11 @@ void Ut_Renva::test_Renva_Cre()
     // Gettng content
     string l1node1_cont = l1node1->GetContent(string(), EFalse);
     CPPUNIT_ASSERT_MESSAGE("Wrong content of l1node1", l1node1_cont == "Hello!");
-
-    delete iEnv;
+#endif
 }
 
 
-void ReadCspec(const string& aFileName, string& aCspec)
-{
-    ifstream ifs(aFileName.c_str());
-    filebuf* pbuf = ifs.rdbuf();
-    size_t size = pbuf->pubseekoff (0,ifs.end,ifs.in);
-    pbuf->pubseekpos (0,ifs.in);
-    char* buffer=new char[size];
-    pbuf->sgetn(buffer,size);
-    aCspec.insert(0, buffer, size);
-    ifs.close();
-    delete buffer;
-}
+#if 0
 
 /* Test suite to verify remote interaction to the primary model
  * The complete scheme is used: primary model is created remotelly, the model

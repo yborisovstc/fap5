@@ -5,6 +5,7 @@
 #include "mowning.h"
 #include "nconn.h"
 #include "guri.h"
+#include "ifu.h"
 
 
 class MNode;
@@ -98,6 +99,8 @@ class MNode: public MIface
 	virtual string MNode_Uid() const = 0;
 	virtual MIface* getLif(TIdHash aTid) override { return MNode_getLif(aTid);}
 	virtual MIface* MNode_getLif(TIdHash aTid) = 0;
+        void call(const string& aSpec, string& aRes, MIface*& aIres) override { MNode_call(aSpec, aRes, aIres);}
+        virtual void MNode_call(const string& aSpec, string& aRes, MIface*& aIres) = 0;
 	virtual void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MNode_doDump(aLevel, aIdt, aOs);}
 	virtual void MNode_doDump(int aLevel, int aIdt, ostream& aOs) const = 0;
 	// Local
@@ -123,15 +126,12 @@ class MNode: public MIface
 	 * @param  aLocal  the sign of local mut. This means that target attr needs to be ignored
 	 * */
 	virtual void mutate(const ChromoNode& aMut, bool aChange /*EFalse*/, const MutCtx& aCtx, bool aTreatAsChromo = false, bool aLocal = false) = 0;
-	//virtual MNode* createHeir(const string& aName) = 0;
-	//virtual bool attachHeir(MNode* aHeir) = 0;
 	virtual bool attachOwned(MNode* aOwned) = 0;
 	virtual TOwnerCp* ownerCp() = 0;
 	virtual const TOwnerCp* ownerCp() const = 0;
-	// virtual TOwnedCp* ownedCp() = 0; //  Moved to MOwned
-	// virtual const TOwnedCp* ownedCp() const = 0; //  Moved to MOwned
-	//virtual const MContentOwner* cntOw() const = 0;
-	//virtual MContentOwner* cntOw() = 0;
+    protected:
+	struct EIfu: Ife { EIfu(); };
+	static EIfu mIfu; // Interface methods utility
    
 };
 

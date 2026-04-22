@@ -31,6 +31,17 @@ static const map<int, string> KLogLevelsStr = {
     { EAll, "All"}
 };
 
+MNode::EIfu MNode::mIfu;
+
+// Ifu static initialisation
+MNode::EIfu::EIfu()
+{
+    RegMethod("name", 0);
+    RegMethod("getNode", 1);
+    RegMethod("mutate", 2);
+}
+
+
 
 vector<GUri> Node::getParentsUri()
 {
@@ -67,6 +78,40 @@ Node::~Node()
 
     // Disconnect all observers
     mOcp.disconnectAll();
+}
+
+void Node::MNode_call(const string& aSpec, string& aRes, MIface*& aIres)
+{
+    MIface* res = NULL;
+    string name, sig;
+    vector<string> args;
+    Ifu::ParseIcSpec(aSpec, name, sig, args);
+    bool name_ok = MNode::mIfu.CheckMname(name);
+    if (!name_ok)
+	throw (runtime_error("Wrong method name"));
+    bool args_ok = MNode::mIfu.CheckMpars(name, args.size());
+    if (!args_ok)
+	throw (runtime_error("Wrong arguments number"));
+    if (name == "mutate") {
+        MChromo* chromo = Provider()->createChromo();
+        chromo->SetFromSpec(args.at(0));
+        if (chromo->IsError()) {
+            throw (runtime_error("Chromo error"));
+        } else {
+            bool updonly = Ifu::ToBool(args.at(1));
+            mutate(chromo->Root(), updonly, nullptr, false, false);
+        }
+    } else if (name == "getNode") {
+        res = getNode(args[0]);
+        if (!res) {
+            throw (runtime_error("Failed getting node"));
+        }
+    } else if (name == "name") {
+        aRes = Node::name();
+    } else {
+        throw (runtime_error("Unhandled method: " + name));
+    }
+    aIres = res;
 }
 
 void Node::MNode_doDump(int aLevel, int aIdt, ostream& aOs) const
@@ -338,7 +383,20 @@ void Node::ownerGetUri(GUri& aUri, const MOwner* aBase) const
     }
 }
 
+bool Node::owrAttachOwned(MOwned* aOwned)
+{
+    bool res = ownerCp()->connect(aOwned->ownedCp());
+    if (res) {
+	// The order matters. First notify owner to configure and embed owned.
+	onOwnedAttached(aOwned);
+	aOwned->onOwnerAttached();
+    } else {
+	LOGN(EErr, "Attaching owned: already exists [" + aOwned->ownedId() + "]");
+    }
+    return res;
+}
 
+// TODO Do we need this? Now we have owrAttachOwned that can be used instead
 bool Node::attachOwned(MNode* aOwned)
 {
     MOwned* owned = aOwned->lIf(owned);

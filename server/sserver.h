@@ -8,17 +8,20 @@
 #include <netinet/in.h>
 #include <netinet/in.h>
 
+
 #define PORT 30666
 
 using namespace std;
 
+
 class Server {
     public:
-        Server();
-        Server(int aPort);
+        Server(const string& aId);
+        Server(const string& aId, int aPort);
 	void Construct();
         void AcceptAndDispatch();
     private:
+        string mId;
         //Socket stuff
 	int mPort;
         int mServerSock, mClientSock;

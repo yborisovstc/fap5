@@ -8,6 +8,7 @@
 #include "menv.h"
 #include "mecont.h"
 #include "mlog.h"
+#include "log.h"
 #include "ifu.h"
 #include "prof.h"
 
@@ -44,6 +45,7 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	void Construct() override {}
 	MIface* MNode_getLif(TIdHash aTid) override;
 	string MNode_Uid() const override { return getUid<MNode>();}
+        void MNode_call(const string& aSpec, string& aRes, MIface*& aIres) override;
 	void MNode_doDump(int aLevel, int aIdt, ostream& aOs) const override;
 	const string& name() const override { return mName;}
 	const MNode* getNode(const GUri& aUri) const override { return const_cast<const MNode*>(const_cast<Node*>(this)->getNode(aUri));}
@@ -83,6 +85,7 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	//void getModules(vector<MNode*>& aModules) override;
 	bool isOwned(const MOwned* mOwned) const override;
 	MNode* getParent(const GUri& aUri);
+	bool owrAttachOwned(MOwned* aOwned) override;
 	// From MObservable
 	string MObservable_Uid() const override { return getUid<MObservable>();}
 	MIface* MObservable_getLif(TIdHash aId) override {return nullptr;}
@@ -175,13 +178,15 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 
 #define LOGN(aLevel, aContent) \
     if (Logger()->MeetsLevel(aLevel) && isLogLevel(aLevel)) {\
-	TLog rec(aLevel, this, aContent);\
+	TLog rec(aLevel, getUriS(), aContent);\
 	Logger()->Write(rec);\
     }\
 
+#define LOGN2(aLevel) Logger()->MeetsLevel(aLevel) && isLogLevel(aLevel) && TLog(aLevel, MNode::Uid(), Logger()).ContentStream()
+
 #define LOGNN(aNode, aLevel, aContent) \
     if (aNode->Logger()->MeetsLevel(aLevel) && aNode->isLogLevel(aLevel)) {\
-	TLog rec(aLevel, aNode, aContent);\
+	TLog rec(aLevel, aNode->getUriS(), aContent);\
 	aNode->Logger()->Write(rec);\
     }\
 

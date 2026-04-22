@@ -1349,6 +1349,50 @@
         </sect2>
     </sect1>
 
+    <sect1 id="sec_ilg"><title>Improvement of logging</title>
+        <sect2><title>Intro</title>
+            <simpara>Adding <xref linkend="gls_dmn"/> to the project causes extended requirement to logging system.</simpara>
+            <simpara>
+                First of all we need to include into log record such data as process, thread, client/server session IDs to distinguish between
+                distributed nodes.
+            </simpara>
+            <simpara>
+                Then we need to record log correctly even in multi-threaded and multi-process environment.
+            </simpara>
+        </sect2>
+        <sect2 id="sec_ilg_rq"><title>Requirements.</title>
+            <sect3 id="sec_ilg_rq_01"><title>ILG_RQ_01 Log record shall include</title>
+                <simpara>
+                    Log record shall include:
+                </simpara>
+                <itemizedlist>
+                    <listitem>Date</listitem>
+                    <listitem>Time: with mcsec granularity</listitem>
+                    <listitem>Category (importance level)</listitem>
+                    <listitem>Model object UID</listitem>
+                    <listitem>Scope (process, thread)</listitem>
+                </itemizedlist>
+            </sect3>
+            <sect3 id="sec_ilg_rq_02"><title>ILG_RQ_02 Stream interface</title>
+                <simpara>
+                    Log record shall provide client with stream interface for convenience.
+                </simpara>
+            </sect3>
+            <sect3 id="sec_ilg_rq_03"><title>ILG_RQ_03 Correct order in multithreading sourcing.</title>
+                <simpara>
+                    Log records shall not be messed even in case if they are sourced from number of
+                    threads and processes.
+                </simpara>
+            </sect3>
+            <sect3 id="sec_ilg_rq_04"><title>ILG_RQ_04 Minimization if execution in case of category not meet.</title>
+                <simpara>
+                    Log record category meeet logic shall minimize the execution time in case if 
+                    category doesn't meet.
+                </simpara>
+            </sect3>
+        </sect2>
+    </sect1>
+
     <sect1 id="ds_ibc"><title>Tracking: Design items to be handed</title>
         <sect2><title><xref linkend="ds_pigp"/></title>
         </sect2>

@@ -13,6 +13,7 @@ char Ifu::KRinvSep = ',';
 int  Ifu::KDumpIndent = 3;
 string Ifu::K_SpName_Ns = "_@";
 string Ifu::K_SpName_Nil = "_";
+string Ifu::KArraySep = ";";
  
 Ifu::Ifu()
 {
@@ -138,6 +139,79 @@ string Ifu::CombineIcSpec(const string& aName, const string& aSig, const string&
 {
     return aName + KRinvSep + aSig + KRinvSep + EscCtrl(aArg, KRinvSep);
 }
+
+bool Ifu::ToBool(const string& aString)
+{
+    bool res = false;
+    if (aString == "false") res = false;
+    else if (aString == "true") res = true;
+    else throw (runtime_error("Incorrect boolean value: " + aString));
+    return res;
+}
+
+string Ifu::FromBool(bool aBool)
+{
+    return aBool ? "true" : "false";
+}
+
+int Ifu::ToInt(const string& aString)
+{
+    int res = 0;
+    stringstream ss(aString);
+    ss >> res;
+    return res;
+}
+
+string Ifu::FromInt(int aInt)
+{
+    stringstream ss;
+    ss << aInt;
+    return ss.str();
+}
+
+void Ifu::ToStringArray(const string& aString, vector<string>& aRes)
+{
+    size_t end = 0;
+    size_t beg = end + 1;
+    do {
+	beg = end + 1;
+	size_t mid = beg;
+	// Find first non-escaped separator
+	do {
+	    end = aString.find_first_of(KArraySep, mid); 
+	    mid = end + 1;
+	} while (end != string::npos && aString.at(end - 1) == KEsc);
+	string elem = aString.substr(beg, (end == string::npos) ? string::npos : end - beg);
+	aRes.push_back(elem);
+    } while (end != string::npos);
+}
+
+void Ifu::ParseUid(const string& aUid, string& aOid, string& aType)
+{
+    size_t oid_beg = 0, oid_end = 0;
+    oid_end = aUid.find_first_of(KUidSep, oid_beg); 
+    aOid = aUid.substr(oid_beg, (oid_end == string::npos) ? string::npos : oid_end - oid_beg);
+    if (oid_end != string::npos) {
+	size_t type_beg = oid_end + 1;
+	aType = aUid.substr(type_beg);
+    }
+}
+
+void Ifu::CombineUid(const string& aOid, const string& aType, string& aUid)
+{
+    aUid = aOid + KUidSep + aType;
+}
+
+bool Ifu::IsSimpleIid(const string& aIid)
+{
+    size_t sep = aIid.find_first_of(KUidSep); 
+    return (sep == string::npos);
+}
+
+
+
+
+
 
 /// Ife
 

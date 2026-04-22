@@ -121,7 +121,7 @@ DaaPxMgr::DaaPxMgr(MEnv* aEnv, MProxyMgrOwner* aOwner, RenvClient& aRenvClient):
 DaaPxMgr::~DaaPxMgr()
 {
     for (TPxs::iterator it = mProxies.begin(); it != mProxies.end(); it++) {
-	DaaProxy* px = it->second;
+	MProxy* px = it->second;
 	delete px;
     }
     mProxies.clear();
@@ -129,7 +129,7 @@ DaaPxMgr::~DaaPxMgr()
 
 MProxy *DaaPxMgr::CreateProxy(const string &aId, const string &aContext)
 {
-	DaaProxy *res = NULL;
+	MProxy *res = NULL;
 	// Checking if UID is already proxied
 	if (IsCached(aContext)) {
 		res = GetProxy(aContext);
@@ -148,13 +148,18 @@ MProxy *DaaPxMgr::CreateProxy(const string &aId, const string &aContext)
 	return res;
 }
 
-void DaaPxMgr::RegProxy(DaaProxy* aProxy)
+void DaaPxMgr::RegisterProxy(MProxy* aProxy)
 {
-    assert(aProxy != NULL && !IsCached(aProxy->GetContext()));
-    mProxies.insert(pair<string, DaaProxy*>(aProxy->GetContext(), aProxy));
+    RegProxy(aProxy);
 }
 
-void DaaPxMgr::UnregProxy(const DaaProxy* aProxy)
+void DaaPxMgr::RegProxy(MProxy* aProxy)
+{
+    assert(aProxy != NULL && !IsCached(aProxy->GetContext()));
+    mProxies.insert(pair<string, MProxy*>(aProxy->GetContext(), aProxy));
+}
+
+void DaaPxMgr::UnregProxy(const MProxy* aProxy)
 {
     for (TPxs::iterator it = mProxies.begin(); it != mProxies.end(); it++) {
 	if (it->second == aProxy) {
@@ -170,7 +175,7 @@ bool DaaPxMgr::IsCached(const string& aContext) const
     return mProxies.count(aContext) > 0;
 }
 
-DaaProxy* DaaPxMgr::GetProxy(const string& aContext) const
+MProxy* DaaPxMgr::GetProxy(const string& aContext) const
 {
     assert(IsCached(aContext));
     return mProxies.at(aContext);
@@ -208,6 +213,14 @@ DaaProxy::DaaProxy(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext): mEnv(aE
 DaaProxy::~DaaProxy()
 {
     mMgr->OnProxyDeleting(this);
+}
+
+bool DaaProxy::setContext(const string& aContext)
+{
+    bool res = true;
+    assert (mContext.empty());
+    mContext = aContext;
+    return res;
 }
 
 const string& DaaProxy::GetContext() const

@@ -791,7 +791,8 @@ void Chromo2Mdl::DumpToLog(const THandle& aNode, MLogRec* aLogRec)
 bool Chromo2Mdl::ToString(const THandle& aNode, string& aString) const
 {
     ostringstream os;
-    OutputNode(mRoot, os, 0, K_Indent);
+    C2MdlNode* node = aNode.Data(node);
+    OutputNode(*node, os, 0, K_Indent);
     aString = os.str();
     return true;
 }

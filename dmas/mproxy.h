@@ -18,7 +18,7 @@ class MProxy : public MIface
     public:
 	// From MIface 
 	TIdHash id() const override { return idHash();}
-	virtual bool setContext(const string& aContext) const = 0;
+	virtual bool setContext(const string& aContext) = 0;
 	virtual const string& GetContext() const = 0;
 	virtual string MProxy_Uid() const = 0;
 	string Uid() const override { return MProxy_Uid();}
@@ -27,13 +27,16 @@ class MProxy : public MIface
 /*
  * Proxy manager interface
  */
-class MProxyMgr 
+class MProxyMgr
 {
     public:
+        virtual ~MProxyMgr() {}
 	virtual MProxy* CreateProxy(const string& aId, const string& aContext) = 0;
 	virtual bool Request(const string& aContext, const string& aReq, string& aResp) = 0;
+	virtual void RegisterProxy(MProxy* aProxy) = 0;
 	// Object Id
 	virtual string Oid() const = 0;
 	virtual void OnProxyDeleting(const MProxy* aProxy) = 0;
 };
+
 #endif

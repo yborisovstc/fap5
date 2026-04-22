@@ -1,8 +1,10 @@
 #ifndef __FAP5_MENV_H
 #define __FAP5_MENV_H
 
-#include "miface.h"
 #include <vector>
+
+#include "miface.h"
+#include "ifu.h"
 //#include "mprov.h"
 //#include "mlog.h"
 //#include "mprof.h"
@@ -45,12 +47,14 @@ class MEnv : public MIface
 	virtual string MEnv_Uid() const = 0;
 	virtual MIface* getLif(const char *aType) { return MEnv_getLif(aType);}
 	virtual MIface* MEnv_getLif(const char *aType) = 0;
+        void call(const string& aSpec, string& aRes, MIface*& aIres) override { MEnv_call(aSpec, aRes, aIres);}
+        virtual void MEnv_call(const string& aSpec, string& aRes, MIface*& aIres) = 0;
 	virtual void doDump(int aLevel, int aIdt = 0) const { return MEnv_doDump(aLevel, aIdt, std::cout);}
 	virtual void MEnv_doDump(int aLevel, int aIdt, ostream& aOs) const = 0;
         // Local
 	virtual MProvider* provider() const = 0;
 	/** @brief Constructs model with the chromo spec set */
-	virtual void constructSystem() = 0;
+	virtual bool constructSystem() = 0;
 	/** @brief Gets logger instance */
 	virtual MLogRec* Logger() = 0;
 	/** @brief Gets profiler iface */
@@ -76,6 +80,9 @@ class MEnv : public MIface
 	virtual bool setEVar(const string& aName, const string& aValue) = 0;
 	/** @brier Gets environment variable */
 	virtual bool getEVar(const string& aName, string& aValue) const = 0;
+    protected:
+	struct EIfu: Ife { EIfu(); };
+	static EIfu mIfu; // Interface methods utility
 };
 
 

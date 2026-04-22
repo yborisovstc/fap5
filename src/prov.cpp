@@ -148,6 +148,17 @@ MNode* ProvBase::CreateAgent(const string& aType, const string& aName, MEnv* aEn
     return res;
 }
 
+MIface* ProvBase::createIfi(const string& aType, const string& aName, MEnv* aEnv)
+{
+    MIface* res = NULL;
+    auto it = FIfiReg().find(aType);
+    if (it != FIfiReg().end()) {
+        res = it->second(aName, aEnv);
+    }
+    return res;
+
+}
+
 DtBase* ProvBase::CreateData(const string& aType) const
 {
     DtBase* res = NULL;

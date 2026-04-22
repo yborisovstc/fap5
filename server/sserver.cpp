@@ -1,14 +1,21 @@
 #include "sserver.h"
 #include "sclient.h"
 
+#include "../src/log.h"
+
 using namespace std;
 
-Server::Server(int aPort): mPort(aPort)
+extern Logrec gLogrec;
+
+
+#define LOG(aLevel) gLogrec.MeetsLevel(aLevel) && TLog(aLevel, mId, &gLogrec).ContentStream()
+
+Server::Server(const string& aId, int aPort): mId(aId), mPort(aPort)
 {
     Construct();
 }
 
-Server::Server(): mPort(0)
+Server::Server(const string& aId): mId(aId), mPort(0)
 {
     Construct();
 }
@@ -27,8 +34,10 @@ void Server::Construct()
     mServerAddr.sin_port = htons(mPort == 0 ? PORT : mPort);
     //Avoid bind error if the socket was not close()'d last time;
     setsockopt(mServerSock,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int));
-    if (bind(mServerSock, (struct sockaddr *) &mServerAddr, sizeof(sockaddr_in)) < 0)
-        cerr << "Failed to bind" << endl;
+    int res = bind(mServerSock, (struct sockaddr *) &mServerAddr, sizeof(sockaddr_in)) < 0;
+    if (res < 0) {
+        cerr << "Failed to bind server socket, err: " << errno << endl;
+    }
     listen(mServerSock, 5);
 }
 
@@ -42,9 +51,11 @@ void Server::AcceptAndDispatch() {
         if (sock < 0) {
             cerr << "Error on accept";
         } else {
-            new SessionClient(sock);
-	    cout << "Server [p:" << htons(mServerAddr.sin_port) <<
-		"], accepted client [p:" << htons(mClientAddr.sin_port) << "]" << endl;
+            new SessionClient(sock, mId);
+            //cout << "Server [p:" << htons(mServerAddr.sin_port) <<
+	    // "], accepted client [p:" << htons(mClientAddr.sin_port) << "]" << endl;
+	    LOG(EDbg) << "Server [p:" << htons(mServerAddr.sin_port) <<
+		"], accepted client [p:" << htons(mClientAddr.sin_port) << "]";
         }
     }
 }
