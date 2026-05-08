@@ -5,6 +5,7 @@
 #include "guri.h"
 #include "chromo.h"
 #include "nconn.h"
+#include "ifu.h"
 
 class MOwned;
 class MutCtx;
@@ -65,6 +66,8 @@ class MOwned : public MIface
 	virtual string MOwned_Uid() const = 0;
 	virtual MIface* getLif(TIdHash aTid) override { return MOwned_getLif(aTid);}
 	virtual MIface* MOwned_getLif(TIdHash aTid) = 0;
+        void call(const string& aSpec, string& aRes, MIface*& aIres) override { MOwned_call(aSpec, aRes, aIres);}
+        virtual void MOwned_call(const string& aSpec, string& aRes, MIface*& aIres) {}
 	// Local
 	virtual string ownedId() const = 0;
 	virtual void deleteOwned() = 0;
@@ -74,6 +77,9 @@ class MOwned : public MIface
 	virtual const MOwner* asOwner() const = 0;
 	virtual TOwnedCp* ownedCp() = 0;
 	virtual const TOwnedCp* ownedCp() const = 0;
+    protected:
+	struct EIfu: Ife { EIfu(); };
+	static EIfu mIfu;
 };
 
 

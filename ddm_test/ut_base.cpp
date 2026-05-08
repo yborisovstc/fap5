@@ -21,12 +21,26 @@
  */
 
 
+void ReadCspec(const string& aFileName, string& aCspec)
+{
+    ifstream ifs(aFileName.c_str());
+    filebuf* pbuf = ifs.rdbuf();
+    size_t size = pbuf->pubseekoff (0,ifs.end,ifs.in);
+    pbuf->pubseekpos (0,ifs.in);
+    char* buffer=new char[size];
+    pbuf->sgetn(buffer,size);
+    aCspec.insert(0, buffer, size);
+    ifs.close();
+    delete buffer;
+}
+
+
 // Wait until server run
 bool WaitSrv()
 {
     bool srv_run = false;
     for (int cta = 0; cta < 10; cta++) {
-	sleep(1);
+        sleep(1);
 	int rr = system("ps -e | grep fap5srv > /dev/null");
 	if (rr == 0) {
 	    srv_run = true; break;
@@ -272,16 +286,21 @@ void Ut_ExecMagt::test_Mnode()
 class Ut_Systdm : public CPPUNIT_NS::TestFixture
 {
     CPPUNIT_TEST_SUITE(Ut_Systdm);
-    CPPUNIT_TEST(test_Systdm);
+    //CPPUNIT_TEST(test_Systdm);
+    CPPUNIT_TEST(test_Systdm2);
     CPPUNIT_TEST_SUITE_END();
     public:
     virtual void setUp();
     virtual void tearDown();
     MNode* constructSystem(const string& aSpecn);
+    bool constructSystemRmt(const string& aSpecn);
     private:
     void test_Systdm();
+    void test_Systdm2();
     private:
     Env* mEnv;
+    BaseClient* mClient = nullptr;
+    string mRoot;
 };
 
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(Ut_Systdm, "Ut_Systdm");
@@ -294,6 +313,9 @@ void Ut_Systdm::setUp()
 void Ut_Systdm::tearDown() {
     if (mEnv != nullptr) {
         delete mEnv;
+    }
+    if (mClient != nullptr) {
+        delete mClient;
     }
 }
 
@@ -315,14 +337,60 @@ MNode* Ut_Systdm::constructSystem(const string& aSpecn)
     return root;
 }
 
+/** @brief
+ * Construct system on remote environment
+ * */
+bool Ut_Systdm::constructSystemRmt(const string& aSpecn)
+{
+    bool res = false;
+    mClient = new BaseClient();
+    // Wait until server run
+    bool srv_run = WaitSrv();
+    CPPUNIT_ASSERT_MESSAGE("Server isn't running", srv_run);
+    try {
+	mClient->Connect("");
+    } catch (exception& e) {
+	CPPUNIT_ASSERT_MESSAGE("Error connecting to server", false);
+    }
+    cout << "Client connected to the server" << endl;
+    string resp;
+    string sid;
+    res = mClient->Request("MEnvProvider", "GetId", sid);
+    CPPUNIT_ASSERT_MESSAGE("Request -GetId- failed", res);
+    cout << "constructSystemRmt, Getting session1 id, res: " << (res ? "OK" : "ERR") << ", Response: " << sid << endl;
+    // Creating env
+    string cenv;
+    res = mClient->Request("MEnvProvider", KMeth_CreateEnv + ",1," + aSpecn, cenv);
+    cout << "constructSystemRmt, Create env, res: " << (res ? "OK" : "ERR") << ", Response: " << sid << endl;
+    CPPUNIT_ASSERT_MESSAGE("Request -create_env- failed", res);
+    // Creating model
+    res = mClient->Request(cenv, "constructSystem", resp);
+    cout << "constructSystemRmt, Construct system, res: " << (res ? "OK" : "ERR") << ", Response: " << resp << endl;
+    CPPUNIT_ASSERT_MESSAGE("Constructing model failed: " + resp, res);
+    // Getting root
+    res = mClient->Request(cenv, "Root", mRoot);
+    cout << "constructSystemRmt, Getting root, res: " << (res ? "OK" : "ERR") << ", Response: " << mRoot << endl;
+    CPPUNIT_ASSERT_MESSAGE("Request -get root- failed", res);
+    res = true;
+    return res;
+}
 
-/* @brief Simple distributed model with SystDm
+/* @brief Simple distributed model with SystDm, local primary model
  */
 void Ut_Systdm::test_Systdm()
 {
     cout << endl << "=== Test of Creating simple distributed model" << endl;
     // Create model
     constructSystem("ut_systdm_cre");
+
+    MNode* sysdm = mEnv->Root()->getNode("SDm");
+    CPPUNIT_ASSERT_MESSAGE("Fail to get SDm", sysdm);
+    MOwned* node1Owd = sysdm->getOwned("Node1");
+    CPPUNIT_ASSERT_MESSAGE("Fail to get Node1-MOwned", node1Owd);
+    string node1OwdId = node1Owd->ownedId();
+    CPPUNIT_ASSERT_MESSAGE("Fail to get Node1-MOwned Id", node1OwdId == "Node1");
+    //MNode* node1 = sysdm->getNode("Node1");
+    //CPPUNIT_ASSERT_MESSAGE("Fail to get Node1", node1);
 #if 0
     // Getting local remote env agent
     MElem* renv = root->GetNode("./Renv"); 
@@ -343,6 +411,28 @@ void Ut_Systdm::test_Systdm()
     CPPUNIT_ASSERT_MESSAGE("Wrong content of l1node1", l1node1_cont == "Hello!");
 #endif
 }
+
+/* @brief Simple distributed model with SystDm, remote primary model
+ */
+void Ut_Systdm::test_Systdm2()
+{
+    cout << endl << "=== Test of Creating simple distributed model" << endl;
+    // Create model
+    string cspec;
+    ReadCspec("ut_systdm_cre.chs", cspec);
+    bool res = constructSystemRmt(cspec);
+    CPPUNIT_ASSERT_MESSAGE("Fail to construct system on remote env", res);
+
+    string sdm;
+    res = mClient->Request(mRoot, "getNode,1,SDm", sdm);
+    CPPUNIT_ASSERT_MESSAGE("Fail to get SDm", res);
+    cout << "Got node sdm: " << sdm << endl;
+    string node1;
+    res = mClient->Request(sdm, "getNode,1,Node1", node1);
+    CPPUNIT_ASSERT_MESSAGE("Fail to get Node1", res);
+    cout << "Got node node1: " << node1 << endl;
+}
+
 
 
 #if 0

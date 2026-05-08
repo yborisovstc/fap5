@@ -47,11 +47,14 @@ MNode* SystDm::mutAddElem(const ChromoNode& aMut, bool aUpdOnly, const MutCtx& a
                 break;
             }
             cres = owrAttachOwned(owd);
+            if (!cres) {
+                LOGN2(EErr) << "Failed attaching owned " << owd->Uid();
+                break;
+            }
         } while (false);
     } else {
         // Local model
         // TODO TBD
     }
     return res;
-
 }

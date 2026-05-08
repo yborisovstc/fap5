@@ -96,7 +96,7 @@ class DaaProxy : public MProxy
 	inline MLogRec* Logger() const;
 	bool Request(const string& aReq, string& aResp);
 	MIface* NewProxyRequest(const string& aCallSpec, const string& aPxType);
-	MIface* GetProxy(const string& aSpec, const string& aPxType) const;
+	MIface* GetProxy(const string& aSpec, const string& aIdS) const;
 	const MIface* NewProxyRequest(const string& aCallSpec, const string& aPxType) const {
             auto self = const_cast<DaaProxy*>(this);
             return self->NewProxyRequest(aCallSpec, aPxType);
@@ -173,7 +173,7 @@ template<typename TRet> TRet* DaaProxy::RpcPx(const string& aName) const
 {
     string resp;
     bool rres = mMgr->Request(mContext, Ifu::PackMethod(aName), resp);
-    return (rres ? (TRet*) GetProxy(resp, TRet::Type()) : NULL);
+    return (rres ? (TRet*) GetProxy(resp, TRet::idHash(), TRet::idStr()) : NULL);
 } 
 
 template<typename TRet> const TRet* DaaProxy::RpcPxC(const string& aName) const
@@ -187,7 +187,7 @@ template<typename TRet, typename TArg1> TRet* DaaProxy::RpcPx(const string& aNam
 {
     string resp;
     bool rres = mMgr->Request(mContext, Ifu::PackMethod(aName, aArg), resp);
-    return (rres ? (TRet*) GetProxy(resp, TRet::Type()) : NULL);
+    return (rres ? (TRet*) GetProxy(resp, string(TRet::idStr())) : NULL);
 }
 
 template<typename TRet, typename TArg1> const TRet* DaaProxy::RpcPxC(const string& aName, TArg1 aArg) const

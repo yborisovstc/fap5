@@ -64,6 +64,7 @@ class Node : public MNode, public MObservable, public MOwner, public MOwned, pub
 	// From Owned
 	string MOwned_Uid() const {return getUid<MOwned>();}
 	MIface* MOwned_getLif(TIdHash aId) override;
+        void MOwned_call(const string& aSpec, string& aRes, MIface*& aIres) override;
 	string ownedId() const override { return name();}
 	void deleteOwned() override { delete this;}
 	void onOwnerAttached() override;

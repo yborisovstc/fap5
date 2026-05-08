@@ -76,8 +76,7 @@ struct TNodeEventChanged : public MEvent
 };
 
 
-/** @brief Native heirarchy node interface. It is iface-aggregator, i.e represent
- * convenient access to set of the base ifaces (owner-owned etc.)
+/** @brief Mutable native heirarchy node interface.
  * */
 class MNode: public MIface
 {
@@ -127,6 +126,7 @@ class MNode: public MIface
 	 * */
 	virtual void mutate(const ChromoNode& aMut, bool aChange /*EFalse*/, const MutCtx& aCtx, bool aTreatAsChromo = false, bool aLocal = false) = 0;
 	virtual bool attachOwned(MNode* aOwned) = 0;
+        // TODO OPT ownerCp is actually not iface method but used internally in Node. To remove
 	virtual TOwnerCp* ownerCp() = 0;
 	virtual const TOwnerCp* ownerCp() const = 0;
     protected:

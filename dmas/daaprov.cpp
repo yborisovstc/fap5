@@ -10,7 +10,7 @@ const ProvBase::TFReg DaaProv::mReg ( {
 });
 
 const ProvBase::TIfiFReg DaaProv::mIfiReg ( {
-        IfiItem<OwdRenvAdp>() 
+        /*IfiItem<OwdRenvAdp>()*/
 });
 
 /** Data factory registry */

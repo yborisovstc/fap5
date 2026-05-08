@@ -135,7 +135,7 @@ MProxy *DaaPxMgr::CreateProxy(const string &aId, const string &aContext)
 		res = GetProxy(aContext);
 	} else {
                 // TODO to consider identification (name) of proxy
-		MIface* ifi = mEnv->provider()->createIfi(aId, "", mEnv);
+		MIface* ifi = mEnv->provider()->createIfi(aId, "Proxy_name", mEnv);
                 res = ifi ? ifi->lIf(res) : nullptr;
                 // TODO to connect px to pxmgr
 		if (res != NULL) {

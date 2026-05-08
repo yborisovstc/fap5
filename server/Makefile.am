@@ -20,7 +20,6 @@ include_HEADERS = \
 		  sserver.h \
 		  fapcsbase.h
 
-#fap5srv_LDFLAGS=  -L../client/.libs/ -lfap2client -L../dmas/.libs -lfap2da -lrt -Wl,--no-as-needed
-fap5srv_LDFLAGS=  -L../src/.libs/ -lfap5 -lrt -Wl,--no-as-needed
+fap5srv_LDFLAGS=  -L../src/.libs/ -lfap5 -L../dmas/.libs -lfap5da -L../client/.libs/ -lfap5client -lrt -Wl,--no-as-needed
 fap5srv_CXXFLAGS=-I@srcdir@/../src
 #fap5srv_LDFLAGS= -lrt -Wl,--no-as-needed

@@ -78,7 +78,7 @@ class ProvBase: public Provider
 	MNode* CreateAgent(const string& aType, const string& aName, MEnv* aEnv) const;
 	DtBase* CreateData(const string& aType) const;
 	template<typename T> static pair<string, ProvBase::TFact*> Item();
-	template<typename T> static pair<string, ProvBase::TIfiFact*> IfiItem();
+	template<typename T, typename P> static pair<string, ProvBase::TIfiFact*> IfiItem();
 	template<typename T> static pair<string, ProvBase::TDtFact*> DItem();
     private:
 	vector<string> iNodesInfo;
@@ -91,9 +91,9 @@ template<typename T> pair<string, ProvBase::TFact*> ProvBase::Item() {
 }
 
 /** Generator of Iface impl factory registry item */
-template<typename T> pair<string, ProvBase::TIfiFact*> ProvBase::IfiItem() {
+template<typename T, typename P> pair<string, ProvBase::TIfiFact*> ProvBase::IfiItem() {
     return pair<string, ProvBase::TIfiFact*>
-	(T::idStr(), [](const string &name, MEnv* env)->MIface* { return new T(name, env);});
+	(T::idStr(), [](const string &name, MEnv* env)->MIface* { return new P(name, env);});
 }
 
 

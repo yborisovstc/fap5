@@ -3,7 +3,7 @@
 #include "renvadp.h"
 
 
-#define LOG(aLevel) mEnv->Logger()->MeetsLevel(aLevel) && TLog(aLevel, Uid(), mEnv->Logger()).ContentStream()
+#define LOG(aLevel) mEnv->Logger()->MeetsLevel(aLevel) && TLog(aLevel, MRenvAdp::Uid(), mEnv->Logger()).ContentStream()
 
 
 //// OwnedPpx
@@ -17,15 +17,63 @@ OwdRenvAdp::OwnedPpx::~OwnedPpx()
 MIface* OwdRenvAdp::OwnedPpx::MOwned_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
+    if (res = checkLif(aId, mMOwned));
+    else (aId == MNode::idHash()) {
+    }
     return res;
+}
+
+string OwdRenvAdp::OwnedPpx::ownedId() const
+{
+    string resp;
+    bool res = mMgr->Request(mContext, "ownedId", resp);
+    return resp;
 }
 
 
 
+//// RenvAdp
+//
+RenvAdp::RenvAdp(const string& aName, MEnv* aEnv): mName(aName), mEnv(aEnv),
+    mPxMgr(aEnv, this, mRenvClient)
+{
+}
+
+RenvAdp::~RenvAdp()
+{
+}
+
+MIface* RenvAdp::MRenvAdp_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif(aId, mMRenvAdp));
+    return res;
+}
+
+string RenvAdp::getOid() const
+{
+    return string();
+}
+
+bool RenvAdp::connect(const string& aSrvUri)
+{
+    bool res = true;
+    assert(mRmtSrvUri.empty());
+    mRmtSrvUri = aSrvUri;
+    try {
+        mRenvClient.Connect(mRmtSrvUri);
+    } catch (exception& e) {
+        LOG(EErr) << "Failed connecting to server " << mRmtSrvUri;
+        res = false;
+    }
+    LOG(EDbg) << "Connected to server " << mRmtSrvUri;
+    return res;
+}
+
+
 //// OwdRenvAdp
 
-OwdRenvAdp::OwdRenvAdp(const string& aName, MEnv* aEnv): mName(aName), mEnv(aEnv),
-    mPxMgr(aEnv, this, mRenvClient)
+OwdRenvAdp::OwdRenvAdp(const string& aName, MEnv* aEnv): RenvAdp(aName, aEnv)
 {
 }
 
@@ -36,11 +84,11 @@ OwdRenvAdp::~OwdRenvAdp()
 MIface* OwdRenvAdp::MOwdRenvAdp_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
-    if (res = checkLif(aId, mMOwdRenvAdp));
-    else if (aId == MOwned::idHash()) {
+    if (aId == MOwned::idHash()) {
         return dynamic_cast<MOwned*>(mOwdPpx);
+    } else {
+        res = MRenvAdp_getLif(aId);
     }
-
     return res;
 }
 
@@ -68,12 +116,12 @@ bool OwdRenvAdp::createRenv(const string& aRmtSrvUid, const string& aPrmUid, con
             LOG(EErr) << "Failed connecting to server " << aRmtSrvUid;
         }
         LOG(EDbg) << "Connected to server " << aRmtSrvUid;
-	// Create remote env
+        // Create remote env
         string env, spec;
         aChromo.ToString(spec);
-	bool cres = mRenvClient.Request("MEnvProvider", "CreateEnv,1," + spec, env);
+        bool cres = mRenvClient.Request("MEnvProvider", "CreateEnv,1," + spec, env);
         if (!cres) {
-	    LOG(EErr) << "Failed creating remote model environment: " << env;
+            LOG(EErr) << "Failed creating remote model environment: " << env;
             break;
         }
         // Set server id, env id and this agent Uid to remote env as Primary SID, EID and UID
@@ -94,13 +142,13 @@ bool OwdRenvAdp::createRenv(const string& aRmtSrvUid, const string& aPrmUid, con
             cres = cres && mRenvClient.Request(env, "setEVar,1,PrimaryUid," + aPrmUid, resp);
         }
         if (!cres) {
-	    LOG(EErr) << "Failed setting primary environment IDs";
+            LOG(EErr) << "Failed setting primary environment IDs";
             break;
         }
         string rsid;
         cres = cres && mRenvClient.Request(env, "getEVar,1,SSID", rsid);
         if (!cres) {
-	    LOG(EErr) << "Failed getting SSID";
+            LOG(EErr) << "Failed getting SSID";
             break;
         }
         mRenvClient.SetRmtSID(rsid);
@@ -115,21 +163,120 @@ bool OwdRenvAdp::createRenv(const string& aRmtSrvUid, const string& aPrmUid, con
         cres = mRenvClient.Request(env, "Root", rroot);
         if (!cres) {
             LOG(EErr) << "Failed getting remote env root, resp: " << rroot;
+            break;
         }
-        LOG(EInfo) << "Getting remote env root, resp: " << rroot;
+        string rrootOwd;
+        string req = Ifu::CombineIcSpec("MNode_getLif", "1", Ifu::FromIdHash(MOwned::idHash()));
+        cres = mRenvClient.Request(rroot, req, rrootOwd);
+        if (!cres) {
+            LOG(EErr) << "Failed getting remote env root owned, resp: " << rrootOwd;
+            break;
+        }
+        LOG(EInfo) << "Getting remote env root owned, resp: " << rrootOwd;
         // Create MOwned proxy to remote root
         // The proxy created is actually primary proxy - specific proxy assosiated to Renv adapter
-        mOwdPpx = new OwnedPpx(this, rroot);
+        mOwdPpx = new OwnedPpx(this, rrootOwd);
         mPxMgr.RegisterProxy(mOwdPpx);
 
         res = true;
-        } while (false);
-        return res;
-    }
+    } while (false);
+    return res;
+}
 
-string OwdRenvAdp::getOid() const
+
+//// OwgRenvAdp::OwnerPpx
+
+
+OwgRenvAdp::OwnerPpx::OwnerPpx(OwgRenvAdp* aHost, const string& aContext):
+    DaaProxy(aHost->mEnv, &aHost->mPxMgr, aContext), mHost(aHost), mOwsCp(this) {}
+
+OwgRenvAdp::OwnerPpx::~OwnerPpx() 
+{}
+
+MIface* OwgRenvAdp::OwnerPpx::MOwner_getLif(TIdHash aId)
 {
-    return string();
+    MIface* res = nullptr;
+    return res;
+}
+
+MOwned* OwgRenvAdp::OwnerPpx::getOwned(const GUri& aUri, const MOwned* aReq) const
+{
+    return nullptr;
+}
+
+void OwgRenvAdp::OwnerPpx::ownerGetUri(GUri& aUri, const MOwner* aBase) const
+{
+}
+
+void OwgRenvAdp::OwnerPpx::onOwnedMutated(const MOwned* aOwned, const ChromoNode& aMut, const MutCtx& aCtx)
+{
+}
+
+void OwgRenvAdp::OwnerPpx::onOwnedAttached(MOwned* aOwned)
+{
+}
+
+void OwgRenvAdp::OwnerPpx::onOwnedDetached(MOwned* aOwned)
+{
+}
+
+MNode* OwgRenvAdp::OwnerPpx::getParent(const GUri& aUri)
+{
+    return nullptr;
+}
+
+bool OwgRenvAdp::OwnerPpx::isOwned(const MOwned* mOwned) const
+{
+    return false;
+}
+
+bool  OwgRenvAdp::OwnerPpx::owrAttachOwned(MOwned* aOwned)
+{
+    bool res = mOwsCp.connect(aOwned->ownedCp());
+    return res;
+}
+
+
+//// OwgRenvAdp
+
+OwgRenvAdp::OwgRenvAdp(const string& aName, MEnv* aEnv): RenvAdp(aName, aEnv)
+{
+}
+
+OwgRenvAdp::~OwgRenvAdp()
+{
+    if (mOwrPpx) {
+        delete mOwrPpx;
+    }
+}
+
+MIface* OwgRenvAdp::MOwgRenvAdp_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (aId == MOwner::idHash()) {
+        return dynamic_cast<MOwner*>(mOwrPpx);
+    } else {
+        res = MRenvAdp_getLif(aId);
+    }
+    return res;
+}
+
+bool OwgRenvAdp::bindRenv(const string& aPSid, const string& aPEid, const string& aPUid)
+{
+    bool res = false;
+    do {
+        // Connect to remote env
+        res = connect(aPSid);
+        if (!res) {
+            LOG(EErr) << "Failed connecting to primary environment server";
+            break;
+        }
+        // Create owner proxy of owner node in remote env
+        mOwrPpx = new OwnerPpx(this, aPUid);
+        mPxMgr.RegisterProxy(mOwrPpx);
+        res = true;
+    } while (false);
+    return res;
 }
 
 

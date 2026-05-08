@@ -11,6 +11,10 @@ libfap5da_la_SOURCES = \
     daaprov.cpp \
     renvadp.h \
     renvadp.cpp \
+    envdm.h \
+    envdm.cpp \
+    nodepx.h \
+    nodepx.cpp \
     sysdm.cpp \
     sysdm.h
 

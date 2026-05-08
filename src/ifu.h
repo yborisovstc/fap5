@@ -6,6 +6,8 @@
 #include <sstream>
 #include <map>
 
+#include "miface.h"
+
 
 using namespace std;
 
@@ -36,6 +38,8 @@ class Ifu
         // IcSpec
 	static string CombineIcSpec(const string& aName, const string& aSig);
 	static string CombineIcSpec(const string& aName, const string& aSig, const string& aArg);
+        static void AddIcSpecArg(string& aSpec, const string& aArg);
+        static void AddIcSpecArg(string& aSpec, bool aArg);
         // Pack/unpack
         template<typename TArg> static string Pack(TArg aArg);
         template<typename TArg> static TArg Unpack(const string& aString, TArg& aArg);
@@ -51,6 +55,8 @@ class Ifu
 	static int ToInt(const string& aString);
 	static string FromInt(int aInt);
 	static void ToStringArray(const string& aString, vector<string>& aRes);
+	static string FromIdHash(MIface::TIdHash aData);
+	static MIface::TIdHash ToIdHash(const string& aString);
         // UID
         static void ParseUid(const string& aUid, string& aOid, string& aType);
         static void CombineUid(const string& aOid, const string& aType, string& aUid);
@@ -64,7 +70,7 @@ class Ifu
         static char KUidSep;
         static char KUidSepIc;  /*!< UID separator of internal component (not native hier) */
         static char KRinvSep;
-	static string KArraySep;
+	static char KArraySep;
         static int  KDumpIndent;
         static string K_SpName_Ns;
         static string K_SpName_Nil;

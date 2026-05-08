@@ -39,6 +39,15 @@ MNode::EIfu::EIfu()
     RegMethod("name", 0);
     RegMethod("getNode", 1);
     RegMethod("mutate", 2);
+    RegMethod("MNode_getLif", 1);
+}
+
+
+MOwned::EIfu MOwned::mIfu;
+
+MOwned::EIfu::EIfu()
+{
+    RegMethod("ownedId", 0);
 }
 
 
@@ -108,11 +117,37 @@ void Node::MNode_call(const string& aSpec, string& aRes, MIface*& aIres)
         }
     } else if (name == "name") {
         aRes = Node::name();
+    } else if (name == "MNode_getLif") {
+        MIface::TIdHash id = Ifu::ToIdHash(args[0]);
+        res = MNode_getLif(id);
     } else {
         throw (runtime_error("Unhandled method: " + name));
     }
     aIres = res;
 }
+
+void Node::MOwned_call(const string& aSpec, string& aRes, MIface*& aIres)
+{
+    MIface* res = NULL;
+    string name, sig;
+    vector<string> args;
+    Ifu::ParseIcSpec(aSpec, name, sig, args);
+    bool name_ok = MOwned::mIfu.CheckMname(name);
+    if (!name_ok) {
+	throw (runtime_error("Wrong method name"));
+    }
+    bool args_ok = MOwned::mIfu.CheckMpars(name, args.size());
+    if (!args_ok) {
+	throw (runtime_error("Wrong arguments number"));
+    }
+    if (name == "ownedId") {
+        aRes = ownedId();
+    } else {
+        throw (runtime_error("Unhandled method: " + name));
+    }
+    aIres = res;
+}
+
 
 void Node::MNode_doDump(int aLevel, int aIdt, ostream& aOs) const
 {

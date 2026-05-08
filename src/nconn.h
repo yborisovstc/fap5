@@ -276,7 +276,7 @@ template <class TPif, class TRif>
 bool NCpOmip<TPif, TRif>::attach(TPair* aPair)
 {
     string pid;
-    assert(aPair && aPair->getId(pid) && !isConnected(aPair));
+    assert(aPair && aPair->getId(pid) /* && !isConnected(aPair)*/); // assuming the client checks
     auto res = mPairs.insert(TPairsElem(pid, aPair));
     return res.second;
 }

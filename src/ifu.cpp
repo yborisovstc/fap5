@@ -3,6 +3,10 @@
 #include <stdexcept> 
 #include <sstream>
 #include <cassert>
+#include <sstream>
+
+#include "mnode.h"
+
 #include "ifu.h" 
 
 
@@ -13,7 +17,7 @@ char Ifu::KRinvSep = ',';
 int  Ifu::KDumpIndent = 3;
 string Ifu::K_SpName_Ns = "_@";
 string Ifu::K_SpName_Nil = "_";
-string Ifu::KArraySep = ";";
+char Ifu::KArraySep = ';';
  
 Ifu::Ifu()
 {
@@ -140,6 +144,16 @@ string Ifu::CombineIcSpec(const string& aName, const string& aSig, const string&
     return aName + KRinvSep + aSig + KRinvSep + EscCtrl(aArg, KRinvSep);
 }
 
+void Ifu::AddIcSpecArg(string& aSpec, const string& aArg)
+{
+    aSpec += KRinvSep + EscCtrl(aArg, KRinvSep);
+}
+
+void Ifu::AddIcSpecArg(string& aSpec, bool aArg)
+{
+    aSpec += KRinvSep + EscCtrl(FromBool(aArg), KRinvSep);
+}
+
 bool Ifu::ToBool(const string& aString)
 {
     bool res = false;
@@ -148,6 +162,140 @@ bool Ifu::ToBool(const string& aString)
     else throw (runtime_error("Incorrect boolean value: " + aString));
     return res;
 }
+
+template<> string Ifu::Pack<bool>(bool aArg)
+{
+    return aArg ? "true" : "false";
+}
+
+template<> string Ifu::Pack<int>(int aArg)
+{
+    stringstream ss;
+    ss << aArg;
+    return ss.str();
+}
+
+template<> string Ifu::Pack<string>(string aArg)
+{
+    return aArg;
+}
+
+template<> string Ifu::Pack<const string&>(const string& aArg)
+{
+    return aArg;
+}
+
+template<> string Ifu::Pack<const char*>(const char* aArg)
+{
+    return string(aArg);
+}
+
+template<> string Ifu::Pack<const GUri&>(const GUri& aArg)
+{
+    return aArg;
+}
+
+template<> string Ifu::Pack<GUri>(GUri aArg)
+{
+    return aArg;
+}
+
+template<> string Ifu::Pack<ChromoNode>(ChromoNode aArg)
+{
+    return aArg;
+}
+
+
+
+template<> string Ifu::Pack<const MIface*>(const MIface* aArg)
+{
+    return aArg == NULL ? GUri::nil : aArg->Uid();
+}
+
+template<> string Ifu::Pack<const MNode*>(const MNode* aArg)
+{
+    return aArg == NULL ? GUri::nil : aArg->getUriS();
+}
+
+template<> string Ifu::Pack<MNode&>(MNode& aArg)
+{
+    return aArg.getUriS();
+}
+
+template<> string Ifu::Pack<const MNode&>(const MNode& aArg)
+{
+    return aArg.getUriS();
+}
+
+template<> string Ifu::Pack<MNode*>(MNode* aArg)
+{
+    return aArg == NULL ? GUri::nil : aArg->getUriS();
+}
+
+template<> string Ifu::Pack<MIface*>(MIface* aArg)
+{
+    return aArg == NULL ? GUri::nil : aArg->Uid();
+}
+
+template<> string Ifu::Pack<const TNs&>(const TNs& aArg)
+{
+    string res;
+    for (auto it = aArg.cbegin(); it < aArg.cend(); it++) {
+        string cres = Pack(*it);
+        res += KArraySep + EscCtrl(cres, KArraySep);
+    }
+    return res;
+}
+
+template<> string Ifu::Pack<TNs>(TNs aArg)
+{
+    string res;
+    for (auto it = aArg.cbegin(); it < aArg.cend(); it++) {
+        string cres = Pack(*it);
+        res += KArraySep + EscCtrl(cres, KArraySep);
+    }
+    return res;
+}
+
+template<> string Ifu::Pack<MutCtx>(MutCtx aArg)
+{
+    string res;
+    // TODO Implement
+    assert(false);
+    return res;
+}
+
+
+
+
+
+template<> bool Ifu::Unpack<bool>(const string& aString, bool& aArg)
+{
+    bool res = false;
+    if (aString == "false") res = false;
+    else if (aString == "true") res = true;
+    else throw (runtime_error("Incorrect boolean value: " + aString));
+    return aArg = res;
+}
+
+template<> int Ifu::Unpack<int>(const string& aString, int& aRes)
+{
+    int res = 0;
+    stringstream ss(aString);
+    ss >> res;
+    return aRes = res;
+}
+
+template<> string Ifu::Unpack<string>(const string& aString, string& aRes)
+{
+    return aRes = aString;
+}
+
+template<> GUri Ifu::Unpack<GUri>(const string& aString, GUri& aRes)
+{
+    return aRes = GUri(aString);
+}
+
 
 string Ifu::FromBool(bool aBool)
 {
@@ -159,6 +307,21 @@ int Ifu::ToInt(const string& aString)
     int res = 0;
     stringstream ss(aString);
     ss >> res;
+    return res;
+}
+
+string Ifu::FromIdHash(MIface::TIdHash aData)
+{
+    stringstream ss;
+    ss << hex << aData;
+    return ss.str();
+}
+
+MIface::TIdHash Ifu::ToIdHash(const string& aString)
+{
+    MIface::TIdHash res;
+    stringstream ss(aString);
+    ss >> hex >> res;
     return res;
 }
 

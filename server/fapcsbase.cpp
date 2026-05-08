@@ -11,6 +11,8 @@
 #include "../src/guri.h"
 #include "../src/env.h"
 #include "../src/log.h"
+#include "../dmas/envdm.h"
+#include "../dmas/daaprov.h"
 
 using namespace std;
 
@@ -138,9 +140,14 @@ void CSessionBase::CreateEnv(const string& aChromo)
     }
     string name("Env~");
     name.append(mId);
-    mEnv = new Env(true, aChromo, name+".log");
+    mEnv = new EnvDm(true, aChromo, name + ".log");
     if (mEnv == NULL) {
 	throw(runtime_error("Failed creating env"));
+    }
+    DaaProv* dmprov = new DaaProv("DmProv", mEnv);
+    bool res = mEnv->addProvider(dmprov);
+    if (!res) {
+	throw(runtime_error("Failed adding Dm provider"));
     }
     string uid("MEnv#" + mId);
     // Adding session Id into env variables
