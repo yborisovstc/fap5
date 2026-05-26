@@ -10,10 +10,14 @@ class NodePx : public DaaProxy, public MNode {
         virtual ~NodePx();
     public:
         // From MProxy
-        virtual string MProxy_Uid() const { return string();}
+        string MProxy_Uid() const override { return string();}
+        MIface* MProxy_getLif(TIdHash aId) override;
         // From MNode
-        string MNode_Uid() const {return string();} // TODO TBD
+        string MNode_Uid() const override;
         MIface* MNode_getLif(TIdHash aId) override;
+	void Construct() override {};
+        void MNode_call(const string& aSpec, string& aRes, MIface*& aIres) override {}
+	void MNode_doDump(int aLevel, int aIdt, ostream& aOs) const override;
 	const string& name() const override;
 	GUri parentUri() const override;
 	vector<GUri> parentsUris() const override;

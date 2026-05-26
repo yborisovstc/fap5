@@ -12,6 +12,7 @@ class MContentOwner: public MIface
 	inline static TIdHash idHash() { return 0x1e4507d19fdbe;}
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string Uid() const override { return MContentOwner_Uid();}
 	virtual string MContentOwner_Uid() const = 0;
 	virtual MIface* getLif(TIdHash aId) override { return MContentOwner_getLif(aId);}

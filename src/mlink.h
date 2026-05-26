@@ -20,6 +20,7 @@ class MLink: public MIface
 	inline static constexpr TIdHash idHash() { return 0x4f0a000556332ad5;}
     public:
 	// From MIface
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MLink_Uid();}
 	MIface* getLif(const char *aType) { return MLink_getLif(aType);}
 	void doDump(int aLevel, int aIdt = 0) const { return MLink_doDump(aLevel, aIdt, std::cout);}

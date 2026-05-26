@@ -26,6 +26,7 @@ class MProvider: public MIface
 	inline static constexpr std::string_view idStr() { return "MProvider"sv;}
 	inline static constexpr TIdHash idHash() { return 0xb1cbbc1ec7173a5c;}
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual ~MProvider() {};
 	// From MIface
 	string Uid() const override { return MProvider_Uid();}
@@ -42,6 +43,7 @@ class MProvider: public MIface
 	/* @brief Create iface instance
 	*/
 	virtual MIface* createIfi(const string& aType, const string& aName, MEnv* aEnv) = 0;
+	virtual MIface* createIfi(TIdHash aType, const string& aName, MEnv* aEnv) = 0;
 	/** @brief Sets chromo resolution arguments
 	 * Just one argument, chromo spec file extension is used
 	 * */

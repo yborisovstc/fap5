@@ -11,11 +11,24 @@ NodePx::~NodePx()
 {
 }
 
+MIface* NodePx::MProxy_getLif(TIdHash aId)
+{
+    MIface* res = nullptr;
+    if (res = checkLif(aId, mMNode));
+    else DaaProxy::MProxy_getLif(aId);
+    return res;
+}
+
 MIface* NodePx::MNode_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
     if (res = checkLif(aId, mMNode));
     return res;
+}
+
+string NodePx::MNode_Uid() const
+{
+    return Rpc<string>(__func__);
 }
 
 const string& NodePx::name() const
@@ -96,3 +109,7 @@ const MNode::TOwnerCp* NodePx::ownerCp() const
     return nullptr;
 }
 
+void NodePx::MNode_doDump(int aLevel, int aIdt, ostream& aOs) const
+{
+    Rpc<int, int>(__func__, aLevel, aIdt);
+}

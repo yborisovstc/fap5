@@ -39,6 +39,7 @@ class MLogRec: public MIface
 	inline static constexpr TIdHash idHash() { return 0x6559291f5dce4e0c;}
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string Uid() const override { return MLogRec_Uid();}
 	virtual string MLogRec_Uid() const = 0;
 	virtual MIface* getLif(const char *aType) { return MLogRec_getLif(aType);}

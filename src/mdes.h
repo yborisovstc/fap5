@@ -21,6 +21,7 @@ class MDesObserver: public MIface
     public:
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string Uid() const override { return MDesObserver_Uid();}
 	virtual string MDesObserver_Uid() const = 0;
 	virtual void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDesObserver_doDump(aLevel, aIdt, std::cout);}
@@ -44,6 +45,7 @@ class MDesInpObserver: public MIface
     public:
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MDesInpObserver_Uid();}
 	MIface* getLif(TIdHash aId) override { return MDesInpObserver_getLif(aId); }
 	virtual string MDesInpObserver_Uid() const = 0;
@@ -67,6 +69,7 @@ class MDesSyncable: public MIface
     public:
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string Uid() const override { return MDesSyncable_Uid();}
 	virtual string MDesSyncable_Uid() const = 0;
 	virtual void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDesSyncable_doDump(aLevel, aIdt, std::cout);}
@@ -102,6 +105,7 @@ class MDesCtxSpl : public MIface
 	inline static constexpr TIdHash idHash() { return 0xb46422c03e7249cf;}
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MDesCtxSpl_Uid();}
 	void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDesCtxSpl_doDump(aLevel, aIdt, std::cout);}
 	MIface* getLif(TIdHash aId) override { return MDesCtxSpl_getLif(aId); }
@@ -140,6 +144,7 @@ class MDesCtxCsm : public MIface
 	inline static constexpr TIdHash idHash() { return 0x68950a80697af250;}
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MDesCtxCsm_Uid();}
 	MIface* getLif(TIdHash aId) override { return MDesCtxCsm_getLif(aId); }
 	void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDesCtxCsm_doDump(aLevel, aIdt, std::cout);}
@@ -170,6 +175,7 @@ class MDesCtxBinder : public MIface
 	inline static constexpr TIdHash idHash() { return 0xece4117fa87bad2;}
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string Uid() const override { return MDesCtxBinder_Uid();}
 	virtual string MDesCtxBinder_Uid() const = 0;
 	// Local

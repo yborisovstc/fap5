@@ -389,8 +389,8 @@ void Ut_Systdm::test_Systdm()
     CPPUNIT_ASSERT_MESSAGE("Fail to get Node1-MOwned", node1Owd);
     string node1OwdId = node1Owd->ownedId();
     CPPUNIT_ASSERT_MESSAGE("Fail to get Node1-MOwned Id", node1OwdId == "Node1");
-    //MNode* node1 = sysdm->getNode("Node1");
-    //CPPUNIT_ASSERT_MESSAGE("Fail to get Node1", node1);
+    MNode* node1 = sysdm->getNode("Node1");
+    CPPUNIT_ASSERT_MESSAGE("Fail to get Node1", node1);
 #if 0
     // Getting local remote env agent
     MElem* renv = root->GetNode("./Renv"); 
@@ -431,6 +431,9 @@ void Ut_Systdm::test_Systdm2()
     res = mClient->Request(sdm, "getNode,1,Node1", node1);
     CPPUNIT_ASSERT_MESSAGE("Fail to get Node1", res);
     cout << "Got node node1: " << node1 << endl;
+    string node1Uri;
+    res = mClient->Request(node1, "getUri,1", node1Uri);
+    CPPUNIT_ASSERT_MESSAGE("Fail to get Node1 Uri", node1Uri == ".MyRoot.SDm.Node1");
 }
 
 

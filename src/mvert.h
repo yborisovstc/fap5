@@ -23,6 +23,7 @@ class MVert: public MIface
 	inline static constexpr TIdHash idHash() { return 0xedc4d46b41b2bbeb;}
 	// From MIface 
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string MVert_Uid() const = 0;
 	string Uid() const override { return MVert_Uid();}
 	MIface *getLif(TIdHash aId) override { return MVert_getLif(aId);}

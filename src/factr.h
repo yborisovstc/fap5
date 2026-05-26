@@ -38,6 +38,7 @@ class Factory: public MProvider
 	virtual void setEnv(MEnv* aEnv);
 	virtual DtBase* createData(const string& aType) override;
 	MIface* createIfi(const string& aType, const string& aName, MEnv* aEnv) override;
+	MIface* createIfi(TIdHash aType, const string& aName, MEnv* aEnv) override;
     protected:
 	static int FilterPlgDirEntries(const struct dirent *aEntry);
     protected:

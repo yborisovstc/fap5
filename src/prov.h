@@ -60,12 +60,14 @@ class ProvBase: public Provider
 	using TIfiFact = MIface* (const string &aName, MEnv* aEnv);
 	/** Registry of iface impl factory function */
 	using TIfiFReg = unordered_map<string, TIfiFact*>;
+	using TIfiFRegH = unordered_map<TIdHash, TIfiFact*>;
     public:
 	static const char* Type() { return "ProvBase";};
 	ProvBase(const string& aName, MEnv* aEnv);
 	virtual ~ProvBase();
 	virtual const TFReg& FReg() const = 0;
 	virtual const TIfiFReg& FIfiReg() const = 0;
+	virtual const TIfiFRegH& FIfiRegH() const = 0;
 	virtual const TDtFReg& FDtReg() const = 0;
 	// From MProvider
 	MNode* createNode(const string& aType, const string& aName, MEnv* aEnv) override;
@@ -73,12 +75,14 @@ class ProvBase: public Provider
 	virtual MChromo* createChromo();
 	virtual DtBase* createData(const string& aType) override;
 	MIface* createIfi(const string& aType, const string& aName, MEnv* aEnv) override;
+	MIface* createIfi(TIdHash aType, const string& aName, MEnv* aEnv) override;
     protected:
 	/** Creates native agent */
 	MNode* CreateAgent(const string& aType, const string& aName, MEnv* aEnv) const;
 	DtBase* CreateData(const string& aType) const;
 	template<typename T> static pair<string, ProvBase::TFact*> Item();
 	template<typename T, typename P> static pair<string, ProvBase::TIfiFact*> IfiItem();
+	template<typename T, typename P> static pair<TIdHash, ProvBase::TIfiFact*> IfiItemH();
 	template<typename T> static pair<string, ProvBase::TDtFact*> DItem();
     private:
 	vector<string> iNodesInfo;
@@ -90,10 +94,16 @@ template<typename T> pair<string, ProvBase::TFact*> ProvBase::Item() {
 	(T::idStr(), [](const string &name, MEnv* env)->MNode* { return new T(string(T::idStr()), name, env);});
 }
 
-/** Generator of Iface impl factory registry item */
+/** Generator of Iface impl factory registry item, string Id key */
 template<typename T, typename P> pair<string, ProvBase::TIfiFact*> ProvBase::IfiItem() {
     return pair<string, ProvBase::TIfiFact*>
 	(T::idStr(), [](const string &name, MEnv* env)->MIface* { return new P(name, env);});
+}
+
+/** Generator of Iface impl factory registry item, hash Id key */
+template<typename T, typename P> pair<MIface::TIdHash, ProvBase::TIfiFact*> ProvBase::IfiItemH() {
+    return pair<MIface::TIdHash, ProvBase::TIfiFact*>
+	(T::idHash(), [](const string &name, MEnv* env)->MIface* { return new P(name, env);});
 }
 
 

@@ -23,6 +23,7 @@ class MSyst: public MIface
 	inline static constexpr TIdHash idHash() { return 0x3558aa937bbb2f;}
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MSyst_Uid();}
 	MIface* getLif(TIdHash aId) override { return MSyst_getLif(aId);}
 	virtual string MSyst_Uid() const = 0;
@@ -47,6 +48,7 @@ class MAgent: public MIface
 	inline static constexpr TIdHash idHash() { return 0x253392665466b0a2;}
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MAgent_Uid();}
 	MIface* getLif(TIdHash aId) override { return MAgent_getLif(aId);}
 	// Local
@@ -66,6 +68,7 @@ class MAhost: public MIface
 	inline static constexpr TIdHash idHash() { return 0x5daf5c9fd0239bfb;}
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MAhost_Uid();}
 	MIface* getLif(TIdHash aId) override { return MAhost_getLif(aId);}
 	// Local
@@ -84,6 +87,7 @@ class MSystExplorable: public MIface
 	inline static constexpr TIdHash idHash() { return 0x20a2680ef32e47b1;}
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MSystExplorable_Uid();}
 	MIface* getLif(TIdHash aId) override { return MSystExplorable_getLif(aId);}
 	// Local
@@ -101,6 +105,7 @@ class MSystExploring: public MIface
 	inline static constexpr TIdHash idHash() { return 0x5be939ac33d3b333;}
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MSystExploring_Uid();}
 	MIface* getLif(TIdHash aId) override { return MSystExploring_getLif(aId);}
 	// Local

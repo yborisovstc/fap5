@@ -1,7 +1,9 @@
 
 #include "daaprov.h"
+#include "daapxprov.h"
 #include "sysdm.h"
 #include "renvadp.h"
+#include "ownedpx.h"
 
 
 /** Native agents factory registry */
@@ -10,8 +12,13 @@ const ProvBase::TFReg DaaProv::mReg ( {
 });
 
 const ProvBase::TIfiFReg DaaProv::mIfiReg ( {
-        /*IfiItem<OwdRenvAdp>()*/
+        IfiItem<MIpxProv, DaaPxProv>()
 });
+
+const ProvBase::TIfiFRegH DaaProv::mIfiRegH ( {
+        IfiItemH<MIpxProv, DaaPxProv>()
+});
+
 
 /** Data factory registry */
 const ProvBase::TDtFReg DaaProv::mDtReg ( {

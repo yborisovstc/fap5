@@ -19,6 +19,7 @@ class MObserver: public MIface
     public:
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MObserver_Uid();}
 	virtual string MObserver_Uid() const = 0;
 	MIface* getLif(TIdHash aId) override { return MObserver_getLif(aId);}
@@ -38,6 +39,7 @@ class MObservable: public MIface
     public:
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MObservable_Uid();}
 	virtual string MObservable_Uid() const = 0;
 	MIface* getLif(TIdHash aId) { return MObservable_getLif(aId);}

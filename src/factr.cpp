@@ -85,6 +85,15 @@ MIface* Factory::createIfi(const string& aType, const string& aName, MEnv* aEnv)
     return res;
 }
 
+MIface* Factory::createIfi(MIface::TIdHash aType, const string& aName, MEnv* aEnv)
+{
+    MIface* res = NULL;
+    for (map<string, MProvider*>::iterator it = iProviders.begin(); it != iProviders.end() && res == NULL; it++) {
+	res = it->second->createIfi(aType, aName, aEnv);
+    }
+    return res;
+}
+
 bool Factory::LoadPlugin(const string& aName)
 {
     bool res = false;

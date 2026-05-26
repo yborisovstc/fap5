@@ -20,6 +20,7 @@ class MElem: public MIface
 	inline static constexpr TIdHash idHash() { return 0xd0cb09cd212045e1;}
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MElem_Uid();}
 	virtual string MElem_Uid() const = 0;
 	MIface* getLif(TIdHash aId) override { return MElem_getLif(aId);}

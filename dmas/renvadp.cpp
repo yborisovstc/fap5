@@ -9,25 +9,16 @@
 //// OwnedPpx
 
 OwdRenvAdp::OwnedPpx::OwnedPpx(OwdRenvAdp* aHost, const string& aContext):
-    DaaProxy(aHost->mEnv, &aHost->mPxMgr, aContext), mHost(aHost), mOwsCp(this) {}
+    OwnedPx(aHost->mEnv, &aHost->mPxMgr, aContext), mHost(aHost) {}
 
 OwdRenvAdp::OwnedPpx::~OwnedPpx() 
 {}
 
-MIface* OwdRenvAdp::OwnedPpx::MOwned_getLif(TIdHash aId)
+MIface* OwdRenvAdp::OwnedPpx::MProxy_getLif(TIdHash aId)
 {
     MIface* res = nullptr;
-    if (res = checkLif(aId, mMOwned));
-    else (aId == MNode::idHash()) {
-    }
+    res = OwnedPx::MProxy_getLif(aId);
     return res;
-}
-
-string OwdRenvAdp::OwnedPpx::ownedId() const
-{
-    string resp;
-    bool res = mMgr->Request(mContext, "ownedId", resp);
-    return resp;
 }
 
 

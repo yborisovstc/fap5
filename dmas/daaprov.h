@@ -14,12 +14,14 @@ class DaaProv: public ProvBase
         // From ProvBase
 	const TFReg& FReg() const override { return mReg;}
 	const TIfiFReg& FIfiReg() const override { return mIfiReg;}
+	const TIfiFRegH& FIfiRegH() const override { return mIfiRegH;}
 	const TDtFReg& FDtReg() const override { return mDtReg;}
 	void setChromoRslArgs(const string& aRargs) override {}
 	void getChromoRslArgs(string& aRargs) override {} 
     protected:
 	static const TFReg mReg;
 	static const TIfiFReg mIfiReg;
+	static const TIfiFRegH mIfiRegH;
 	static const TDtFReg mDtReg;
 };
 

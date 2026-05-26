@@ -12,6 +12,7 @@ class MLauncher: public MIface
 	inline static constexpr TIdHash idHash() { return 0x7b1e7681b5caa8a1;}
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string Uid() const override { return MLauncher_Uid();}
 	virtual string MLauncher_Uid() const = 0;
 	// Local

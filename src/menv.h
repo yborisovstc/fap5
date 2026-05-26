@@ -41,6 +41,7 @@ class MEnv : public MIface
 	inline static constexpr TIdHash idHash() { return 0x681193193e80f18e;}
     public:
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual ~MEnv() {}
 	// From MIface
 	virtual string Uid() const override { return MEnv_Uid();}

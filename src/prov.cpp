@@ -159,6 +159,18 @@ MIface* ProvBase::createIfi(const string& aType, const string& aName, MEnv* aEnv
 
 }
 
+MIface* ProvBase::createIfi(MIface::TIdHash aType, const string& aName, MEnv* aEnv)
+{
+    MIface* res = NULL;
+    auto it = FIfiRegH().find(aType);
+    if (it != FIfiRegH().end()) {
+        res = it->second(aName, aEnv);
+    }
+    return res;
+
+}
+
+
 DtBase* ProvBase::CreateData(const string& aType) const
 {
     DtBase* res = NULL;

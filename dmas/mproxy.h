@@ -18,10 +18,14 @@ class MProxy : public MIface
     public:
 	// From MIface 
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual bool setContext(const string& aContext) = 0;
 	virtual const string& GetContext() const = 0;
 	virtual string MProxy_Uid() const = 0;
 	string Uid() const override { return MProxy_Uid();}
+	virtual MIface* getLif(TIdHash aTid) override { return MProxy_getLif(aTid);}
+	virtual MIface* MProxy_getLif(TIdHash aTid) = 0;
+	virtual MIface* getLif(const string& aId) = 0;
 };
 
 /*
@@ -32,6 +36,7 @@ class MProxyMgr
     public:
         virtual ~MProxyMgr() {}
 	virtual MProxy* CreateProxy(const string& aId, const string& aContext) = 0;
+	virtual MProxy* CreateProxy(MIface::TIdHash aId, const string& aContext) = 0;
 	virtual bool Request(const string& aContext, const string& aReq, string& aResp) = 0;
 	virtual void RegisterProxy(MProxy* aProxy) = 0;
 	// Object Id

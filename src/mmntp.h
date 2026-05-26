@@ -10,13 +10,13 @@
  * */
 class MMntp : public MIface
 {
-
     public:
 	inline static constexpr std::string_view idStr() { return "MMntp"sv;}
 	inline static constexpr TIdHash idHash() { return 0x307011d9f2032675;}
     public:
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string Uid() const override { return MMntp_Uid();}
 	virtual string MMntp_Uid() const = 0;
 	virtual MIface* getLif(TIdHash aId) { return MMntp_getLif(aId);}

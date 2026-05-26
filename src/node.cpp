@@ -40,6 +40,8 @@ MNode::EIfu::EIfu()
     RegMethod("getNode", 1);
     RegMethod("mutate", 2);
     RegMethod("MNode_getLif", 1);
+    RegMethod("getUri", 1);
+    RegMethod("MNode_Uid", 0);
 }
 
 
@@ -48,6 +50,9 @@ MOwned::EIfu MOwned::mIfu;
 MOwned::EIfu::EIfu()
 {
     RegMethod("ownedId", 0);
+    RegMethod("MOwned_getLif", 1);
+    RegMethod("onOwnerAttached", 0);
+    RegMethod("deleteOwned", 0);
 }
 
 
@@ -113,6 +118,7 @@ void Node::MNode_call(const string& aSpec, string& aRes, MIface*& aIres)
     } else if (name == "getNode") {
         res = getNode(args[0]);
         if (!res) {
+            res = getNode(args[0]);
             throw (runtime_error("Failed getting node"));
         }
     } else if (name == "name") {
@@ -120,6 +126,16 @@ void Node::MNode_call(const string& aSpec, string& aRes, MIface*& aIres)
     } else if (name == "MNode_getLif") {
         MIface::TIdHash id = Ifu::ToIdHash(args[0]);
         res = MNode_getLif(id);
+    } else if (name == "getUri") {
+        GUri uri;
+        MNode* base = getNode(args[0]);
+        if (base == nullptr) {
+            throw (runtime_error("Failed getting base"));
+        }
+        getUri(uri, base);
+        aRes = uri;
+    } else if (name == "MNode_Uid") {
+        aRes = MNode_Uid();
     } else {
         throw (runtime_error("Unhandled method: " + name));
     }
@@ -142,6 +158,13 @@ void Node::MOwned_call(const string& aSpec, string& aRes, MIface*& aIres)
     }
     if (name == "ownedId") {
         aRes = ownedId();
+    } else if (name == "MOwned_getLif") {
+        MIface::TIdHash id = Ifu::ToIdHash(args[0]);
+        res = MOwned_getLif(id);
+    } else if (name == "onOwnerAttached") {
+        onOwnerAttached();
+    } else if (name == "deleteOwned") {
+        deleteOwned();
     } else {
         throw (runtime_error("Unhandled method: " + name));
     }

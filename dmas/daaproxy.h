@@ -9,6 +9,7 @@
 #include "../src/ifu.h"
 
 #include "mproxy.h"
+#include "mipxprov.h"
 
 /* @brief Remote environment client. Provides set of clients session to same remote environment
  * This allows to avoid interaction deadlock in case of cyclyc requests, ref ds_pa_msra
@@ -57,6 +58,7 @@ class DaaPxMgr: public MProxyMgr
     public:
 	// From MProxyMgr
 	MProxy* CreateProxy(const string& aId, const string& aContext) override;
+	MProxy* CreateProxy(MIface::TIdHash aId, const string& aContext) override;
 	bool Request(const string& aContext, const string& aReq, string& aResp) override;
 	string Oid() const override;
 	void OnProxyDeleting(const MProxy* aProxy) override;
@@ -70,6 +72,7 @@ class DaaPxMgr: public MProxyMgr
     protected:
 	MEnv* mEnv;
 	MProxyMgrOwner* mOwner;
+        MIpxProv* mIpxProv = nullptr;
 	TPxs mProxies;
 	RenvClient& mRenvClient;
 };
@@ -84,19 +87,21 @@ class DaaProxy : public MProxy
 {
     public:
 	DaaProxy(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
+	DaaProxy(MEnv* aEnv, const string& aContext);
 	virtual ~DaaProxy();
 	// From MProxy
 	bool setContext(const string& aContext) override;
 	virtual const string& GetContext() const;
-	virtual MIface* GetIface(const string& aName);
-	virtual const MIface* GetIface(const string& aName) const;
-	virtual string GetUid() const;
+        string MProxy_Uid() const override {return string();} // TODO TBD
+        MIface* MProxy_getLif(TIdHash aId) override;
+	MIface* getLif(const string& aId) override;
     protected:
 	inline MProvider* Provider() const;
 	inline MLogRec* Logger() const;
 	bool Request(const string& aReq, string& aResp);
 	MIface* NewProxyRequest(const string& aCallSpec, const string& aPxType);
-	MIface* GetProxy(const string& aSpec, const string& aIdS) const;
+	MIface* GetProxy(const string& aSpec, const string& aId) const;
+	MIface* GetProxy(const string& aSpec, TIdHash aIfaceId) const;
 	const MIface* NewProxyRequest(const string& aCallSpec, const string& aPxType) const {
             auto self = const_cast<DaaProxy*>(this);
             return self->NewProxyRequest(aCallSpec, aPxType);
@@ -119,12 +124,21 @@ class DaaProxy : public MProxy
 	template<typename TArg1, typename TArg2, typename TArg3> void Rpcv(const string& aName, TArg1 aArg1, TArg2 aArg2, TArg3 aArg3) const;
 	template<typename TArg1, typename TArg2, typename TArg3, typename TArg4> void Rpcv(const string& aName, TArg1 aArg1, TArg2 aArg2, TArg3 aArg3, TArg4 aArg4) const;
 	MIface* RpcPxN(const string& aName, const string& aIfType) const;
+	MIface* RpcPxNh(const string& aName, TIdHash aIfType) const;
 	template<typename TArg1> MIface* RpcPxN(const string& aName, const string& aIfType, TArg1 aArg1) const;
 	template<typename TArg1, typename TArg2> MIface* RpcPxN(const string& aName, const string& aIfType, TArg1 aArg1, TArg2 aArg2) const;
 	template<typename TArg1, typename TArg2, typename TArg3> MIface* RpcPxN(const string& aName, const string& aIfType, TArg1 aArg1, TArg2 aArg2, TArg3 aArg3) const;
     protected:
+        template<class T> inline MIface* checkLif(TIdHash aId, T*& aPtr) {
+            return (aId == T::idHash()) ? (aPtr ? aPtr : (aPtr = dynamic_cast<T*>(this)))  : nullptr;
+        }
+        template<class T> inline MIface* checkLif(const string& aId, T*& aPtr) {
+            return (aId == T::idStr()) ? (aPtr ? aPtr : (aPtr = dynamic_cast<T*>(this)))  : nullptr;
+        }
+    protected:
 	MEnv* mEnv;
-	MProxyMgr* mMgr;
+	MProxyMgr* mMgr = nullptr;
+        MProxy* mMProxy = nullptr;
 	string mContext;
 };
 
@@ -173,7 +187,7 @@ template<typename TRet> TRet* DaaProxy::RpcPx(const string& aName) const
 {
     string resp;
     bool rres = mMgr->Request(mContext, Ifu::PackMethod(aName), resp);
-    return (rres ? (TRet*) GetProxy(resp, TRet::idHash(), TRet::idStr()) : NULL);
+    return (rres ? (TRet*) GetProxy(resp/*, TRet::idHash()*/, TRet::ids()) : NULL);
 } 
 
 template<typename TRet> const TRet* DaaProxy::RpcPxC(const string& aName) const

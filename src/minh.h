@@ -18,6 +18,7 @@ class MParent : public MIface
 	inline static constexpr TIdHash idHash() { return 0x8f2ba00fd4cbd280;}
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MParent_Uid();}
 	virtual string MParent_Uid() const = 0;
 	MIface* getLif(TIdHash aId) override { return MParent_getLif(aId);}
@@ -52,6 +53,7 @@ class MChild : public MIface
 	inline static constexpr TIdHash idHash() { return 0xa9ff92bbd5b98def;}
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MChild_Uid();}
 	virtual string MChild_Uid() const = 0;
 	MIface* getLif(TIdHash aId) override { return MChild_getLif(aId);}

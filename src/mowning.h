@@ -21,10 +21,10 @@ class MOwner : public MIface
     public:
 	inline static constexpr std::string_view idStr() { return "MOwner"sv;}
 	inline static constexpr TIdHash idHash() { return 0x5ef6ce210778d73c;}
-
     public:
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string Uid() const override { return MOwner_Uid();}
 	virtual string MOwner_Uid() const = 0;
 	virtual MIface* getLif(TIdHash aId) { return MOwner_getLif(aId);}
@@ -62,6 +62,7 @@ class MOwned : public MIface
     public:
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string Uid() const override { return MOwned_Uid();}
 	virtual string MOwned_Uid() const = 0;
 	virtual MIface* getLif(TIdHash aTid) override { return MOwned_getLif(aTid);}
@@ -73,6 +74,7 @@ class MOwned : public MIface
 	virtual void deleteOwned() = 0;
 	virtual void onOwnerAttached() = 0;
 	virtual void onOwnerDetached() = 0;
+        // TODO asOwner isnt used. we can just request MOwner via local ifr. To remove?
 	virtual MOwner* asOwner() = 0;
 	virtual const MOwner* asOwner() const = 0;
 	virtual TOwnedCp* ownedCp() = 0;

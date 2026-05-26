@@ -17,6 +17,7 @@ class MConnPoint : public MIface
     public:
 	// From MIface
 	TIdHash id() const override { return idHash(); }
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MConnPoint_Uid();}
 	virtual string MConnPoint_Uid() const = 0;
 	// Local
@@ -44,6 +45,7 @@ class MSocket: public MIface
     public:
 	// From MIface
 	TIdHash id() const override { return idHash(); }
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MSocket_Uid();}
 	virtual string MSocket_Uid() const = 0;
 	// Local
@@ -68,6 +70,7 @@ class MExtdInt: public MIface
     public:
 	// From MIface
 	TIdHash id() const override { return idHash(); }
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MExtdInt_Uid();}
 	virtual string MExtdInt_Uid() const = 0;
         // Local

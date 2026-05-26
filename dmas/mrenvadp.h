@@ -18,6 +18,7 @@ class MRenvAdp : public MIface
     public:
 	// From MIface 
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string MRenvAdp_Uid() const = 0;
 	string Uid() const override { return MRenvAdp_Uid();}
 	MIface *getLif(TIdHash aId) override { return MRenvAdp_getLif(aId);}
@@ -40,6 +41,7 @@ class MOwdRenvAdp : public MIface
     public:
 	// From MIface 
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string MOwdRenvAdp_Uid() const = 0;
 	string Uid() const override { return MOwdRenvAdp_Uid();}
 	MIface *getLif(TIdHash aId) override { return MOwdRenvAdp_getLif(aId);}
@@ -60,6 +62,7 @@ class MOwgRenvAdp : public MIface
     public:
 	// From MIface 
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string MOwgRenvAdp_Uid() const = 0;
 	string Uid() const override { return MOwgRenvAdp_Uid();}
 	MIface *getLif(TIdHash aId) override { return MOwgRenvAdp_getLif(aId);}

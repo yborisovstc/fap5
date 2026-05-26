@@ -9,6 +9,7 @@
 #include "mproxy.h"
 #include "daaproxy.h"
 #include "mrenvadp.h"
+#include "ownedpx.h"
 
 
 /* @brief Adapter to remote environment, base class for specialized
@@ -85,32 +86,15 @@ class OwdRenvAdp : public RenvAdp, public MOwdRenvAdp
                 OwdRenvAdp& mHost;
         };
         */
-        class OwnedPpx : public DaaProxy, public MOwned {
+        class OwnedPpx : public OwnedPx {
             public:
                 OwnedPpx(OwdRenvAdp* aHost, const string& aContext);
                 virtual ~OwnedPpx();
             public:
                 // From MProxy
-                virtual string MProxy_Uid() const { return string();}
-                // From Owned
-                string MOwned_Uid() const {return string();} // TODO TBD
-                MIface* MOwned_getLif(TIdHash aId) override;
-                string ownedId() const override;
-                void deleteOwned() override { }
-                void onOwnerAttached() override { }
-                void onOwnerDetached() override { }
-                MOwner* asOwner() override { MOwner* res = MOwned::lIf(res); return res; }
-                const MOwner* asOwner() const override { const MOwner* res = MOwned::lIf(res); return res; }
-                TOwnedCp* ownedCp() override { return &mOwsCp;}
-                const TOwnedCp* ownedCp() const override { return &mOwsCp;}
-            protected:
-                template<class T> inline MIface* checkLif(TIdHash aId, T*& aPtr) {
-                    return (aId == T::idHash()) ? (aPtr ? aPtr : (aPtr = dynamic_cast<T*>(this)))  : nullptr;
-                }
-            protected:
+                MIface* MProxy_getLif(TIdHash aId) override;
+             protected:
                 OwdRenvAdp* mHost;
-                OwdCp mOwsCp;                /*!< Ownership CP */
-                MOwned* mMOwned = nullptr;
         };
     public:
         OwdRenvAdp(const string& aName, MEnv* aEnv);

@@ -94,6 +94,7 @@ class MNode: public MIface
 	/** Secondary constructor */
 	virtual void Construct() = 0;
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string Uid() const override { return MNode_Uid();}
 	virtual string MNode_Uid() const = 0;
 	virtual MIface* getLif(TIdHash aTid) override { return MNode_getLif(aTid);}

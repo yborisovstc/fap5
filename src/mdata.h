@@ -22,6 +22,7 @@ class MDVarGet: public MIface
     public:
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	string Uid() const override { return MDVarGet_Uid();}
 	void doDump(int aLevel, int aIdt, ostream& aOs) const override { return MDVarGet_doDump(aLevel, aIdt, std::cout);}
 	MIface* getLif(TIdHash aId) override { return MDVarGet_getLif(aId); }
@@ -56,6 +57,7 @@ class MDVarSet: public MIface
     public:
 	// From MIface
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string Uid() const override { return MDVarSet_Uid();}
 	virtual string MDVarSet_Uid() const = 0;
 	// Local

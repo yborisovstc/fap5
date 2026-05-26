@@ -15,6 +15,7 @@ class ProvDef: public ProvBase
 	// From ProvBase
 	virtual const TFReg& FReg() const override {return mReg;}
 	virtual const TIfiFReg& FIfiReg() const override {return mIfiReg;}
+	virtual const TIfiFRegH& FIfiRegH() const override {return mIfiRegH;}
 	virtual const TDtFReg& FDtReg() const override {return mDtReg;}
 	// From MProvider
 	virtual void getNodesInfo(vector<string>& aInfo);
@@ -25,6 +26,7 @@ class ProvDef: public ProvBase
     private:
 	static const TFReg mReg;
 	static const TIfiFReg mIfiReg;
+	static const TIfiFRegH mIfiRegH;
 	static const TDtFReg mDtReg;
 };
 

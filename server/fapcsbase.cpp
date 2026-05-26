@@ -77,7 +77,10 @@ string CSessionBase::getId() const
 
 void CSessionBase::HandleMessage(const string& aMsg) {
     //cout << "Session [" << mId << "] received: " << aMsg << endl;
-    LOG(EDbg) << "Received message: " << aMsg;
+    LOG(EDbg) << "Received: " << aMsg;
+    if (aMsg == "Node1%MNode getUri,1") {
+        LOG(EDbg) << "getUri";
+    }
     size_t ctxid_beg = 0;
     size_t ctxid_end = aMsg.find_first_of(RequestIPC::REQ_SEPARATOR, ctxid_beg); 
     if (ctxid_end == ctxid_beg) {

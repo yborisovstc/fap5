@@ -185,6 +185,11 @@ template<> string Ifu::Pack<const string&>(const string& aArg)
     return aArg;
 }
 
+template<> string Ifu::Pack<string&>(string& aArg)
+{
+    return aArg;
+}
+
 template<> string Ifu::Pack<const char*>(const char* aArg)
 {
     return string(aArg);
@@ -204,8 +209,6 @@ template<> string Ifu::Pack<ChromoNode>(ChromoNode aArg)
 {
     return aArg;
 }
-
-
 
 template<> string Ifu::Pack<const MIface*>(const MIface* aArg)
 {
@@ -264,6 +267,12 @@ template<> string Ifu::Pack<MutCtx>(MutCtx aArg)
     assert(false);
     return res;
 }
+
+template<> string Ifu::Pack<MIface::TIdHash>(MIface::TIdHash aArg)
+{
+    return FromIdHash(aArg);
+}
+
 
 
 

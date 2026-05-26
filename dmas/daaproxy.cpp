@@ -116,6 +116,9 @@ BaseClient* RenvClient::GetClient()
 DaaPxMgr::DaaPxMgr(MEnv* aEnv, MProxyMgrOwner* aOwner, RenvClient& aRenvClient):
     mEnv(aEnv), mOwner(aOwner), mRenvClient(aRenvClient)
 {
+    MIface* ifi = mEnv->provider()->createIfi(string(MIpxProv::idStr()), "IpxProv", mEnv);
+    mIpxProv = ifi ? ifi->lIf(mIpxProv) : nullptr;
+    assert(mIpxProv);
 }
 
 DaaPxMgr::~DaaPxMgr()
@@ -127,26 +130,44 @@ DaaPxMgr::~DaaPxMgr()
     mProxies.clear();
 }
 
-MProxy *DaaPxMgr::CreateProxy(const string &aId, const string &aContext)
+MProxy *DaaPxMgr::CreateProxy(const string &aIfaceId, const string &aContext)
 {
-	MProxy *res = NULL;
-	// Checking if UID is already proxied
-	if (IsCached(aContext)) {
-		res = GetProxy(aContext);
-	} else {
-                // TODO to consider identification (name) of proxy
-		MIface* ifi = mEnv->provider()->createIfi(aId, "Proxy_name", mEnv);
-                res = ifi ? ifi->lIf(res) : nullptr;
-                // TODO to connect px to pxmgr
-		if (res != NULL) {
-                    res->setContext(aContext);
-			RegProxy(res);
-		} else {
-			//Logger()->Write(EErr, mOwner, "Cannot create proxy [%s], context [%s]", aId.c_str(), aContext.c_str());
-		}
-	}
-	return res;
+    MProxy *res = NULL;
+    // Checking if UID is already proxied
+    if (IsCached(aContext)) {
+        res = GetProxy(aContext);
+    } else {
+        //MIface* ifi = mEnv->provider()->createIfi(aIfaceId, "Proxy", mEnv);
+        //res = ifi ? ifi->lIf(res) : nullptr;
+        res = mIpxProv->createProxy(aIfaceId, this, aContext);
+        // TODO to connect px to pxmgr
+        if (res != nullptr) {
+            //res->setContext(aContext);
+            RegProxy(res);
+        } else {
+            //Logger()->Write(EErr, mOwner, "Cannot create proxy [%s], context [%s]", aId.c_str(), aContext.c_str());
+        }
+    }
+    return res;
 }
+
+MProxy* DaaPxMgr::CreateProxy(MIface::TIdHash aIfaceId, const string &aContext)
+{
+    MProxy *res = NULL;
+    // Checking if UID is already proxied
+    if (IsCached(aContext)) {
+        res = GetProxy(aContext);
+    } else {
+        res = mIpxProv->createProxy(aIfaceId, this, aContext);
+        if (res != nullptr) {
+            RegProxy(res);
+        } else {
+            //Logger()->Write(EErr, mOwner, "Cannot create proxy [%s], context [%s]", aId.c_str(), aContext.c_str());
+        }
+    }
+    return res;
+}
+
 
 void DaaPxMgr::RegisterProxy(MProxy* aProxy)
 {
@@ -210,6 +231,10 @@ DaaProxy::DaaProxy(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext): mEnv(aE
 {
 }
 
+DaaProxy::DaaProxy(MEnv* aEnv, const string& aContext): mEnv(aEnv), mContext(aContext)
+{
+}
+
 DaaProxy::~DaaProxy()
 {
     mMgr->OnProxyDeleting(this);
@@ -228,19 +253,18 @@ const string& DaaProxy::GetContext() const
     return mContext;
 }
 
-MIface* DaaProxy::GetIface(const string& aName)
+MIface* DaaProxy::MProxy_getLif(TIdHash aId)
 {
-    return NULL;
+    MIface* res = nullptr;
+    if (res = checkLif(aId, mMProxy));
+    return res;
 }
 
-const MIface* DaaProxy::GetIface(const string& aName) const
+MIface* DaaProxy::getLif(const string& aId)
 {
-    return NULL;
-}
-
-string DaaProxy::GetUid() const
-{
-    return string();
+    MIface* res = nullptr;
+    if (res = checkLif(aId, mMProxy));
+    return res;
 }
 
 MIface* DaaProxy::NewProxyRequest(const string& aCallSpec, const string& aPxType)
@@ -297,6 +321,32 @@ MIface* DaaProxy::GetProxy(const string& aSpec, const string& aPxType) const
     return res;
 }
 
+MIface* DaaProxy::GetProxy(const string& aSpec, TIdHash aPxType) const
+{ 
+    MIface* res = NULL;
+    if (aSpec != RequestIPC::RES_OK_NONE) {
+	// Checking if UID is of local Iface to avoid px duplication, ref ds_daa_pxdup
+	bool isloc = false;
+	string oid, iid;
+	Ifu::ParseUid(aSpec, oid, iid);
+	if (!Ifu::IsSimpleIid(iid)) {
+	    //MIface* ifc = mEnv->IfaceResolver()->GetIfaceByUid(iid);
+            MIface* ifc = nullptr;//!!
+	    if (ifc != NULL) {
+		res = ifc;
+		isloc = true;
+	    }
+	}
+	if (!isloc) {
+	    MProxy* px = mMgr->CreateProxy(aPxType, aSpec);
+            assert(px != nullptr);
+	    res = px->getLif(aPxType);
+	}
+    }
+    return res;
+}
+
+
 bool DaaProxy::Request(const string& aReq, string& aResp)
 {
     bool res = mMgr->Request(mContext, aReq, aResp);
@@ -306,6 +356,13 @@ bool DaaProxy::Request(const string& aReq, string& aResp)
 MIface* DaaProxy::RpcPxN(const string& aName, const string& aIfType) const
 {
     string resp;
-    bool rres = mMgr->Request(mContext, Ifu::PackMethod(aName), resp);
+    bool rres = mMgr->Request(mContext, Ifu::PackMethod(aName, aIfType), resp);
+    return (rres ? GetProxy(resp, aIfType) : NULL);
+}
+
+MIface* DaaProxy::RpcPxNh(const string& aName, TIdHash aIfType) const
+{
+    string resp;
+    bool rres = mMgr->Request(mContext, Ifu::PackMethod(aName, aIfType), resp);
     return (rres ? GetProxy(resp, aIfType) : NULL);
 }

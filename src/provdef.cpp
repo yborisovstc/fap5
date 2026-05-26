@@ -102,6 +102,10 @@ const ProvDef::TIfiFReg ProvDef::mIfiReg ( {
 });
 
 
+const ProvDef::TIfiFRegH ProvDef::mIfiRegH ( {
+});
+
+
 /** Data factory registry */
 const ProvDef::TDtFReg ProvDef::mDtReg ( {
 	DItem<DGuri>(), 

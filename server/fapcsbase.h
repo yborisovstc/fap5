@@ -46,6 +46,7 @@ class MEnvProvider: public MIface
     public:
 	// From MIface 
 	TIdHash id() const override { return idHash();}
+	string ids() const override { return string(idStr());}
 	virtual string MEnvProvider_Uid() const = 0;
 	string Uid() const override { return MEnvProvider_Uid();}
         void call(const string& aSpec, string& aRes, MIface*& aIres) override { MEnvProvider_call(aSpec, aRes, aIres);}
